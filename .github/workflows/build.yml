@@ -44,11 +44,11 @@ jobs:
       - name: Build OpenWrt Image
         run: |
           if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-          mv files openwrt-imagebuilder-${{ env.image }}.Linux-x86_64
-          cd openwrt-imagebuilder-${{ env.image }}.Linux-x86_64
+            mv files openwrt-imagebuilder-${{ env.image }}.Linux-x86_64
+            cd openwrt-imagebuilder-${{ env.image }}.Linux-x86_64
           else
-          mv files openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64
-          cd openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64
+            mv files openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64
+            cd openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64
           fi
           make image  \
           PROFILE="${{ env.profile }}" \
@@ -69,12 +69,17 @@ jobs:
 
           ### sha256sum
           if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-          $(awk '{if ($2 ~ /sysupgrade\.bin$/) print $1 " *sysupgrade.bin"; else if ($2 ~ /factory\.bin$/) print $1 " *factory.bin"}' openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/sha256sums)
+            $(awk '{if ($2 ~ /sysupgrade\.bin$/) print $1 " *sysupgrade.bin"; else if ($2 ~ /factory\.bin$/) print $1 " *factory.bin"}' openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/sha256sums)
           else
-          $(awk '{if ($2 ~ /sysupgrade\.bin$/) print $1 " *sysupgrade.bin"; else if ($2 ~ /factory\.bin$/) print $1 " *factory.bin"}' openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/sha256sums)
+            $(awk '{if ($2 ~ /sysupgrade\.bin$/) print $1 " *sysupgrade.bin"; else if ($2 ~ /factory\.bin$/) print $1 " *factory.bin"}' openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/sha256sums)
           fi
           EOF
-          
+
+          if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
+             echo "IMAGE_PATH=openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
+          else
+             echo "IMAGE_PATH=openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
+          fi
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -82,8 +87,4 @@ jobs:
           tag_name: ${{ env.profile }}-${{ env.openwrt_version }}-${{ github.run_number }}
           body_path: build_info.md
           files: |
-              if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-              openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*
-              else
-              openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*
-              fi
+              ${{ env.image_path }}
