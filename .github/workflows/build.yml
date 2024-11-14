@@ -77,11 +77,9 @@ jobs:
           - **Disabled Services**: ${{ env.disabled_services }}
           -----
           ### 🔐 sha256sum
-          
-          $(
-              awk '{if ($2 ~ /sysupgrade\.bin$/) print "`" $1 "` ***sysupgrade.bin**"; 
-                    else if ($2 ~ /factory\.bin$/) print "`" $1 "` ***factory.bin**"}' sha256sums
-          )
+
+          $(awk '{if ($2 ~ /sysupgrade\.bin$/) printf "`%s` ***sysupgrade.bin**\n", $1; 
+          else if ($2 ~ /factory\.bin$/) printf "`%s` ***factory.bin**\n", $1}' sha256sums)
           EOF
 
       - name: Release
