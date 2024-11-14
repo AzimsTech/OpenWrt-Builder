@@ -62,9 +62,9 @@ jobs:
         run: |
 
           if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-             echo "IMAGE_PATH=openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
+             echo "image_path=openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
           else
-             echo "IMAGE_PATH=openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
+             echo "image_path=openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
           fi
 
           cat <<EOF > build_info.md
