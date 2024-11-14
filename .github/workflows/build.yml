@@ -1,0 +1,72 @@
+name: Build and Publish OpenWrt Image
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write  # Grant write permissions for release creation
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Load secrets
+        run: |
+          find .
+          cat config
+          cat config >> $GITHUB_ENV
+          sed -i -e 's/^# ssid=".*"/ssid="${{ secrets.WLAN_NAME }}"/' \
+            -e 's/^# ssid_key=".*"/ssid_key="${{ secrets.WLAN_PASS }}"/' \
+            -e 's/^# root_password=".*"/root_password="${{ secrets.ROOT_PASS }}"/' \
+            -e 's/^# pppoe_name=".*"/pppoe_key="${{ secrets.PPPOE_NAME }}"/' \
+            -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' files/etc/uci-defaults/99-custom
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential libncurses-dev zlib1g-dev gawk wget git gettext libssl-dev xsltproc rsync unzip python3 python3-distutils zstd
+
+      - name: Download and extract OpenWrt Image Builder
+        run: |
+          wget https://downloads.openwrt.org/releases/${{ env.openwrt_version }}/targets/$(echo ${{ env.image }} | tr '-' '/')/openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64.tar.zst
+          tar -xvf openwrt-imagebuilder-*.tar.zst
+
+      - name: Build OpenWrt Image
+        run: |
+          mv files openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64
+          cd openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64
+          make image  \
+          PROFILE="${{ env.profile }}" \
+          PACKAGES="${{ env.packages }}" \
+          FILES="files" \
+          DISABLED_SERVICES="${{ env.disabled_services }}"
+
+      - name: Write Build Info
+        run: |
+          cat <<EOF > build_info.md
+          ## Custom OpenWrt Build Information
+          
+          - **OpenWrt Version**: ${{ env.openwrt_version }}
+          - **Image**: ${{ env.image }}
+          - **Profile**: ${{ env.profile }}
+          - **Packages**: ${{ env.packages }}
+          - **Disabled Services**: ${{ env.disabled_services }}
+
+          ### sha256sum
+          $(awk '{if ($2 ~ /sysupgrade\.bin$/) print $1 " *sysupgrade.bin"; else if ($2 ~ /factory\.bin$/) print $1 " *factory.bin"}' openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/sha256sums)
+          EOF
+          
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.profile }}-${{ env.openwrt_version }}-${{ github.run_number }}
+          body_path: build_info.md
+          files: |
+              openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*
