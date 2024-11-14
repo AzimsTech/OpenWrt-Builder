@@ -35,7 +35,7 @@ jobs:
       - name: Download and extract OpenWrt Image Builder
         run: |
           if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-            wget https://downloads.openwrt.org/${{ env.openwrt_version }}/targets/$(echo ${{ env.image }} | tr '-' '/')/openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64.tar.zst
+            wget https://downloads.openwrt.org/$(echo ${{ env.openwrt_version }} | tr '[:upper:]' '[:lower:]')s/targets/$(echo ${{ env.image }} | tr '-' '/')/openwrt-imagebuilder-$(echo ${{ env.openwrt_version }} | tr '[:upper:]' '[:lower:]')-${{ env.image }}.Linux-x86_64.tar.zst
           else
             wget https://downloads.openwrt.org/releases/${{ env.openwrt_version }}/targets/$(echo ${{ env.image }} | tr '-' '/')/openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64.tar.zst
           fi 
