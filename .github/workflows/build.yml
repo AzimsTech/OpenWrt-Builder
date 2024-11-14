@@ -58,6 +58,13 @@ jobs:
 
       - name: Write Build Info
         run: |
+
+          if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
+             echo "IMAGE_PATH=openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
+          else
+             echo "IMAGE_PATH=openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
+          fi
+
           cat <<EOF > build_info.md
           ## Custom OpenWrt Build Information
           
@@ -68,24 +75,15 @@ jobs:
           - **Disabled Services**: ${{ env.disabled_services }}
 
           ### sha256sum
-          if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-            $(awk '{if ($2 ~ /sysupgrade\.bin$/) print $1 " *sysupgrade.bin"; else if ($2 ~ /factory\.bin$/) print $1 " *factory.bin"}' openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/sha256sums)
-          else
-            $(awk '{if ($2 ~ /sysupgrade\.bin$/) print $1 " *sysupgrade.bin"; else if ($2 ~ /factory\.bin$/) print $1 " *factory.bin"}' openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/sha256sums)
-          fi
+          $(awk '{if ($2 ~ /sysupgrade\.bin$/) print $1 " *sysupgrade.bin"; else if ($2 ~ /factory\.bin$/) print $1 " *factory.bin"}' ${{ env.image_path }})
           EOF
 
-          if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-             echo "IMAGE_PATH=openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
-          else
-             echo "IMAGE_PATH=openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
-          fi
+          
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v4
         with:
           tag_name: ${{ env.profile }}-${{ env.openwrt_version }}-${{ github.run_number }}
           body_path: build_info.md
           files: |
-            openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*
-            openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*
+              ${{ env.image_path }}
