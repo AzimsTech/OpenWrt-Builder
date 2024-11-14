@@ -44,8 +44,8 @@ jobs:
       - name: Build OpenWrt Image
         run: |
           if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-          mv files openwrt-imagebuilder-${{ env.openwrt_version }}.Linux-x86_64
-          cd openwrt-imagebuilder-${{ env.openwrt_version }}.Linux-x86_64
+          mv files openwrt-imagebuilder-${{ env.image }}.Linux-x86_64
+          cd openwrt-imagebuilder-${{ env.image }}.Linux-x86_64
           else
           mv files openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64
           cd openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64
@@ -83,7 +83,8 @@ jobs:
           body_path: build_info.md
           files: |
               if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-              openwrt-imagebuilder-${{ env.openwrt_version }}.Linux-x86_64/bin/targets/*/*/*
+              openwrt-imagebuilder-ath79-generic.Linux-x86_64
+              openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*
               else
               openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*
               fi
