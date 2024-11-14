@@ -87,4 +87,5 @@ jobs:
           tag_name: ${{ env.profile }}-${{ env.openwrt_version }}-${{ github.run_number }}
           body_path: build_info.md
           files: |
-              ${{ env.image_path }}
+            openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*
+            openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*
