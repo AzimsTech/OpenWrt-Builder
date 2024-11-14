@@ -68,19 +68,21 @@ jobs:
         run: |
 
           cat <<EOF > build_info.md
-          ## Custom OpenWrt Build Information
+          ## 💡 Custom OpenWrt Build Information
           
           - **OpenWrt Version**: ${{ env.openwrt_version }}
           - **Image**: ${{ env.image }}
           - **Profile**: ${{ env.profile }}
           - **Packages**: ${{ env.packages }}
           - **Disabled Services**: ${{ env.disabled_services }}
-
-          ### sha256sum
-          $(awk '{if ($2 ~ /sysupgrade\.bin$/) print $1 " *sysupgrade.bin"; else if ($2 ~ /factory\.bin$/) print $1 " *factory.bin"}' ${{ env.image_path }})
-          EOF
-
+          -----
+          ### 🔐 sha256sum
           
+          $(
+              awk '{if ($2 ~ /sysupgrade\.bin$/) print "`" $1 "` ***sysupgrade.bin**"; 
+                    else if ($2 ~ /factory\.bin$/) print "`" $1 "` ***factory.bin**"}' sha256sums
+          )
+          EOF
 
       - name: Release
         uses: softprops/action-gh-release@v2
