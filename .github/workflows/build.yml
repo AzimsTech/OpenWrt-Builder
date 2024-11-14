@@ -69,7 +69,7 @@ jobs:
 
           ### sha256sum
           if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-          $(awk '{if ($2 ~ /sysupgrade\.bin$/) print $1 " *sysupgrade.bin"; else if ($2 ~ /factory\.bin$/) print $1 " *factory.bin"}' openwrt-imagebuilder-${{ env.openwrt_version }}.Linux-x86_64/bin/targets/*/*/sha256sums)
+          $(awk '{if ($2 ~ /sysupgrade\.bin$/) print $1 " *sysupgrade.bin"; else if ($2 ~ /factory\.bin$/) print $1 " *factory.bin"}' openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/sha256sums)
           else
           $(awk '{if ($2 ~ /sysupgrade\.bin$/) print $1 " *sysupgrade.bin"; else if ($2 ~ /factory\.bin$/) print $1 " *factory.bin"}' openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/sha256sums)
           fi
@@ -83,7 +83,6 @@ jobs:
           body_path: build_info.md
           files: |
               if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-              openwrt-imagebuilder-ath79-generic.Linux-x86_64
               openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*
               else
               openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*
