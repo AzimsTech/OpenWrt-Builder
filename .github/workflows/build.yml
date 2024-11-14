@@ -19,7 +19,6 @@ jobs:
       - name: Load secrets
         run: |
           find .
-          cat config
           cat config >> $GITHUB_ENV
           sed -i -e 's/^# ssid=".*"/ssid="${{ secrets.WLAN_NAME }}"/' \
             -e 's/^# ssid_key=".*"/ssid_key="${{ secrets.WLAN_PASS }}"/' \
