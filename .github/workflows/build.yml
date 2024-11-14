@@ -26,7 +26,7 @@ jobs:
           sed -i -e 's/^# ssid=".*"/ssid="${{ secrets.WLAN_NAME }}"/' \
             -e 's/^# ssid_key=".*"/ssid_key="${{ secrets.WLAN_PASS }}"/' \
             -e 's/^# root_password=".*"/root_password="${{ secrets.ROOT_PASS }}"/' \
-            -e 's/^# pppoe_name=".*"/pppoe_key="${{ secrets.PPPOE_NAME }}"/' \
+            -e 's/^# pppoe_name=".*"/pppoe_name="${{ secrets.PPPOE_NAME }}"/' \
             -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' files/etc/uci-defaults/99-custom
 
       - name: Install dependencies
