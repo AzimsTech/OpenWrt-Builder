@@ -46,6 +46,12 @@ jobs:
       - name: Build OpenWrt Image
         run: |
           if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
+             echo "image_path=openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
+          else
+             echo "image_path=openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
+          fi
+
+          if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
             mv files openwrt-imagebuilder-${{ env.image }}.Linux-x86_64
             cd openwrt-imagebuilder-${{ env.image }}.Linux-x86_64
           else
@@ -60,12 +66,6 @@ jobs:
 
       - name: Write Build Info
         run: |
-
-          if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-             echo "image_path=openwrt-imagebuilder-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
-          else
-             echo "image_path=openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
-          fi
 
           cat <<EOF > build_info.md
           ## Custom OpenWrt Build Information
