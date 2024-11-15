@@ -61,6 +61,25 @@ jobs:
           FILES="files" \
           DISABLED_SERVICES="${{ env.disabled_services }}"
 
+      - name: List Directories
+        run: ls -R openwrt-imagebuilder-*
+
+      - name: Navigate to Targets Directory
+        run: |
+          target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
+          echo "Found directory: $target_dir"
+          cd "$target_dir"
+
+      - name: Change Directory
+        run: cd "openwrt-imagebuilder-*/bin/targets/*/*/"
+
+      - name: Ensure Single Match
+        run: |
+          matches=$(ls -d openwrt-imagebuilder-*/bin/targets/*/*/)
+          echo "Matches found: $matches"
+          cd $matches
+                                    
+
       - name: Write Build Info
         run: |
 
