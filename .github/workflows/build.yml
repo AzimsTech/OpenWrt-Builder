@@ -75,12 +75,13 @@ jobs:
           -----
           ### 🔐 sha256sum
 
-          cd openwrt-imagebuilder-*/bin/targets/*/*/*
+          cd openwrt-imagebuilder-*/bin/targets/*/*/
           ls
           $(awk '{if ($2 ~ /sysupgrade\.bin$/) printf "`%s` ***sysupgrade.bin**\n", $1; 
           else if ($2 ~ /factory\.bin$/) printf "`%s` ***factory.bin**\n", $1}' sha256sums)
           EOF
-
+          
+          cd ~/
           mv bin ..
 
       - name: Release
