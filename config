@@ -1,12 +1,12 @@
 
-image=ramips-mt7621
+image=ath79-generic
 
-profile=dlink_dir-2150-a1
+profile=dlink_dir-842-c2
 
 openwrt_version=SNAPSHOT
 
 packages=luci
 
-disabled_services=
+disabled_services=dnsmasq firewall odhcpd
 
 debug=
