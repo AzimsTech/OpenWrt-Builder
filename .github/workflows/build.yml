@@ -61,6 +61,7 @@ jobs:
           # Get the target directory and write build info
           target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
           echo "image_path=$target_dir" >> $GITHUB_ENV
+
           cat <<EOF > build_info.md
           ## 💡 Custom OpenWrt Build Information
           
@@ -73,7 +74,7 @@ jobs:
           -----
           ### 🔐 sha256sum
 
-          $(awk '$2 ~ /(sysupgrade|factory)\.bin$/ {printf "`%s` ***%s**\n", $1, $2}' $target_dir/sha256sums)
+          $(awk '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {printf "`%s` ***%s**\n", $1, $2}' $target_dir/sha256sums)
           EOF
 
       - name: Release
