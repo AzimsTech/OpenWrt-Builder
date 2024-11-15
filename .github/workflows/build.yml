@@ -73,8 +73,8 @@ jobs:
           -----
           ### 🔐 sha256sum
 
-          $(awk '{if ($2 ~ /sysupgrade\.bin$/) printf "`%s` ***sysupgrade.bin**\n", $1; 
-          else if ($2 ~ /factory\.bin$/) printf "`%s` ***factory.bin**\n", $1}' $target_dir/sha256sums)
+          $(awk '$2 ~ /(sysupgrade|factory)\.bin$/ {printf "`%s` ***%s**\n", $1, $2}' $target_dir/sha256sums)
+
           EOF
 
       - name: Release
@@ -83,4 +83,4 @@ jobs:
           tag_name: v${{ github.run_number }}-${{ env.profile }}-${{ env.openwrt_version }}
           body_path: build_info.md
           files: |
-            ${{ env.image_path }}
+            ${{ env.image_path }}/*
