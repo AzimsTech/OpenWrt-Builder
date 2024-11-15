@@ -77,7 +77,7 @@ jobs:
           else if ($2 ~ /factory\.bin$/) printf "`%s` ***factory.bin**\n", $1}' $target_dir/sha256sums)
           EOF
           pwd
-          cd openwrt-imagebuilder-*/
+          cd runner/work/openwrt-imagebuilder-*/
           mv bin ..
           cd ~/
           ls
