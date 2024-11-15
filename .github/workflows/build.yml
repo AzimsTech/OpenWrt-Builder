@@ -51,13 +51,10 @@ jobs:
              echo "image_path=openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64/bin/targets/*/*/*" >> $GITHUB_ENV
           fi
 
-          if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-            mv files openwrt-imagebuilder-${{ env.image }}.Linux-x86_64
-            cd openwrt-imagebuilder-${{ env.image }}.Linux-x86_64
-          else
-            mv files openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64
-            cd openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64
-          fi
+          mv files openwrt-imagebuilder-*/
+          cd openwrt-imagebuilder-*/
+          pwd
+
           make image  \
           PROFILE="${{ env.profile }}" \
           PACKAGES="${{ env.packages }}" \
