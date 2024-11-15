@@ -79,6 +79,8 @@ jobs:
           
           cd openwrt-imagebuilder-*/
           mv bin ..
+          cd ~/
+          ls
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -86,4 +88,4 @@ jobs:
           tag_name: v${{ github.run_number }}-${{ env.profile }}-${{ env.openwrt_version }}
           body_path: build_info.md
           files: |
-            openwrt-imagebuilder-*/bin/targets/*/*/
+            bin/*
