@@ -1,8 +1,8 @@
 
-image=ath79-generic
+image=ramips-mt7621
 
-profile=dlink_dir-842-c2
+profile=dlink_dir-882-a1
 
-disabled_services=dnsmasq firewall odhcpd
+disabled_services=
 
 debug=
