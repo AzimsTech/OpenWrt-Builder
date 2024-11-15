@@ -1,12 +1,8 @@
 name: Build and Publish OpenWrt Image
 
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  #push:
-    #branches: [ "main" ]
-  
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+  workflow_dispatch:  # Allows manual trigger from the Actions tab
+
 permissions:
   contents: write  # Grant write permissions for release creation
 
@@ -20,45 +16,49 @@ jobs:
 
       - name: Load secrets
         run: |
-          find .
-          cat config
-          cat config >> $GITHUB_ENV
+          # Load configuration and inject secrets into the config
           sed -i -e 's/^# ssid=".*"/ssid="${{ secrets.WLAN_NAME }}"/' \
-            -e 's/^# ssid_key=".*"/ssid_key="${{ secrets.WLAN_PASS }}"/' \
-            -e 's/^# root_password=".*"/root_password="${{ secrets.ROOT_PASS }}"/' \
-            -e 's/^# pppoe_name=".*"/pppoe_name="${{ secrets.PPPOE_NAME }}"/' \
-            -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' files/etc/uci-defaults/99-custom
+                 -e 's/^# ssid_key=".*"/ssid_key="${{ secrets.WLAN_PASS }}"/' \
+                 -e 's/^# root_password=".*"/root_password="${{ secrets.ROOT_PASS }}"/' \
+                 -e 's/^# pppoe_name=".*"/pppoe_name="${{ secrets.PPPOE_NAME }}"/' \
+                 -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' \
+                 files/etc/uci-defaults/99-custom
+          cat config >> $GITHUB_ENV  # Append config to environment variables
 
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y build-essential libncurses-dev zlib1g-dev gawk wget git gettext libssl-dev xsltproc rsync unzip python3 python3-distutils zstd
+          sudo apt install -y \
+            build-essential libncurses-dev zlib1g-dev gawk wget git gettext \
+            libssl-dev xsltproc rsync unzip python3 python3-distutils zstd
 
       - name: Download and extract OpenWrt Image Builder
         run: |
-          if [ "${{ env.openwrt_version }}" == "SNAPSHOT" ]; then
-            wget https://downloads.openwrt.org/$(echo ${{ env.openwrt_version }} | tr '[:upper:]' '[:lower:]')s/targets/$(echo ${{ env.image }} | tr '-' '/')/openwrt-imagebuilder-${{ env.image }}.Linux-x86_64.tar.zst
+          # Determine the OpenWrt version and download appropriate image builder
+          version="${{ env.openwrt_version }}"
+          image="${{ env.image }}"
+          if [ "$version" == "SNAPSHOT" ]; then
+            url="https://downloads.openwrt.org/${version,,}s/targets/$(echo $image | tr '-' '/')/openwrt-imagebuilder-${image}.Linux-x86_64.tar.zst"
           else
-            wget https://downloads.openwrt.org/releases/${{ env.openwrt_version }}/targets/$(echo ${{ env.image }} | tr '-' '/')/openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.image }}.Linux-x86_64.tar.zst
-          fi 
+            url="https://downloads.openwrt.org/releases/${version}/targets/$(echo $image | tr '-' '/')/openwrt-imagebuilder-${version}-${image}.Linux-x86_64.tar.zst"
+          fi
+          wget $url
           tar -xvf openwrt-imagebuilder-*.tar.zst
 
       - name: Build OpenWrt Image
         run: |
-
+          # Move necessary files and run the build process
           mv files openwrt-imagebuilder-*/
           cd openwrt-imagebuilder-*/
-          pwd
+          make image \
+            PROFILE="${{ env.profile }}" \
+            PACKAGES="${{ env.packages }}" \
+            FILES="files" \
+            DISABLED_SERVICES="${{ env.disabled_services }}"
 
-          make image  \
-          PROFILE="${{ env.profile }}" \
-          PACKAGES="${{ env.packages }}" \
-          FILES="files" \
-          DISABLED_SERVICES="${{ env.disabled_services }}"
-                                   
       - name: Write Build Info
         run: |
-
+          # Get the target directory and write build info
           target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
           echo "image_path=$target_dir" >> $GITHUB_ENV
 
@@ -70,11 +70,11 @@ jobs:
           - **Profile**: ${{ env.profile }}
           - **Packages**: ${{ env.packages }}
           - **Disabled Services**: ${{ env.disabled_services }}
+          
           -----
           ### 🔐 sha256sum
 
           $(awk '$2 ~ /(sysupgrade|factory)\.bin$/ {printf "`%s` ***%s**\n", $1, $2}' $target_dir/sha256sums)
-
           EOF
 
       - name: Release
