@@ -61,7 +61,6 @@ jobs:
           # Get the target directory and write build info
           target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
           echo "image_path=$target_dir" >> $GITHUB_ENV
-
           cat <<EOF > build_info.md
           ## 💡 Custom OpenWrt Build Information
           
