@@ -46,9 +46,6 @@ jobs:
       - name: Build OpenWrt Image
         run: |
 
-          target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
-          echo "image_path=$target_dir" >> $GITHUB_ENV
-
           mv files openwrt-imagebuilder-*/
           cd openwrt-imagebuilder-*/
           pwd
@@ -61,7 +58,6 @@ jobs:
                                    
       - name: Write Build Info
         run: |
-
           cat <<EOF > build_info.md
           ## 💡 Custom OpenWrt Build Information
           
@@ -73,7 +69,10 @@ jobs:
           -----
           ### 🔐 sha256sum
 
-          cd ${{ github.image_path }}
+          target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
+          echo "image_path=$target_dir" >> $GITHUB_ENV
+
+          cd $target_dir
           ls
           $(awk '{if ($2 ~ /sysupgrade\.bin$/) printf "`%s` ***sysupgrade.bin**\n", $1; 
           else if ($2 ~ /factory\.bin$/) printf "`%s` ***factory.bin**\n", $1}' sha256sums)
@@ -88,4 +87,4 @@ jobs:
           tag_name: v${{ github.run_number }}-${{ env.profile }}-${{ env.openwrt_version }}
           body_path: build_info.md
           files: |
-            ${{ github.image_path }}
+            openwrt-imagebuilder-*/bin/targets/*/*/
