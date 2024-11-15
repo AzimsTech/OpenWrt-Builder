@@ -46,7 +46,8 @@ jobs:
       - name: Build OpenWrt Image
         run: |
 
-          echo "image_path=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)" >> $GITHUB_ENV
+          target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
+          echo "image_path=$target_dir" >> $GITHUB_ENV
 
           mv files openwrt-imagebuilder-*/
           cd openwrt-imagebuilder-*/
