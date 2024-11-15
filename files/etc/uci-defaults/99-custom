@@ -32,6 +32,8 @@ uci set network.@device[0].ipv6='0'
 uci add_list network.@device[0].ports='eth0.1'
 uci add_list network.@device[0].ports='eth0.2'
 uci set network.lan.hostname="`uci get system.@system[0].hostname`"
+uci del network.wan
+uci del network.wan6
 uci commit network
 
 # wireless
