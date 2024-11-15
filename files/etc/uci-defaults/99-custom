@@ -4,7 +4,7 @@
 [ "$(uci -q get system.@system[0].zonename)" = "Asia/Kuala Lumpur" ] && exit 0
 
 # root_password=""
-lan_ip='192.168.0.2'
+lan_ip='192.168.0.1'
 # ssid="OpenWrt"
 # ssid_key="12345678"
 # pppoe_name=""
@@ -16,7 +16,7 @@ if [ -n "$root_password" ]; then
 fi
 
 # system
-uci set system.@system[0].hostname='DIR842-STA'
+uci set system.@system[0].hostname='OpenWrt'
 uci set system.@system[0].zonename='Asia/Kuala Lumpur'
 uci set system.@system[0].timezone='<+08>-8'
 uci del system.ntp.server
@@ -26,36 +26,47 @@ uci commit system
 
 # network
 uci set network.lan.ipaddr="$lan_ip"
-uci set network.lan.gateway='192.168.0.1'
 uci set network.lan.ip6assign='64'
-uci del network.lan.dns
-uci add_list network.lan.dns='192.168.0.1'
-uci del network.@device[0].ports
-uci set network.@device[0].ipv6='0'
-uci add_list network.@device[0].ports='eth0.1'
-uci add_list network.@device[0].ports='eth0.2'
 uci set network.lan.hostname="`uci get system.@system[0].hostname`"
-uci del network.wan
-uci del network.wan6
+
+uci set network.wan.proto='pppoe'
+uci set network.wan.device='wan.500'
+uci set network.wan.username="$pppoe_name"
+uci set network.wan.password="$pppoe_key"
+uci set network.wan.ipv6='1'
+
+uci -q delete network.wan.dns
+uci add_list network.wan.dns='1.1.1.1'
+uci add_list network.wan.dns='1.0.0.1'
+uci set network.wan.peerdns='0'
+
+uci set network.wan6.device='@wan'
+uci -q delete network.wan6.dns
+uci add_list network.wan6.dns='2606:4700:4700::1111'
+uci add_list network.wan6.dns='2606:4700:4700::1001'
+uci set network.wan6.peerdns='0'
+
 uci commit network
 
 # wireless
 uci set  wireless.@wifi-device[0].country='MY'
 uci set wireless.@wifi-device[0].disabled='0'
 
-uci set wireless.@wifi-iface[0].mode='sta'
-uci set wireless.@wifi-iface[0].ssid="${ssid}-5G@unifi"
+uci set wireless.@wifi-iface[0].mode='ap'
+uci set wireless.@wifi-iface[0].ssid="${ssid}-2.4G@unifi"
 uci set wireless.@wifi-iface[0].encryption='psk2+aes'
 uci set wireless.@wifi-iface[0].key="$ssid_key"
-uci set wireless.@wifi-iface[0].wds='1'
+
+uci set  wireless.@wifi-device[1].country='MY'
+uci set wireless.@wifi-device[1].disabled='0'
+
+uci set wireless.@wifi-iface[1].mode='ap'
+uci set wireless.@wifi-iface[1].ssid="${ssid}-5G@unifi"
+uci set wireless.@wifi-iface[1].encryption='psk2+aes'
+uci set wireless.@wifi-iface[1].key="$ssid_key"
+uci set wireless.@wifi-iface[1].wds='1'
 uci commit wireless
 
 # dhcp
-uci set dhcp.lan.ignore='1'
-uci del dhcp.lan.ra
-uci del dhcp.lan.dhcpv6
-uci del dhcp.lan.ra_flags
-uci del dhcp.lan.ra_slaac
-uci commit dhcp
 
 echo "All done!"
