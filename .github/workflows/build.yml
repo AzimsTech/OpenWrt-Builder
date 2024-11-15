@@ -76,9 +76,12 @@ jobs:
           ### 🔐 sha256sum
 
           cd openwrt-imagebuilder-*/bin/targets/*/*/
+
           $(awk '{if ($2 ~ /sysupgrade\.bin$/) printf "`%s` ***sysupgrade.bin**\n", $1; 
           else if ($2 ~ /factory\.bin$/) printf "`%s` ***factory.bin**\n", $1}' sha256sums)
           EOF
+
+          mv bin ..
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -86,4 +89,4 @@ jobs:
           tag_name: v${{ github.run_number }}-${{ env.profile }}-${{ env.openwrt_version }}
           body_path: build_info.md
           files: |
-              ${{ env.image_path }}
+              openwrt-imagebuilder-*/bin/targets/*/*/*
