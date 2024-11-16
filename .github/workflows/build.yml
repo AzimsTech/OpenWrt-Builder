@@ -51,7 +51,7 @@ jobs:
           if [ "$version" == "SNAPSHOT" ]; then
             url="https://downloads.openwrt.org/${version,,}s/targets/$(echo $image | tr '-' '/')/openwrt-imagebuilder-${image}.Linux-x86_64.tar.zst"
           else
-            url="https://downloads.openwrt.org/releases/${a}/targets/$(echo $image | tr '-' '/')/openwrt-imagebuilder-${version}-${image}.Linux-x86_64.tar.zst"
+            url="https://downloads.openwrt.org/releases/${version}/targets/$(echo $image | tr '-' '/')/openwrt-imagebuilder-${version}-${image}.Linux-x86_64.tar.zst"
           fi
           wget $url
           tar -xvf openwrt-imagebuilder-*.tar.zst
