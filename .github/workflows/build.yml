@@ -2,6 +2,17 @@ name: Build and Publish OpenWrt Image
 
 on:
   workflow_dispatch:  # Allows manual trigger from the Actions tab
+    inputs:
+        evironment:
+          description: 'OpenWrt version'
+          required: true
+          default: 'SNAPSHOT'
+          type: 'choice'
+          options:
+            - 'SNAPSHOT'
+            - '24.10-SNAPSHOT'
+            - '23.05.4'
+
 
 permissions:
   contents: write  # Grant write permissions for release creation
@@ -51,7 +62,7 @@ jobs:
           mv files openwrt-imagebuilder-*/
           cd openwrt-imagebuilder-*/
           make image \
-            PROFILE="${{ env.profile }}" \
+            PROFILE="${{ github.event.inputs.environment }}" \
             PACKAGES="${{ env.packages }}" \
             FILES="files" \
             DISABLED_SERVICES="${{ env.disabled_services }}"
@@ -67,7 +78,7 @@ jobs:
           
           - **OpenWrt Version**: ${{ env.openwrt_version }}
           - **Image**: ${{ env.image }}
-          - **Profile**: ${{ env.profile }}
+          - **Profile**: ${{ github.event.inputs.environment }}
           - **Packages**: ${{ env.packages }}
           - **Disabled Services**: ${{ env.disabled_services }}
           
@@ -80,7 +91,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.run_number }}-${{ env.profile }}-${{ env.openwrt_version }}
+          tag_name: v${{ github.run_number }}-${{ github.event.inputs.environment }}-${{ env.openwrt_version }}
           body_path: build_info.md
           files: |
             ${{ env.image_path }}/*
