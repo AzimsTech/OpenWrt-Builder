@@ -3,8 +3,8 @@ name: Build and Publish OpenWrt Image
 on:
   workflow_dispatch:  # Allows manual trigger from the Actions tab
     inputs:
-        evironment:
-          description: 'OpenWrt version'
+        version:
+          description: 'OpenWrt Version:'
           required: true
           default: 'SNAPSHOT'
           type: 'choice'
@@ -12,7 +12,10 @@ on:
             - 'SNAPSHOT'
             - '24.10-SNAPSHOT'
             - '23.05.4'
-
+        packages:
+          description: 'Extra Packages:'
+          required: false
+          default: 'luci'
 
 permissions:
   contents: write  # Grant write permissions for release creation
@@ -34,8 +37,18 @@ jobs:
                  -e 's/^# pppoe_name=".*"/pppoe_name="${{ secrets.PPPOE_NAME }}"/' \
                  -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' \
                  files/etc/uci-defaults/99-custom
-          cat config >> $GITHUB_ENV  # Append config to environment variables
-          echo "openwrt_version=${{ github.event.inputs.evironment }}" >> $GITHUB_ENV
+
+      - name: Load config
+        run: |    
+          cat <<EOF > input_config
+          openwrt_version=${{ github.event.inputs.version }}
+          packages=${{ github.event.inputs.packages }}
+          EOF
+          # Append input config to environment variables
+          cat input_config >> $GITHUB_ENV  
+          # Append config file to environment variables
+          cat config >> $GITHUB_ENV  
+
       - name: Install dependencies
         run: |
           sudo apt update

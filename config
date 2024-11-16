@@ -3,10 +3,6 @@ image=ath79-generic
 
 profile=dlink_dir-842-c2
 
-openwrt_version=SNAPSHOT
-
-packages=luci
-
 disabled_services=dnsmasq firewall odhcpd
 
 debug=
