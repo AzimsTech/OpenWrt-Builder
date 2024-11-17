@@ -82,23 +82,35 @@ jobs:
 
       - name: Write Build Info
         run: |
+          # Check if uci-defaults scripts have been added
+          if [ ${{ env.files }} == "files" ]; then
+            scripts=true
+          else
+            scripts=false
+          fi
+
           # Get the target directory and write build info
           target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
           echo "image_path=$target_dir" >> $GITHUB_ENV
 
+          #Get version code from profiles.json
+          version_code=$(grep -o '"version_code":"[^"]*"' $target_dir/profiles.json | awk -F: '{print $2}' | tr -d '"')
+          
           cat <<EOF > build_info.md
           ## 💡 Custom OpenWrt Build Information
           
-          - **OpenWrt Version**: ${{ env.openwrt_version }}
-          - **Image**: ${{ env.image }}
-          - **Profile**: ${{ env.profile }}
-          - **Packages**: ${{ env.packages }}
-          - **Disabled Services**: ${{ env.disabled_services }}
+          - **OpenWrt Version**: \`${{ env.openwrt_version }}\`
+          - **Image**: \`${{ env.image }}\`
+          - **Profile**: \`${{ env.profile }}\`
+          - **Packages**: \`${{ env.packages }}\`
+          - **Disabled Services**: \`${{ env.disabled_services }}\`
+          - **Version Code**: \`$version_code\`
+          - **UCI Defaults Scripts**: \`$scripts\`
           
           -----
           ### 🔐 sha256sum
 
-          $(awk '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {printf "`%s` ***%s**\n", $1, $2}' $target_dir/sha256sums)
+          $(awk '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {printf "`%s`\n**%s**\n\n", $1, $2}' $target_dir/sha256sums)
           EOF
 
       - name: Release
