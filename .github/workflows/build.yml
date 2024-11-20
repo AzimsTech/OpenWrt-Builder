@@ -16,6 +16,10 @@ on:
           description: 'Extra Packages:'
           required: false
           default: 'luci'
+        scripts:
+          description: 'Add uci-defaults scripts?'
+          default: true
+          type: boolean
 
 permissions:
   contents: write  # Grant write permissions for release creation
@@ -40,14 +44,21 @@ jobs:
 
       - name: Load config
         run: |    
+          if [ ${{ github.event.inputs.scripts }} == true ]; then
+            files="files"
+          else
+            files=""
+          fi
+
           cat <<EOF > input_config
           openwrt_version=${{ github.event.inputs.version }}
           packages=${{ github.event.inputs.packages }}
+          files=$files
           EOF
           # Append input config to environment variables
           cat input_config >> $GITHUB_ENV  
           # Append config file to environment variables
-          cat config >> $GITHUB_ENV  
+          cat config >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
@@ -77,13 +88,13 @@ jobs:
           make image \
             PROFILE="${{ env.profile }}" \
             PACKAGES="${{ env.packages }}" \
-            FILES="files" \
+            FILES="${{ env.files }}" \
             DISABLED_SERVICES="${{ env.disabled_services }}"
 
       - name: Write Build Info
         run: |
           # Check if uci-defaults scripts have been added
-          if [ ${{ env.files }} == "files" ]; then
+          if [ "${{ env.files }}" == "files" ]; then
             scripts=true
           else
             scripts=false
