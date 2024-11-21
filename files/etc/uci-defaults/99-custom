@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# checks: ensure scripts don't overwrite custom settings
+[ "$(uci -q get system.@system[0].zonename)" = "Asia/Kuala Lumpur" ] && exit 0
+
 # root_password=""
 lan_ip='192.168.0.2'
 # ssid="OpenWrt"
