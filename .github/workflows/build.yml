@@ -127,7 +127,7 @@ jobs:
           -----
           ### 🔐 sha256sum
 
-          $(awk '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {printf "`%s`\n**%s**\n\n", $1, $2}' $target_dir/sha256sums)
+          $(jq -r '.profiles["dlink_dir-2150-a1"].images[] | "`\(.sha256)`\n***\(.name)**\n"' $target_dir/profiles.json)
           EOF
 
       - name: Release
