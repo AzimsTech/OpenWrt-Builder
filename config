@@ -1,5 +1,5 @@
 
-image=ramips-mt7621
+target=ramips/mt7621
 
 profile=dlink_dir-882-a1
 
