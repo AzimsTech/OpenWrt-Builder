@@ -12,6 +12,7 @@ on:
             - 'SNAPSHOT'
             - '24.10-SNAPSHOT'
             - '23.05-SNAPSHOT'
+            - '24.10.0-rc2'
             - '23.05.5'
         packages:
           description: 'Extra Packages:'
@@ -73,17 +74,19 @@ jobs:
           # Determine the OpenWrt version and download appropriate image builder
           version="${{ env.openwrt_version }}"
           target="${{ env.target }}"
-          if [[ "$version" == "SNAPSHOT" ]]; then
-            url="https://downloads.openwrt.org/${version,,}s/targets/${target}/openwrt-imagebuilder-$(echo $target | tr '/' '-').Linux-x86_64.tar.zst"
-            if [[ "$version" == 24.10* ]]; then
-              url="https://downloads.openwrt.org/releases/${version}/targets/${target}/openwrt-imagebuilder-${version}-$(echo $target | tr '/' '-').Linux-x86_64.tar.zst"
-            fi
+
+          if [[ $version == *SNAPSHOT* ]]; then
+            url="https://downloads.openwrt.org/${version}s/targets/${target}/openwrt-imagebuilder-$(echo $target | tr '/' '-').Linux-x86_64.tar.zst"
             wget "$url"
             tar -xvf openwrt-imagebuilder-*.tar.zst
-          else
+          elif [[ $version < "24.10" ]]; then
             url="https://downloads.openwrt.org/releases/${version}/targets/${target}/openwrt-imagebuilder-${version}-$(echo $target | tr '/' '-').Linux-x86_64.tar.xz"
             wget "$url"
             tar -J -x -f openwrt-imagebuilder-*.tar.xz
+          else
+            url="https://downloads.openwrt.org/releases/${version}/targets/${target}/openwrt-imagebuilder-${version}-$(echo $target | tr '/' '-').Linux-x86_64.tar.zst"
+            wget "$url"
+            tar -xvf openwrt-imagebuilder-*.tar.zst
           fi
 
       - name: Build OpenWrt Image
