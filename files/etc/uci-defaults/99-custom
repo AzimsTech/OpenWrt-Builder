@@ -46,10 +46,13 @@ uci add_list network.wan6.dns='2606:4700:4700::1111'
 uci add_list network.wan6.dns='2606:4700:4700::1001'
 uci set network.wan6.peerdns='0'
 
+uci set network.wan.metric='4'
+uci set network.wan6.metric='5'
+
 uci commit network
 
 # wireless
-uci set  wireless.@wifi-device[0].country='MY'
+uci set wireless.@wifi-device[0].country='MY'
 uci set wireless.@wifi-device[0].disabled='0'
 
 uci set wireless.@wifi-iface[0].mode='ap'
@@ -65,8 +68,14 @@ uci set wireless.@wifi-iface[1].ssid="${ssid}-5G@unifi"
 uci set wireless.@wifi-iface[1].encryption='psk2+aes'
 uci set wireless.@wifi-iface[1].key="$ssid_key"
 uci set wireless.@wifi-iface[1].wds='1'
-uci commit wireless
 
-# dhcp
+# Baby Jumbo Frames RFC 4638 
+uci add network device 
+uci set network.@device[-1].name='eth0'
+uci set network.@device[-1].mtu='1508'
+uci add network device
+uci set network.@device[-1].name='pppoe-wan'
+uci set network.@device[-1].mtu='1500'
+uci commit network
 
 echo "All done!"
