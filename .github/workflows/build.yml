@@ -76,7 +76,7 @@ jobs:
           version="${{ env.openwrt_version }}"
           target="${{ env.target }}"
 
-          if [[ $version == *SNAPSHOT* ]]; then
+          if [[ $version == "SNAPSHOT" ]]; then
             url="https://downloads.openwrt.org/${version}s/targets/${target}/openwrt-imagebuilder-$(echo $target | tr '/' '-').Linux-x86_64.tar.zst"
             wget "$url"
             tar -xvf openwrt-imagebuilder-*.tar.zst
