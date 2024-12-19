@@ -14,6 +14,7 @@ on:
             - '23.05-SNAPSHOT'
             - '24.10.0-rc2'
             - '23.05.5'
+            - '22.03.6'
         packages:
           description: 'Extra Packages:'
           required: false
