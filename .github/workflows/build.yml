@@ -35,6 +35,7 @@ on:
           required: false
           type: 'choice'
           options:
+            - ''
             - '99-pppoe'
             - '99-wds'      
 
@@ -51,12 +52,14 @@ jobs:
 
       - name: Load config
         run: |
-          echo "SCRIPT=${{ github.event.inputs.scripts }}" >> $GITHUB_ENV
-          if [ ! -f "files/etc/uci-defaults/${{ github.event.inputs.scripts }}" ]; then
-            echo "Error: Specified script file does not exist."
-            exit 1
+          if [ -n "${{ github.event.inputs.scripts }}" ]; then
+            echo "SCRIPT=${{ github.event.inputs.scripts }}" >> $GITHUB_ENV
+            if [ ! -f "files/etc/uci-defaults/${{ github.event.inputs.scripts }}" ]; then
+              echo "Error: Specified script file does not exist."
+              exit 1
+            fi
+            find files/etc/uci-defaults -type f ! -name "${{ github.event.inputs.scripts }}" -delete   
           fi
-          find files/etc/uci-defaults -type f ! -name "${{ github.event.inputs.scripts }}" -delete   
           
           files="files"
           cat <<EOF > input_config
@@ -80,6 +83,7 @@ jobs:
           cat input_config >> $GITHUB_ENV
 
       - name: Load secrets
+        if: ${{ github.event.inputs.scripts }}
         run: |
           # Load configuration and inject secrets into the config
           sed -i -e 's/^# ssid=".*"/ssid="${{ secrets.WLAN_NAME }}"/' \
@@ -131,7 +135,7 @@ jobs:
         run: |
           # Check if uci-defaults scripts have been added
           if [ "${{ env.files }}" == "files" ]; then
-            scripts=true
+                scripts="${{ env.SCRIPT }}"
           else
             scripts=false
           fi
