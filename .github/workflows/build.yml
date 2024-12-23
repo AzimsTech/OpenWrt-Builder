@@ -52,7 +52,11 @@ jobs:
       - name: Load config
         run: |
           echo "SCRIPT=${{ github.event.inputs.scripts }}" >> $GITHUB_ENV
-          find files/etc/uci-defaults -type f ! -name "${{ env.SCRIPT }}" -delete    
+          if [ ! -f "files/etc/uci-defaults/${{ env.SCRIPT }}" ]; then
+            echo "Error: Specified script file does not exist."
+            exit 1
+          fi
+          find files/etc/uci-defaults -type f ! -name "${{ env.SCRIPT }}" -delete   
           
           files="files"
           cat <<EOF > input_config
@@ -60,10 +64,17 @@ jobs:
           packages=${{ github.event.inputs.packages }}
           files=$files
           EOF
-          # Append input config to environment variables
-          cat input_config >> $GITHUB_ENV  
-          # Append config file to environment variables
-          cat config >> $GITHUB_ENV
+          
+          if [ -n "${{ github.event.inputs.disabled_services }}" ]; then
+            echo "disabled_services=${{ github.event.inputs.disabled_services }}" >> input_config
+          fi
+
+          if [ -n "${{ github.event.inputs.model == 'dlink_dir-882-a1' || github.event.inputs.model == 'dlink_dir-2150-a1' }}" ]; then
+            echo "target=ramips/mt7621" >> input_config
+          elif [ -n "${{ github.event.inputs.model == 'dlink_dir-842-c2' }}" ]; then
+            echo "target=ath79/generic" >> input_config
+          fi
+
 
       - name: Load secrets
         run: |
