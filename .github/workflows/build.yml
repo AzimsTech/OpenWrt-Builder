@@ -63,6 +63,7 @@ jobs:
           openwrt_version=${{ github.event.inputs.version }}
           packages=${{ github.event.inputs.packages }}
           files=$files
+          profile=${{ github.event.inputs.model }}
           EOF
           
           if [ -n "${{ github.event.inputs.disabled_services }}" ]; then
@@ -162,7 +163,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}-${{ github.event.inputs.model }}-${{ env.openwrt_version }}
+          tag_name: ${{ github.event.inputs.model }}-${{ env.openwrt_version }}
           body_path: build_info.md
           files: ${{ env.image_path }}/*
         env:
