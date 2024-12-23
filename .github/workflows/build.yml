@@ -75,6 +75,8 @@ jobs:
             echo "target=ath79/generic" >> input_config
           fi
 
+          # Append input config to environment variables
+          cat input_config >> $GITHUB_ENV
 
       - name: Load secrets
         run: |
