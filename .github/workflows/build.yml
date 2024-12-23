@@ -3,6 +3,17 @@ name: Build and Publish OpenWrt Image
 on:
   workflow_dispatch:  # Allows manual trigger from the Actions tab
     inputs:
+        model:
+          description: 'Device Model:'
+          required: true
+          type: 'choice'
+          options:
+            - dlink_dir-882-a1
+            - dlink_dir-2150-a1
+            - dlink_dir-842-c2
+        disabled_services:
+          description: 'Disabled Services:'
+          required: false
         version:
           description: 'OpenWrt Version:'
           required: true
@@ -20,9 +31,12 @@ on:
           required: false
           default: 'luci'
         scripts:
-          description: 'Add uci-defaults scripts?'
-          default: true
-          type: boolean
+          description: 'UCI Defaults Scripts:'
+          required: false
+          type: 'choice'
+          options:
+            - '99-pppoe'
+            - '99-wds'      
 
 permissions:
   contents: write  # Grant write permissions for release creation
@@ -35,24 +49,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Load secrets
-        run: |
-          # Load configuration and inject secrets into the config
-          sed -i -e 's/^# ssid=".*"/ssid="${{ secrets.WLAN_NAME }}"/' \
-                 -e 's/^# ssid_key=".*"/ssid_key="${{ secrets.WLAN_PASS }}"/' \
-                 -e 's/^# root_password=".*"/root_password="${{ secrets.ROOT_PASS }}"/' \
-                 -e 's/^# pppoe_name=".*"/pppoe_name="${{ secrets.PPPOE_NAME }}"/' \
-                 -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' \
-                 files/etc/uci-defaults/99-custom
-
       - name: Load config
-        run: |    
-          if [ ${{ github.event.inputs.scripts }} == true ]; then
-            files="files"
-          else
-            files=""
-          fi
-
+        run: |
+          echo "SCRIPT=${{ github.event.inputs.scripts }}" >> $GITHUB_ENV
+          find files/etc/uci-defaults -type f ! -name "${{ env.SCRIPT }}" -delete    
+          
+          files="files"
           cat <<EOF > input_config
           openwrt_version=${{ github.event.inputs.version }}
           packages=${{ github.event.inputs.packages }}
@@ -62,6 +64,16 @@ jobs:
           cat input_config >> $GITHUB_ENV  
           # Append config file to environment variables
           cat config >> $GITHUB_ENV
+
+      - name: Load secrets
+        run: |
+          # Load configuration and inject secrets into the config
+          sed -i -e 's/^# ssid=".*"/ssid="${{ secrets.WLAN_NAME }}"/' \
+                 -e 's/^# ssid_key=".*"/ssid_key="${{ secrets.WLAN_PASS }}"/' \
+                 -e 's/^# root_password=".*"/root_password="${{ secrets.ROOT_PASS }}"/' \
+                 -e 's/^# pppoe_name=".*"/pppoe_name="${{ secrets.PPPOE_NAME }}"/' \
+                 -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' \
+                 files/etc/uci-defaults/${{ env.SCRIPT }}
 
       - name: Install dependencies
         run: |
