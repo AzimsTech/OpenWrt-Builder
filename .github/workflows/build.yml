@@ -162,7 +162,8 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}-${{ env.openwrt_version }}
+          tag_name: ${{ github.ref }}-${{ env.openwrt_version }}
           body_path: build_info.md
-          files: |
-            ${{ env.image_path }}/*
+          files: ${{ env.image_path }}/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
