@@ -123,10 +123,10 @@ jobs:
           fi
 
           wget "$url"
-          tar -xf openwrt-imagebuilder-*.tar.*
-
+          
       - name: Build OpenWrt Image
         run: |
+          tar -xf openwrt-imagebuilder-*.tar.*
           # Move necessary files and run the build process
           mv files openwrt-imagebuilder-*/
           cd openwrt-imagebuilder-*/
@@ -157,7 +157,7 @@ jobs:
           - **Target**: \`${{ env.target }}\`
           - **Profile**: \`${{ env.profile }}\`
           - **Packages**: \`${{ env.packages }}\`
-          - **Disabled Services**: \`${disabled_services}\`
+          - **Disabled Services**: \`$disabled_services\`
           - **Version Code**: \`$version_code\`
           - **UCI Defaults Scripts**: \`$scripts\`
 
