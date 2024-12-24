@@ -11,9 +11,6 @@ on:
           - dlink_dir-882-a1
           - dlink_dir-2150-a1
           - dlink_dir-842-c2
-      disabled_services:
-        description: 'Disabled Services:'
-        required: false
       version:
         description: 'OpenWrt Version:'
         required: true
@@ -30,6 +27,9 @@ on:
         description: 'Extra Packages:'
         required: false
         default: 'luci'
+      disabled_services:
+        description: 'Disabled Services:'
+        required: false
       scripts:
         description: 'UCI Defaults Scripts:'
         required: false
