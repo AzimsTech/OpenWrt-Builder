@@ -107,7 +107,33 @@ jobs:
           sudo apt install -y \
             build-essential libncurses-dev zlib1g-dev gawk wget git gettext \
             libssl-dev xsltproc rsync unzip python3 python3-distutils zstd
-            
+      
+      - name: Fetch buildinfo.version
+        id: fetch_buildinfo_version
+        run: |
+          # Determine the OpenWrt version and download the appropriate image builder
+          version="${{ env.openwrt_version }}"
+          target="${{ env.target }}"
+          # Fetch the latest buildinfo.version file
+
+          if [[ $version == "SNAPSHOT" ]]; then
+            url="https://downloads.openwrt.org/${version}s/targets/${target}/"
+          else
+            url="https://downloads.openwrt.org/releases/${version}/targets/${target}/"
+          fi
+
+          wget -q $url/buildinfo.version -O buildinfo.version
+
+          # Get the latest version code
+          echo "buildinfo_version=$(cat buildinfo.version)" >> $GITHUB_ENV
+
+      - name: Cache OpenWrt Image Builder
+        id: cache-openwrt
+        uses: actions/cache@v4
+        with:
+          path: openwrt-imagebuilder-*.tar.*
+          key: openwrt-${{ env.openwrt_version }}-${{ env.target }}-${{ env.profile }}-${{ env.buildinfo_version }}
+      
       - name: Download OpenWrt Image Builder
         if: steps.cache-openwrt.outputs.cache-hit != 'true'
         run: |
@@ -124,14 +150,6 @@ jobs:
           fi
 
           wget "$url"
-          
-      - name: Cache OpenWrt Image Builder
-        id: cache-openwrt
-        uses: actions/cache@v4
-        with:
-          path: openwrt-imagebuilder-*.tar.*
-          key: ${{ runner.os }}-openwrt-${{ env.openwrt_version }}-${{ env.target }}-${{ hashFiles('openwrt-imagebuilder-*.tar.*') }}
-
           
       - name: Build OpenWrt Image
         run: |
