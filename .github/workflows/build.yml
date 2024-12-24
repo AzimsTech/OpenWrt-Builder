@@ -117,12 +117,12 @@ jobs:
           # Fetch the latest buildinfo.version file
 
           if [[ $version == "SNAPSHOT" ]]; then
-            url="https://downloads.openwrt.org/${version}s/targets/${target}/"
+            url="https://downloads.openwrt.org/${version}s/targets/${target}/buildinfo.version"
           else
-            url="https://downloads.openwrt.org/releases/${version}/targets/${target}/"
+            url="https://downloads.openwrt.org/releases/${version}/targets/${target}/buildinfo.version"
           fi
 
-          wget -q $url/buildinfo.version -O buildinfo.version
+          wget $url
 
           # Get the latest version code
           echo "buildinfo_version=$(cat buildinfo.version)" >> $GITHUB_ENV
