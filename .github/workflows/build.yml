@@ -1,46 +1,46 @@
 name: Build and Publish OpenWrt Image
 
 on:
-  workflow_dispatch:  # Allows manual trigger from the Actions tab
+  workflow_dispatch:
     inputs:
-        model:
-          description: 'Device Model:'
-          required: true
-          type: 'choice'
-          options:
-            - dlink_dir-882-a1
-            - dlink_dir-2150-a1
-            - dlink_dir-842-c2
-        disabled_services:
-          description: 'Disabled Services:'
-          required: false
-        version:
-          description: 'OpenWrt Version:'
-          required: true
-          default: 'SNAPSHOT'
-          type: 'choice'
-          options:
-            - 'SNAPSHOT'
-            - '24.10-SNAPSHOT'
-            - '23.05-SNAPSHOT'
-            - '24.10.0-rc2'
-            - '23.05.5'
-            - '22.03.7'
-        packages:
-          description: 'Extra Packages:'
-          required: false
-          default: 'luci'
-        scripts:
-          description: 'UCI Defaults Scripts:'
-          required: false
-          type: 'choice'
-          options:
-            - ''
-            - '99-pppoe'
-            - '99-wds'      
+      model:
+        description: 'Device Model:'
+        required: true
+        type: 'choice'
+        options:
+          - dlink_dir-882-a1
+          - dlink_dir-2150-a1
+          - dlink_dir-842-c2
+      disabled_services:
+        description: 'Disabled Services:'
+        required: false
+      version:
+        description: 'OpenWrt Version:'
+        required: true
+        default: 'SNAPSHOT'
+        type: 'choice'
+        options:
+          - 'SNAPSHOT'
+          - '24.10-SNAPSHOT'
+          - '23.05-SNAPSHOT'
+          - '24.10.0-rc2'
+          - '23.05.5'
+          - '22.03.7'
+      packages:
+        description: 'Extra Packages:'
+        required: false
+        default: 'luci'
+      scripts:
+        description: 'UCI Defaults Scripts:'
+        required: false
+        type: 'choice'
+        options:
+          - ''
+          - '99-pppoe'
+          - '99-wds'
 
 permissions:
-  contents: write  # Grant write permissions for release creation
+  contents: write
 
 jobs:
   build:
@@ -52,15 +52,17 @@ jobs:
 
       - name: Load config
         run: |
+          # Check if a script is specified and set it in the environment
           if [ -n "${{ github.event.inputs.scripts }}" ]; then
             echo "SCRIPT=${{ github.event.inputs.scripts }}" >> $GITHUB_ENV
             if [ ! -f "files/etc/uci-defaults/${{ github.event.inputs.scripts }}" ]; then
               echo "Error: Specified script file does not exist."
               exit 1
             fi
-            find files/etc/uci-defaults -type f ! -name "${{ github.event.inputs.scripts }}" -delete   
+            find files/etc/uci-defaults -type f ! -name "${{ github.event.inputs.scripts }}" -delete
           fi
-          
+
+          # Create input configuration file
           files="files"
           cat <<EOF > input_config
           openwrt_version=${{ github.event.inputs.version }}
@@ -68,24 +70,29 @@ jobs:
           files=$files
           profile=${{ github.event.inputs.model }}
           EOF
-          
+
+          # Add disabled services to the configuration if specified
           if [ -n "${{ github.event.inputs.disabled_services }}" ]; then
             echo "disabled_services=${{ github.event.inputs.disabled_services }}" >> input_config
           fi
 
-          if [ "${{ github.event.inputs.model }}" == "dlink_dir-882-a1" ] || [ "${{ github.event.inputs.model }}" == "dlink_dir-2150-a1" ]; then
-            echo "target=ramips/mt7621" >> input_config
-          elif [ "${{ github.event.inputs.model }}" == "dlink_dir-842-c2" ]; then
-            echo "target=ath79/generic" >> input_config
-          fi
+          # Set the target based on the device model
+          case "${{ github.event.inputs.model }}" in
+            dlink_dir-882-a1|dlink_dir-2150-a1)
+              echo "target=ramips/mt7621" >> input_config
+              ;;
+            dlink_dir-842-c2)
+              echo "target=ath79/generic" >> input_config
+              ;;
+          esac
 
-          # Append input config to environment variables
+          # Append input configuration to environment variables
           cat input_config >> $GITHUB_ENV
 
       - name: Load secrets
         if: ${{ github.event.inputs.scripts }}
         run: |
-          # Load configuration and inject secrets into the config
+          # Inject secrets into the specified script
           sed -i -e 's/^# ssid=".*"/ssid="${{ secrets.WLAN_NAME }}"/' \
                  -e 's/^# ssid_key=".*"/ssid_key="${{ secrets.WLAN_PASS }}"/' \
                  -e 's/^# root_password=".*"/root_password="${{ secrets.ROOT_PASS }}"/' \
@@ -95,6 +102,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # Update package list and install required dependencies
           sudo apt update
           sudo apt install -y \
             build-essential libncurses-dev zlib1g-dev gawk wget git gettext \
@@ -102,23 +110,20 @@ jobs:
 
       - name: Download and extract OpenWrt Image Builder
         run: |
-          # Determine the OpenWrt version and download appropriate image builder
+          # Determine the OpenWrt version and download the appropriate image builder
           version="${{ env.openwrt_version }}"
           target="${{ env.target }}"
 
           if [[ $version == "SNAPSHOT" ]]; then
             url="https://downloads.openwrt.org/${version}s/targets/${target}/openwrt-imagebuilder-$(echo $target | tr '/' '-').Linux-x86_64.tar.zst"
-            wget "$url"
-            tar -xvf openwrt-imagebuilder-*.tar.zst
           elif [[ $version < "24.10" ]]; then
             url="https://downloads.openwrt.org/releases/${version}/targets/${target}/openwrt-imagebuilder-${version}-$(echo $target | tr '/' '-').Linux-x86_64.tar.xz"
-            wget "$url"
-            tar -J -x -f openwrt-imagebuilder-*.tar.xz
           else
             url="https://downloads.openwrt.org/releases/${version}/targets/${target}/openwrt-imagebuilder-${version}-$(echo $target | tr '/' '-').Linux-x86_64.tar.zst"
-            wget "$url"
-            tar -xvf openwrt-imagebuilder-*.tar.zst
           fi
+
+          wget "$url"
+          tar -xf openwrt-imagebuilder-*.tar.*
 
       - name: Build OpenWrt Image
         run: |
@@ -133,23 +138,20 @@ jobs:
 
       - name: Write Build Info
         run: |
-          # Check if uci-defaults scripts have been added
-          if [ "${{ env.files }}" == "files" ]; then
-                scripts="${{ env.SCRIPT }}"
-          else
-            scripts=false
-          fi
+          # Determine if scripts are used
+          scripts="${{ env.files }}" == "files" && echo "${{ env.SCRIPT }}" || echo "false"
 
           # Get the target directory and write build info
           target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
           echo "image_path=$target_dir" >> $GITHUB_ENV
 
-          #Get version code from profiles.json
+          # Get version code from profiles.json
           version_code=$(grep -o '"version_code":"[^"]*"' $target_dir/profiles.json | awk -F: '{print $2}' | tr -d '"')
-          
+
+          # Create build info markdown file
           cat <<EOF > build_info.md
           ## 💡 Custom OpenWrt Build Information
-          
+
           - **OpenWrt Version**: \`${{ env.openwrt_version }}\`
           - **Target**: \`${{ env.target }}\`
           - **Profile**: \`${{ env.profile }}\`
@@ -157,7 +159,7 @@ jobs:
           - **Disabled Services**: \`${{ env.disabled_services }}\`
           - **Version Code**: \`$version_code\`
           - **UCI Defaults Scripts**: \`$scripts\`
-          
+
           -----
           ### 🔐 sha256sum
 
