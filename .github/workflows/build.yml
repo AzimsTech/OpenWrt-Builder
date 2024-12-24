@@ -140,6 +140,7 @@ jobs:
         run: |
           # Determine if scripts are used
           scripts="${{ env.SCRIPT }}" && echo "${{ env.SCRIPT }}" || echo "false"
+          disabled_services="${{ env.disabled_services }}" && echo "${{ env.disabled_services }}" || echo "false"
 
           # Get the target directory and write build info
           target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
@@ -156,7 +157,7 @@ jobs:
           - **Target**: \`${{ env.target }}\`
           - **Profile**: \`${{ env.profile }}\`
           - **Packages**: \`${{ env.packages }}\`
-          - **Disabled Services**: \`${{ env.disabled_services }}\`
+          - **Disabled Services**: \`${disabled_services}\`
           - **Version Code**: \`$version_code\`
           - **UCI Defaults Scripts**: \`$scripts\`
 
