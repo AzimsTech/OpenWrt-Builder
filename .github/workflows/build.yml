@@ -132,7 +132,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: openwrt-imagebuilder-*.tar.*
-          key: openwrt-${{ env.openwrt_version }}-${{ env.target }}-${{ env.profile }}-${{ env.version_buildinfo }}
+          key: openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.target }}-${{ env.version_buildinfo }}
       
       - name: Download OpenWrt Image Builder
         if: steps.cache-openwrt.outputs.cache-hit != 'true'
