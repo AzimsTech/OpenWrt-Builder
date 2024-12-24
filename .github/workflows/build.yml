@@ -139,7 +139,7 @@ jobs:
       - name: Write Build Info
         run: |
           # Determine if scripts are used
-          scripts="${{ env.files }}" == "files" && echo "${{ env.SCRIPT }}" || echo "false"
+          scripts="${{ env.SCRIPT }}" && echo "${{ env.SCRIPT }}" || echo "false"
 
           # Get the target directory and write build info
           target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
