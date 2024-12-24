@@ -112,7 +112,7 @@ jobs:
         id: cache-openwrt
         uses: actions/cache@v4
         with:
-          path: path/to/openwrt-image-builder
+          path: openwrt-imagebuilder-*.tar.*
           key: ${{ runner.os }}-openwrt-${{ env.openwrt_version }}-${{ env.target }}-${{ hashFiles('openwrt-imagebuilder-*.tar.*') }}
           restore-keys: |
             ${{ runner.os }}-openwrt-${{ env.openwrt_version }}-${{ env.target }}-
