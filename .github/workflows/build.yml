@@ -114,8 +114,6 @@ jobs:
         with:
           path: openwrt-imagebuilder-*.tar.*
           key: ${{ runner.os }}-openwrt-${{ env.openwrt_version }}-${{ env.target }}-${{ hashFiles('openwrt-imagebuilder-*.tar.*') }}
-          restore-keys: |
-            ${{ runner.os }}-openwrt-${{ env.openwrt_version }}-${{ env.target }}-
 
       - name: Download OpenWrt Image Builder
         if: steps.cache-openwrt.outputs.cache-hit != 'true'
