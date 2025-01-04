@@ -66,4 +66,17 @@ uci set wireless.@wifi-iface[1].encryption='psk2+aes'
 uci set wireless.@wifi-iface[1].key="$ssid_key"
 uci set wireless.@wifi-iface[1].wds='1'
 
+uci commit wireless
+
+# RFC4638 Baby Jumbo Frames
+uci add network device
+uci set network.@device[-1].name='wan'
+uci set network.@device[-1].mtu='1508'
+
+uci add network device
+uci set network.@device[-1].name='pppoe-wan'
+uci set network.@device[-1].mtu='1500'
+
+uci commit network
+
 echo "All done!"
