@@ -106,7 +106,7 @@ jobs:
           sudo apt update
           sudo apt install -y \
             build-essential libncurses-dev zlib1g-dev gawk wget git gettext \
-            libssl-dev xsltproc rsync unzip python3 python3-distutils zstd
+            libssl-dev xsltproc rsync unzip python3 python3-setuptools zstd
       
       - name: Fetch version.buildinfo
         id: fetch_version_buildinfo
