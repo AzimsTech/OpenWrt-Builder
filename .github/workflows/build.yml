@@ -157,7 +157,7 @@ jobs:
           # Move necessary files and run the build process
           mv files openwrt-imagebuilder-*/
           cd openwrt-imagebuilder-*/
-          make image \
+          make -j $(nproc) image \
             PROFILE="${{ env.profile }}" \
             PACKAGES="${{ env.packages }}" \
             FILES="${{ env.files }}" \
