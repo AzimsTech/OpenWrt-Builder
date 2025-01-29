@@ -20,7 +20,7 @@ on:
           - 'SNAPSHOT'
           - '24.10-SNAPSHOT'
           - '23.05-SNAPSHOT'
-          - '24.10.0-rc6'
+          - '24.10.0-rc7'
           - '23.05.5'
           - '22.03.7'
       packages:
