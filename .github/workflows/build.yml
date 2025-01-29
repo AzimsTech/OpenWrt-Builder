@@ -117,7 +117,7 @@ jobs:
           # Fetch the latest version.buildinfo file
 
           if [[ $version == "SNAPSHOT" ]]; then
-            url="https://downloads.openwrt.org/${version}s/targets/${target}/version.buildinfo"
+            url="https://downloads.openwrt.org/${version,,}s/targets/${target}/version.buildinfo"
           else
             url="https://downloads.openwrt.org/releases/${version}/targets/${target}/version.buildinfo"
           fi
@@ -142,7 +142,7 @@ jobs:
           target="${{ env.target }}"
 
           if [[ $version == "SNAPSHOT" ]]; then
-            url="https://downloads.openwrt.org/${version}s/targets/${target}/openwrt-imagebuilder-$(echo $target | tr '/' '-').Linux-x86_64.tar.zst"
+            url="https://downloads.openwrt.org/${version,,}s/targets/${target}/openwrt-imagebuilder-$(echo $target | tr '/' '-').Linux-x86_64.tar.zst"
           elif [[ $version < "24.10" ]]; then
             url="https://downloads.openwrt.org/releases/${version}/targets/${target}/openwrt-imagebuilder-${version}-$(echo $target | tr '/' '-').Linux-x86_64.tar.xz"
           else
