@@ -16,7 +16,8 @@ if [ -n "$root_password" ]; then
 fi
 
 # system
-uci set system.@system[0].hostname='DIR2150-STA'
+model=$(grep "machine" /proc/cpuinfo | cut -d':' -f2 | awk '{print $2}') # read device model
+uci set system.@system[0].hostname="${model}-STA"
 uci set system.@system[0].zonename='Asia/Kuala Lumpur'
 uci set system.@system[0].timezone='<+08>-8'
 uci del system.ntp.server
