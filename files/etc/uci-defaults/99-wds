@@ -38,14 +38,15 @@ uci del network.wan6
 uci commit network
 
 # wireless
-uci set  wireless.@wifi-device[1].country='MY'
-uci set wireless.@wifi-device[1].disabled='0'
+id_5g=$(uci show wireless | grep "\.band='5g'" | cut -d'=' -f1 | cut -d'.' -f2 | sed 's/[^0-9]//g') # get 5Ghz radio id
+uci set  wireless.@wifi-device[$id_5g].country='MY'
+uci set wireless.@wifi-device[$id_5g].disabled='0'
 
-uci set wireless.@wifi-iface[1].mode='sta'
-uci set wireless.@wifi-iface[1].ssid="${ssid}-5G@unifi"
-uci set wireless.@wifi-iface[1].encryption='psk2+aes'
-uci set wireless.@wifi-iface[1].key="$ssid_key"
-uci set wireless.@wifi-iface[1].wds='1'
+uci set wireless.@wifi-iface[$id_5g].mode='sta'
+uci set wireless.@wifi-iface[$id_5g].ssid="${ssid}-5G@unifi"
+uci set wireless.@wifi-iface[$id_5g].encryption='psk2+aes'
+uci set wireless.@wifi-iface[$id_5g].key="$ssid_key"
+uci set wireless.@wifi-iface[$id_5g].wds='1'
 uci commit wireless
 
 # dhcp
