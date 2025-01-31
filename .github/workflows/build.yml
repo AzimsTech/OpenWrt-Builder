@@ -112,6 +112,8 @@ jobs:
         run: |
           # Update package list and install required dependencies
           sudo apt update
+          # Create the cache directory *before* installing packages
+          sudo mkdir -p /var/cache/apt
           # Create a file to list the packages (optional but recommended)
           echo "build-essential" >> apt-packages.txt
           echo "libncurses-dev" >> apt-packages.txt
