@@ -100,13 +100,36 @@ jobs:
                  -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' \
                  files/etc/uci-defaults/${{ env.SCRIPT }}
 
+      - name: Cache dependecies
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/apt-packages.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-
+
       - name: Install dependencies
         run: |
           # Update package list and install required dependencies
           sudo apt update
-          sudo apt install -y \
-            build-essential libncurses-dev zlib1g-dev gawk wget git gettext \
-            libssl-dev xsltproc rsync unzip python3 python3-setuptools zstd
+          # Create a file to list the packages (optional but recommended)
+          echo "build-essential" >> apt-packages.txt
+          echo "libncurses-dev" >> apt-packages.txt
+          echo "zlib1g-dev" >> apt-packages.txt
+          echo "gawk" >> apt-packages.txt
+          echo "wget" >> apt-packages.txt
+          echo "git" >> apt-packages.txt
+          echo "gettext" >> apt-packages.txt
+          echo "libssl-dev" >> apt-packages.txt
+          echo "xsltproc" >> apt-packages.txt
+          echo "rsync" >> apt-packages.txt
+          echo "unzip" >> apt-packages.txt
+          echo "python3" >> apt-packages.txt
+          echo "python3-setuptools" >> apt-packages.txt
+          echo "zstd" >> apt-packages.txt
+
+          # Install the packages using the list
+          sudo apt install -y $(cat apt-packages.txt)
       
       - name: Fetch version.buildinfo
         id: fetch_version_buildinfo
