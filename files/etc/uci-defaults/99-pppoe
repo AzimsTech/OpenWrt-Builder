@@ -68,4 +68,9 @@ uci set wireless.@wifi-iface[1].wds='1'
 
 uci commit wireless
 
+# dhcp
+# whitelist dns.msftncsi.com (Windows Network Connectivity Status Indicator)
+uci add_list dhcp.@dnsmasq[0].rebind_domain='dns.msftncsi.com'
+uci commit dhcp
+
 echo "All done!"
