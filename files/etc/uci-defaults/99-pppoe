@@ -29,6 +29,12 @@ uci set network.lan.ipaddr="$lan_ip"
 uci set network.lan.ip6assign='64'
 uci set network.lan.hostname="`uci get system.@system[0].hostname`"
 
+uci add network device
+uci set network.@device[-1].type='8021q'
+uci set network.@device[-1].ifname='wan'
+uci set network.@device[-1].vid='500'
+uci set network.@device[-1].name='wan.500'
+
 uci set network.wan.proto='pppoe'
 uci set network.wan.device='wan.500'
 uci set network.wan.username="$pppoe_name"
