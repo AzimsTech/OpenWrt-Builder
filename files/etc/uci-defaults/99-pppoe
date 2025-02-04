@@ -40,6 +40,7 @@ uci set network.wan.device='wan.500'
 uci set network.wan.username="$pppoe_name"
 uci set network.wan.password="$pppoe_key"
 uci set network.wan.ipv6='1'
+uci set network.wan.metric='10'
 
 uci -q delete network.wan.dns
 uci add_list network.wan.dns='1.1.1.1'
