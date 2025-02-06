@@ -14,8 +14,6 @@ function saveToken() {
     }
     localStorage.setItem("github_token", token);
     alert("Token saved successfully!");
-    document.getElementById("tokenForm").style.display = "none";
-    document.getElementById("clearTokenButton").style.display = "block";
 }
 
 function clearToken() {
