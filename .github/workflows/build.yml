@@ -6,11 +6,6 @@ on:
       model:
         description: 'Device Model:'
         required: true
-        type: 'choice'
-        options:
-          - dlink_dir-882-a1
-          - dlink_dir-2150-a1
-          - dlink_dir-842-c2
       version:
         description: 'OpenWrt Version:'
         required: true
