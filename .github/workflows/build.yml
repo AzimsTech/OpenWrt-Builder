@@ -6,6 +6,9 @@ on:
       model:
         description: 'Device Model:'
         required: true
+      target:
+        description: 'Target Architecture:'
+        visible: false
       version:
         description: 'OpenWrt Version:'
         required: true
