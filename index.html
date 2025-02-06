@@ -10,16 +10,16 @@
     <form id="tokenForm">
             <h2>Setup Your GitHub Personal Access Token ⚠️</h2>
             <p>1️⃣ Click below to open GitHub's token creation page:</p>
-            <button type="button" onclick="window.open('https://github.com/settings/tokens/new?scopes=repo,workflow,admin:repo_hook&description=GitHub%20Workflow%20Trigger', '_blank')">Create Token</button>
+            <button type="button" onclick="window.open('https://github.com/settings/tokens/new?scopes=repo,workflow,admin:repo_hook&description=GitHub%20Workflow%20Trigger', '_blank')">🔑Create Token</button>
             <p>2️⃣ After generating your token, copy & paste it below:</p>
             <input type="password" id="tokenInput" placeholder="Paste your token here">
-            <button type="button" onclick="saveToken()">Save Token</button>
+            <button type="button" onclick="saveToken()">💾Save Token</button>
             <p>3️⃣ Click below to test your token:</p>
-            <button type="button" onclick="testToken()">Test Token</button>
+            <button type="button" onclick="testToken()">🔓Test Token</button>
             <p id="status"></p>
         </details>
     </form>
-    <button id="clearTokenButton" style="display: none;" onclick="clearToken()">Clear Token</button>
+    <button id="clearTokenButton" style="display: none;" onclick="clearToken()">🗑️Clear Token</button>
     
     <form id="buildForm" onsubmit="runWorkflow(event)">
         <h2>Build OpenWrt Image</h2>
@@ -51,7 +51,7 @@
             <option value="99-wds">99-wds</option>
         </select>
         <p>▶️ Run Workflow </p>
-        <button type="submit">Run Build Workflow</button>
+        <button type="submit">⚙️Run Build Workflow</button>
     </form>
 
     <script src="scripts.js"></script>
