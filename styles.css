@@ -9,15 +9,15 @@ button { padding: 10px 15px; cursor: pointer; }
 #scriptsInput { width: 8%; padding: 10px; margin: 10px 0; }
 @media (prefers-color-scheme: dark) {
     html, img, video, iframe, header, .btn {
-        background-color: #333;
+        background-color: #212830;
         color: #e7e5e4;
     }
     body {
-        background-color: #333;
+        background-color: #212830;
     }
     input,
     #modelInput, #versionInput, #packagesInput, #disabled_servicesInput, #scriptsInput, button {
-        background-color: #313135;
+        background-color: #3d444d;
         color: #d0d0d0;
     }
 }
