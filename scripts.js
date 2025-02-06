@@ -12,8 +12,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     data.profiles.forEach(profile => {
         const option = document.createElement("option");
-        option.value = profile.id;
-        option.text = `${profile.titles[0].vendor} ${profile.titles[0].model} ${profile.titles[0].variant}`;
+        option.value = `${profile.titles[0].vendor} ${profile.titles[0].model} ${profile.titles[0].variant}`;
+        option.text = profile.id;
         option.dataset.target = profile.target; // Store target in data attribute
         modelOptions.appendChild(option);
     });
@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const selectedOption = Array.from(modelOptions.options).find(option => option.value === this.value);
         if (selectedOption) {
             document.getElementById("targetInput").value = selectedOption.dataset.target;
+            document.getElementById("profileInput").value = selectedOption.text;
         }
     });
 });
@@ -82,7 +83,7 @@ async function runWorkflow(event) {
     const workflowFile = "build.yml";
 
     // Check if the repoName is "index.html" which indicates the default GitHub Pages URL
-    if (repoName === "index.html") {
+    if (!repoName) {
         username = "AzimsTech";
         repoName = "OpenWrt-Builder";
     }
@@ -98,7 +99,7 @@ async function runWorkflow(event) {
         body: JSON.stringify({
             ref: "main",
             inputs: {
-                model: document.getElementById("modelInput").value,
+                model: document.getElementById("profileInput").value,
                 version: document.getElementById("versionInput").value,
                 packages: document.getElementById("packagesInput").value,
                 disabled_services: document.getElementById("disabled_servicesInput").value,
