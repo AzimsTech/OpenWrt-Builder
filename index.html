@@ -37,8 +37,7 @@
             <option value="23.05-SNAPSHOT">23.05-SNAPSHOT</option>
             <option value="23.05.7">23.05.7</option>
         </select>
-        <button type="submit">Run Build Workflow</button>
-
+        
         <p>2️⃣ Include and/or exclude extra packages in the firmware image:</p>
         <p><pre>The minus <code>-PACKAGE_NAME</code> prefix removes a package, no prefix adds one.</pre></p>
         <input type="text" id="packagesInput" name="packages" autocomplete="on" placeholder="Example: luci luci-app-sqm -kmod-usb3 -kmod-usb-ledtrig-usbport">
@@ -51,6 +50,8 @@
             <option value="99-pppoe">99-pppoe</option>
             <option value="99-wds">99-wds</option>
         </select>
+        <p>▶️ Run Workflow </p>
+        <button type="submit">Run Build Workflow</button>
     </form>
 
     <script src="scripts.js"></script>
