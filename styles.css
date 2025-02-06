@@ -1,0 +1,23 @@
+body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+input { width: 80%; padding: 10px; margin: 10px 0; }
+select { width: 80%; padding: 10px; margin: 10px 0; }
+#modelInput { width: 69%; padding: 10px; margin: 10px 0; }
+#versionInput { width: 10%; padding: 10px; margin: 10px 0; }
+button { padding: 10px 15px; cursor: pointer; }
+#packagesInput { width: 40%; padding: 10px; margin: 10px 0; }
+#disabled_servicesInput { width: 40%; padding: 10px; margin: 10px 0; }
+#scriptsInput { width: 8%; padding: 10px; margin: 10px 0; }
+@media (prefers-color-scheme: dark) {
+    html, img, video, iframe, header, .btn {
+        background-color: #333;
+        color: #e7e5e4;
+    }
+    body {
+        background-color: #333;
+    }
+    input,
+    #modelInput, #versionInput, #packagesInput, #disabled_servicesInput, #scriptsInput, button {
+        background-color: #313135;
+        color: #d0d0d0;
+    }
+}
