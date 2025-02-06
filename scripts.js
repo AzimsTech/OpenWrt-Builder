@@ -42,12 +42,13 @@ async function runWorkflow() {
     // If repoName is empty, fallback to the default repository for a username-based GitHub Pages URL
     const username = window.location.hostname.split('.')[0];
     const githubRepoUrl = repoName ? `https://github.com/${username}/${repoName}` : `https://github.com/${username}`;
+    const workflowFile = "build.yml";
 
-
-    fetch(`https://api.github.com/repos/${username}/${repoName}/actions/workflows/build.yml/dispatches`, {
+    // Step 1: Trigger the workflow
+    const triggerResponse = await fetch(`https://api.github.com/repos/${username}/${repoName}/actions/workflows/${workflowFile}/dispatches`, {
         method: "POST",
         headers: {
-            "Authorization": "token " + localStorage.getItem("github_token"),
+            "Authorization": `Bearer ${token}`,
             "Accept": "application/vnd.github+json",
             "Content-Type": "application/json"
         },
@@ -61,16 +62,47 @@ async function runWorkflow() {
                 scripts: document.getElementById("scriptsInput").value
             }
         })
-    })
-    .then(response => {
-        if (response.ok) {
-            alert("Workflow triggered successfully!");
-            console.log(response.workflow_runs[0]);
-        } else {
-            alert("Failed to trigger workflow. Check console.");
-        }
-        return response.json();
-    })
-    .then(data => console.log(data))
-    .catch(error => console.error("Error:", error));
+    });
+
+    if (!triggerResponse.ok) {
+        alert("Failed to trigger workflow. Check console.");
+        console.error("Trigger failed:", await triggerResponse.text());
+        newTab.close(); // Close the tab if request fails
+        return;
+    }
+    alert("Workflow triggered successfully! Fetching job details...");
+
+    // Step 2: Wait for GitHub to register the run
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Step 3: Get the latest workflow run ID
+    const runsResponse = await fetch(`https://api.github.com/repos/${username}/${repoName}/actions/runs`, {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    const runsData = await runsResponse.json();
+    const runId = runsData.workflow_runs[0]?.id;
+    if (!runId) {
+        alert("No workflow run found.");
+        newTab.close();
+        return;
+    }
+
+    // Step 4: Get the job ID from the run
+    const jobsResponse = await fetch(`https://api.github.com/repos/${username}/${repoName}/actions/runs/${runId}/jobs`, {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    const jobsData = await jobsResponse.json();
+    const jobId = jobsData.jobs[0]?.id;
+    if (!jobId) {
+        alert("No job found.");
+        newTab.close();
+        return;
+    }
+
+    // Step 5: Update the new tab with the job URL
+    const jobUrl = `https://github.com/${username}/${repoName}/actions/runs/${runId}/job/${jobId}`;
+    window.open(jobUrl, "_blank");
+    console.log("Job URL:", jobUrl);
 }
