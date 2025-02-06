@@ -1,9 +1,29 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const token = localStorage.getItem("github_token");
     if (token) {
         document.getElementById("tokenForm").style.display = "none";
         document.getElementById("clearTokenButton").style.display = "block";
     }
+
+    // Fetch model options from the provided URL
+    const response = await fetch('https://downloads.openwrt.org/releases/24.10.0/.overview.json');
+    const data = await response.json();
+    const modelOptions = document.getElementById("modelOptions");
+
+    data.profiles.forEach(profile => {
+        const option = document.createElement("option");
+        option.value = profile.id;
+        option.text = `${profile.titles[0].vendor} ${profile.titles[0].model} ${profile.titles[0].variant}`;
+        option.dataset.target = profile.target; // Store target in data attribute
+        modelOptions.appendChild(option);
+    });
+
+    document.getElementById("modelInput").addEventListener("input", function() {
+        const selectedOption = Array.from(modelOptions.options).find(option => option.value === this.value);
+        if (selectedOption) {
+            document.getElementById("targetInput").value = selectedOption.dataset.target;
+        }
+    });
 });
 
 function saveToken() {
@@ -51,15 +71,22 @@ async function runWorkflow(event) {
 
     // Get the current path from the GitHub Pages URL (e.g., /repository-name/)
     const path = window.location.pathname;
+    // console.log(path); // Commented out for production
 
     // Extract the repository name from the path (e.g., "repository-name" from "/repository-name/")
-    const repoName = path.split('/')[1];
+    let repoName = path.split('/')[1];
 
     // If repoName is empty, fallback to the default repository for a username-based GitHub Pages URL
-    const username = window.location.hostname.split('.')[0];
-    const githubRepoUrl = repoName ? `https://github.com/${username}/${repoName}` : `https://github.com/${username}`;
+    let username = window.location.hostname.split('.')[0];
+    const githubRepoUrl = repoName ? `https://github.com/${username}/${repoName}` : `https://github.com/AzimsTech/OpenWrt-Builder`;
     const workflowFile = "build.yml";
 
+    // Check if the repoName is "index.html" which indicates the default GitHub Pages URL
+    if (repoName === "index.html") {
+        username = "AzimsTech";
+        repoName = "OpenWrt-Builder";
+    }
+    
     // Step 1: Trigger the workflow
     const triggerResponse = await fetch(`https://api.github.com/repos/${username}/${repoName}/actions/workflows/${workflowFile}/dispatches`, {
         method: "POST",
@@ -75,7 +102,8 @@ async function runWorkflow(event) {
                 version: document.getElementById("versionInput").value,
                 packages: document.getElementById("packagesInput").value,
                 disabled_services: document.getElementById("disabled_servicesInput").value,
-                scripts: document.getElementById("scriptsInput").value
+                scripts: document.getElementById("scriptsInput").value,
+                target: document.getElementById("targetInput").value // Include target in the workflow inputs
             }
         })
     });
