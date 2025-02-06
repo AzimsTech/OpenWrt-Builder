@@ -32,7 +32,19 @@ async function runWorkflow() {
         alert("No token found! Please save your token first.");
         return;
     }
-    fetch("https://api.github.com/repos/AzimsTech/OpenWrt-Builder/actions/workflows/build.yml/dispatches", {
+
+    // Get the current path from the GitHub Pages URL (e.g., /repository-name/)
+    const path = window.location.pathname;
+
+    // Extract the repository name from the path (e.g., "repository-name" from "/repository-name/")
+    const repoName = path.split('/')[1];
+
+    // If repoName is empty, fallback to the default repository for a username-based GitHub Pages URL
+    const username = window.location.hostname.split('.')[0];
+    const githubRepoUrl = repoName ? `https://github.com/${username}/${repoName}` : `https://github.com/${username}`;
+
+
+    fetch(`${githubRepoUrl}/actions/workflows/build.yml/dispatches`, {
         method: "POST",
         headers: {
             "Authorization": "token " + localStorage.getItem("github_token"),
