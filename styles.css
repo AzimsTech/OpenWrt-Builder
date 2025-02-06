@@ -7,6 +7,15 @@ button { padding: 10px 15px; cursor: pointer; }
 #packagesInput { width: 40%; padding: 10px; margin: 10px 0; }
 #disabled_servicesInput { width: 40%; padding: 10px; margin: 10px 0; }
 #scriptsInput { width: 8%; padding: 10px; margin: 10px 0; }
+
+#clearTokenButton {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 15px;
+    cursor: pointer;
+}
+
 @media (prefers-color-scheme: dark) {
     html, img, video, iframe, header, .btn {
         background-color: #212830;

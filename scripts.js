@@ -1,3 +1,11 @@
+document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("github_token");
+    if (token) {
+        document.getElementById("tokenForm").style.display = "none";
+        document.getElementById("clearTokenButton").style.display = "block";
+    }
+});
+
 function saveToken() {
     const token = document.getElementById("tokenInput").value;
     if (!token) {
@@ -6,6 +14,15 @@ function saveToken() {
     }
     localStorage.setItem("github_token", token);
     alert("Token saved successfully!");
+    document.getElementById("tokenForm").style.display = "none";
+    document.getElementById("clearTokenButton").style.display = "block";
+}
+
+function clearToken() {
+    localStorage.removeItem("github_token");
+    alert("Token cleared successfully!");
+    document.getElementById("tokenForm").style.display = "block";
+    document.getElementById("clearTokenButton").style.display = "none";
 }
 
 async function testToken() {

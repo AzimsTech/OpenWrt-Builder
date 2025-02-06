@@ -8,8 +8,7 @@
 </head>
 <body>
     <form id="tokenForm">
-        <details>
-            <summary><span>Setup Your GitHub Personal Access Token ⚠️</span></summary>
+            <h2>Setup Your GitHub Personal Access Token ⚠️</h2>
             <p>1️⃣ Click below to open GitHub's token creation page:</p>
             <button type="button" onclick="window.open('https://github.com/settings/tokens/new?scopes=repo,workflow,admin:repo_hook&description=GitHub%20Workflow%20Trigger', '_blank')">Create Token</button>
             <p>2️⃣ After generating your token, copy & paste it below:</p>
@@ -20,6 +19,7 @@
             <p id="status"></p>
         </details>
     </form>
+    <button id="clearTokenButton" style="display: none;" onclick="clearToken()">Clear Token</button>
     
     <form id="buildForm" onsubmit="runWorkflow(event)">
         <h2>Build OpenWrt Image</h2>
