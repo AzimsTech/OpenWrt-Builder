@@ -2,4 +2,5 @@
 
 [✨ Build and Publish OpenWrt Image](https://github.com/AzimsTech/OpenWrt-Builder/actions/workflows/build.yml)
 
-![Screenshot 2024-12-24 215208](https://github.com/user-attachments/assets/acfa9598-1566-4aa3-bd90-3e0037561116)
+
+![cover](https://github.com/user-attachments/assets/9b0a47ed-5374-4a92-83bf-dbd2b4810635)
