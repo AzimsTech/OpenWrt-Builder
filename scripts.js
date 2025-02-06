@@ -5,18 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("clearTokenButton").style.display = "block";
     }
 
-    // Fetch model options from the provided URL
-    const response = await fetch('https://downloads.openwrt.org/releases/24.10.0/.overview.json');
-    const data = await response.json();
-    const modelOptions = document.getElementById("modelOptions");
-
-    data.profiles.forEach(profile => {
-        const option = document.createElement("option");
-        option.value = `${profile.titles[0].vendor} ${profile.titles[0].model} ${profile.titles[0].variant}`;
-        option.text = profile.id;
-        option.dataset.target = profile.target; // Store target in data attribute
-        modelOptions.appendChild(option);
-    });
+    await fetchModelOptions();
 
     document.getElementById("modelInput").addEventListener("input", function() {
         const selectedOption = Array.from(modelOptions.options).find(option => option.value === this.value);
@@ -26,6 +15,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 });
+
+async function fetchModelOptions() {
+    const version = document.getElementById("versionInput").value;
+    const response = await fetch(`https://downloads.openwrt.org/releases/${version}/.overview.json`);
+    const data = await response.json();
+    const modelOptions = document.getElementById("modelOptions");
+    modelOptions.innerHTML = ""; // Clear existing options
+
+    data.profiles.forEach(profile => {
+        const option = document.createElement("option");
+        option.value = `${profile.titles[0].vendor} ${profile.titles[0].model}${profile.titles[0].variant ? ' ' + profile.titles[0].variant : ''}`;
+        option.text = profile.id;
+        option.dataset.target = profile.target; // Store target in data attribute
+        modelOptions.appendChild(option);
+    });
+}
 
 function saveToken() {
     const token = document.getElementById("tokenInput").value;
