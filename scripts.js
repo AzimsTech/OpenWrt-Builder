@@ -44,7 +44,7 @@ async function runWorkflow() {
     const githubRepoUrl = repoName ? `https://github.com/${username}/${repoName}` : `https://github.com/${username}`;
 
 
-    fetch(`${githubRepoUrl}/actions/workflows/build.yml/dispatches`, {
+    fetch(`https://api.github.com/repos/${username}/${repoName}/actions/workflows/build.yml/dispatches`, {
         method: "POST",
         headers: {
             "Authorization": "token " + localStorage.getItem("github_token"),
