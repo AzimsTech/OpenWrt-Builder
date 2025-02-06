@@ -27,6 +27,11 @@ async function testToken() {
 }
 
 async function runWorkflow() {
+    const token = localStorage.getItem("github_token");
+    if (!token) {
+        alert("No token found! Please save your token first.");
+        return;
+    }
     fetch("https://api.github.com/repos/AzimsTech/OpenWrt-Builder/actions/workflows/build.yml/dispatches", {
         method: "POST",
         headers: {
