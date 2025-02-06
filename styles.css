@@ -20,4 +20,7 @@ button { padding: 10px 15px; cursor: pointer; }
         background-color: #3d444d;
         color: #d0d0d0;
     }
+    input {
+        color-scheme: dark;
+      }
 }
