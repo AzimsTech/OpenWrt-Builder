@@ -26,7 +26,8 @@ async function testToken() {
     }
 }
 
-async function runWorkflow() {
+async function runWorkflow(event) {
+    event.preventDefault();
     const token = localStorage.getItem("github_token");
     if (!token) {
         alert("No token found! Please save your token first.");
