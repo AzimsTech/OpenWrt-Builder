@@ -7,53 +7,51 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <details>
-        <summary><span>Setup Your GitHub Personal Access Token ⚠️</span>
-        </summary>
-        
-        <p>1️⃣ Click below to open GitHub's token creation page:</p>
-        <button onclick="window.open('https://github.com/settings/tokens/new?scopes=repo,workflow,admin:repo_hook&description=GitHub%20Workflow%20Trigger', '_blank')">Create Token</button>
-
-        <p>2️⃣ After generating your token, copy & paste it below:</p>
-        <input type="password" id="tokenInput" placeholder="Paste your token here">
-        <button onclick="saveToken()">Save Token</button>
-
-        <p>3️⃣ Click below to test your token:</p>
-        <button onclick="testToken()">Test Token</button>
-
-        <p id="status"></p>
-    </details>
+    <form id="tokenForm">
+        <details>
+            <summary><span>Setup Your GitHub Personal Access Token ⚠️</span></summary>
+            <p>1️⃣ Click below to open GitHub's token creation page:</p>
+            <button type="button" onclick="window.open('https://github.com/settings/tokens/new?scopes=repo,workflow,admin:repo_hook&description=GitHub%20Workflow%20Trigger', '_blank')">Create Token</button>
+            <p>2️⃣ After generating your token, copy & paste it below:</p>
+            <input type="password" id="tokenInput" placeholder="Paste your token here">
+            <button type="button" onclick="saveToken()">Save Token</button>
+            <p>3️⃣ Click below to test your token:</p>
+            <button type="button" onclick="testToken()">Test Token</button>
+            <p id="status"></p>
+        </details>
+    </form>
     
+    <form id="buildForm">
         <h2>Build OpenWrt Image</h2>
-        <p>1️⃣ Select model of your device, then select a stable build or the nightly "snapshot" build.
-        </p>
-    <select id="modelInput">
-        <option value="dlink_dir-2150-a1">D-Link DIR-2150 A1</option>
-        <option value="dlink_dir-882-a1">D-Link DIR-882 A1</option>
-        <option value="dlink_dir-842-c2">D-Link DIR-842 C2</option>
-    </select>
-    <select id="versionInput">
-        <option value="24.10.0">24.10.0</option>
-        <option value="SNAPSHOT">SNAPSHOT</option>
-        <option value="24.10-SNAPSHOT">24.10-SNAPSHOT</option>
-        <option value="23.05.5">23.05.5</option>
-        <option value="23.05-SNAPSHOT">23.05-SNAPSHOT</option>
-        <option value="23.05.7">23.05.7</option>
-    </select>
-    <button onclick="runWorkflow()">Run Build Workflow</button>
+        <p>1️⃣ Select model of your device, then select a stable build or the nightly "snapshot" build.</p>
+        <select id="modelInput">
+            <option value="dlink_dir-2150-a1">D-Link DIR-2150 A1</option>
+            <option value="dlink_dir-882-a1">D-Link DIR-882 A1</option>
+            <option value="dlink_dir-842-c2">D-Link DIR-842 C2</option>
+        </select>
+        <select id="versionInput">
+            <option value="24.10.0">24.10.0</option>
+            <option value="SNAPSHOT">SNAPSHOT</option>
+            <option value="24.10-SNAPSHOT">24.10-SNAPSHOT</option>
+            <option value="23.05.5">23.05.5</option>
+            <option value="23.05-SNAPSHOT">23.05-SNAPSHOT</option>
+            <option value="23.05.7">23.05.7</option>
+        </select>
+        <button type="button" onclick="runWorkflow()">Run Build Workflow</button>
 
-    <p>2️⃣ Include and/or exclude extra packages in the firmware image:</p>
-    <p><pre>The minus <code>-PACKAGE_NAME</code> prefix removes a package, no prefix adds one.</pre></p>
-    <input type="text" id="packagesInput" name="packages" autocomplete="on" placeholder="Example: luci luci-app-sqm -kmod-usb3 -kmod-usb-ledtrig-usbport">
-    <p>3️⃣ Write a list of services to disable (if needed):</p>
-    <input type="text" id="disabled_servicesInput" name="disabled_services" autocomplete="on" placeholder="Example: dnsmasq firewall odhcpd">
-    <p>4️⃣ Custom uci-defaults scripts:</p>
-    <p><pre>scripts found in <code>OpenWrt-Builder\files\etc\uci-defaults</code></pre></p>
-    <select id="scriptsInput">
-        <option value=""></option>
-        <option value="99-pppoe">99-pppoe</option>
-        <option value="99-wds">99-wds</option>
-    </select>
+        <p>2️⃣ Include and/or exclude extra packages in the firmware image:</p>
+        <p><pre>The minus <code>-PACKAGE_NAME</code> prefix removes a package, no prefix adds one.</pre></p>
+        <input type="text" id="packagesInput" name="packages" autocomplete="on" placeholder="Example: luci luci-app-sqm -kmod-usb3 -kmod-usb-ledtrig-usbport">
+        <p>3️⃣ Write a list of services to disable (if needed):</p>
+        <input type="text" id="disabled_servicesInput" name="disabled_services" autocomplete="on" placeholder="Example: dnsmasq firewall odhcpd">
+        <p>4️⃣ Custom uci-defaults scripts:</p>
+        <p><pre>scripts found in <code>OpenWrt-Builder\files\etc\uci-defaults</code></pre></p>
+        <select id="scriptsInput">
+            <option value=""></option>
+            <option value="99-pppoe">99-pppoe</option>
+            <option value="99-wds">99-wds</option>
+        </select>
+    </form>
 
     <script src="scripts.js"></script>
 </body>
