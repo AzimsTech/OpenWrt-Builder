@@ -71,16 +71,6 @@ jobs:
             echo "disabled_services=${{ github.event.inputs.disabled_services }}" >> input_config
           fi
 
-          # Set the target based on the device model
-          case "${{ github.event.inputs.model }}" in
-            dlink_dir-882-a1|dlink_dir-2150-a1)
-              echo "target=ramips/mt7621" >> input_config
-              ;;
-            dlink_dir-842-c2)
-              echo "target=ath79/generic" >> input_config
-              ;;
-          esac
-
           # Append input configuration to environment variables
           cat input_config >> $GITHUB_ENV
 
