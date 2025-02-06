@@ -67,6 +67,7 @@ jobs:
           packages=${{ github.event.inputs.packages }}
           files=$files
           profile=${{ github.event.inputs.model }}
+          target=${{ github.event.inputs.target }}
           EOF
 
           # Add disabled services to the configuration if specified
