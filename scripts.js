@@ -5,8 +5,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("clearTokenButton").style.display = "block";
     }
 
+    await fetchVersions();
     await fetchModelOptions();
-
+    
     document.getElementById("modelInput").addEventListener("input", function() {
         const selectedOption = Array.from(modelOptions.options).find(option => option.value === this.value);
         if (selectedOption) {
@@ -14,11 +15,135 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("profileInput").value = selectedOption.text;
         }
     });
+    
 });
+
+async function fetchVersions() {
+    try {
+        const response = await fetch('https://downloads.openwrt.org/.versions.json');
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+    
+        // Step 1. Filter: Only include versions with major > 23 or (major === 23 and minor >= 5)
+        const filteredVersions = data.versions_list.filter(version => {
+          const match = version.match(/^(\d+)\.(\d+)/);
+          if (!match) return false;
+          const major = parseInt(match[1], 10);
+          const minor = parseInt(match[2], 10);
+          return major > 23 || (major === 23 && minor >= 5);
+        });
+    
+        // Step 2. Group versions by major.minor (e.g. "24.10", "23.05")
+        const groups = {};
+        filteredVersions.forEach(version => {
+          const m = version.match(/^(\d+)\.(\d+)/);
+          if (!m) return;
+          const groupKey = `${m[1]}.${m[2]}`;
+          if (!groups[groupKey]) {
+            groups[groupKey] = { finals: [], rcs: [] };
+          }
+          // Separate final versions from RCs
+          if (version.includes('rc')) {
+            groups[groupKey].rcs.push(version);
+          } else {
+            groups[groupKey].finals.push(version);
+          }
+        });
+    
+        // Sort the group keys in descending order so that higher versions come first.
+        const sortedGroupKeys = Object.keys(groups).sort((a, b) => {
+          const [aMajor, aMinor] = a.split('.').map(Number);
+          const [bMajor, bMinor] = b.split('.').map(Number);
+          if (aMajor !== bMajor) return bMajor - aMajor;
+          return bMinor - aMinor;
+        });
+    
+        // Helpers to sort within a group:
+        // For final versions, sort descending by the patch number (e.g. "23.05.5" > "23.05.0")
+        const sortFinals = (a, b) => {
+          const aPatch = (a.match(/^\d+\.\d+\.(\d+)/) || [0, 0])[1];
+          const bPatch = (b.match(/^\d+\.\d+\.(\d+)/) || [0, 0])[1];
+          return parseInt(bPatch, 10) - parseInt(aPatch, 10);
+        };
+        // For RC versions, sort descending by the rc number (e.g. "rc7" > "rc1")
+        const sortRCs = (a, b) => {
+          const aRc = (a.match(/rc(\d+)/) || [0, 0])[1];
+          const bRc = (b.match(/rc(\d+)/) || [0, 0])[1];
+          return parseInt(bRc, 10) - parseInt(aRc, 10);
+        };
+    
+        // Step 3. Build the final ordered list
+        let finalList = [];
+        sortedGroupKeys.forEach(groupKey => {
+          const group = groups[groupKey];
+          // Sort each subgroup
+          group.finals.sort(sortFinals);
+          group.rcs.sort(sortRCs);
+    
+          // If there are any final (non‑rc) versions, take the highest as the primary final.
+          if (group.finals.length > 0) {
+            const primaryFinal = group.finals.shift(); // highest final version
+            finalList.push(primaryFinal);
+    
+            // For the stable version group (data.stable_version, e.g. "24.10.0"),
+            // insert first a generic "SNAPSHOT" (at index 1) and then a version-specific snapshot.
+            if (primaryFinal === data.stable_version) {
+              finalList.push("SNAPSHOT");             // Insert a plain "SNAPSHOT"
+              finalList.push(`${groupKey}-SNAPSHOT`);   // e.g. "24.10-SNAPSHOT"
+            } else {
+              // For other groups, insert only the version-specific snapshot
+              finalList.push(`${groupKey}-SNAPSHOT`);
+            }
+            // Append any remaining final versions from this group (if any)
+            finalList.push(...group.finals);
+          } else {
+            // If there are no finals, add the snapshot for the group
+            finalList.push(`${groupKey}-SNAPSHOT`);
+          }
+          // Append all RC versions for this group
+          finalList.push(...group.rcs);
+        });
+    
+        // At this point, finalList should be (for example):
+        // [
+        //   "24.10.0", "SNAPSHOT", "24.10-SNAPSHOT",
+        //   "24.10.0-rc7", "24.10.0-rc6", "24.10.0-rc5",
+        //   "24.10.0-rc4", "24.10.0-rc3", "24.10.0-rc2", "24.10.0-rc1",
+        //   "23.05.5", "23.05-SNAPSHOT", "23.05.4", "23.05.3", "23.05.2",
+        //   "23.05.1", "23.05.0", "23.05.0-rc4", "23.05.0-rc3", "23.05.0-rc2", "23.05.0-rc1"
+        // ]
+    
+        // Step 4. Append each version in the final list as an <option> in the <select> element.
+        const verOptions = document.getElementById('versionInput');
+        if (!modelOptions) {
+          throw new Error('No element with id "modelOptions" found');
+        }
+    
+        finalList.forEach(item => {
+          const option = document.createElement("option");
+          option.value = item;
+          option.text = item;
+          verOptions.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error fetching or processing versions.json:', error);
+      }
+}
+
 
 async function fetchModelOptions() {
     const version = document.getElementById("versionInput").value;
-    const response = await fetch(`https://downloads.openwrt.org/releases/${version}/.overview.json`);
+    
+    // Define url outside of any conditional blocks
+    let url;
+    if (version === "SNAPSHOT") {
+        url = "https://downloads.openwrt.org/snapshots/.overview.json";
+    } else {
+        url = `https://downloads.openwrt.org/releases/${version}/.overview.json`;
+    }
+    const response = await fetch(url);
     const data = await response.json();
     const modelOptions = document.getElementById("modelOptions");
     modelOptions.innerHTML = ""; // Clear existing options
