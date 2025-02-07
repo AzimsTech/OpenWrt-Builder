@@ -40,11 +40,10 @@
         <p>3️⃣ Write a list of services to disable (if needed):</p>
         <input type="text" id="disabled_servicesInput" name="disabled_services" autocomplete="on" placeholder="Example: dnsmasq firewall odhcpd">
         <p>4️⃣ Custom uci-defaults scripts:</p>
-        <p><pre>scripts found in <code>OpenWrt-Builder\files\etc\uci-defaults</code></pre></p>
+        <p><pre>scripts found in <a href="" id="repoUrl">files/etc/uci-defaults</a></pre></p>
         <select id="scriptsInput">
             <option value=""></option>
-            <option value="99-pppoe">99-pppoe</option>
-            <option value="99-wds">99-wds</option>
+            <!-- Options will be populated dynamically from the provided URL -->
         </select>
         <p>▶️ Run Workflow </p>
         <button type="submit">⚙️ Run Build Workflow</button>
