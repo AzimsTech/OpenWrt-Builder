@@ -15,18 +15,12 @@ on:
       packages:
         description: 'Extra Packages:'
         required: false
-        default: 'luci'
       disabled_services:
         description: 'Disabled Services:'
         required: false
       scripts:
         description: 'UCI Defaults Scripts:'
         required: false
-        type: 'choice'
-        options:
-          - ''
-          - '99-pppoe'
-          - '99-wds'
 
 permissions:
   contents: write
