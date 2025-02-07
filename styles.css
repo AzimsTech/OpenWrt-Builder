@@ -17,19 +17,16 @@ button { padding: 10px 15px; cursor: pointer; }
 }
 
 @media (prefers-color-scheme: dark) {
-    html, img, video, iframe, header, .btn {
+    html {
         background-color: #212830;
-        color: #e7e5e4;
+        color: #ffffff; /* Ensure text is visible */
+        color-scheme: dark; /* Apply globally */
     }
-    body {
+    header, .btn {
         background-color: #212830;
+        color: #ffffff; /* Consistent text color */
     }
-    input,
-    #modelInput, #versionInput, #packagesInput, #disabled_servicesInput, #scriptsInput, button {
-        background-color: #3d444d;
-        color: #d0d0d0;
+    input, button, select, textarea {
+        color-scheme: dark; /* Include all relevant form elements */
     }
-    input {
-        color-scheme: dark;
-      }
 }
