@@ -36,9 +36,9 @@
         
         <p>2️⃣ Include and/or exclude extra packages in the firmware image:</p>
         <p><pre>The minus <code>-PACKAGE_NAME</code> prefix removes a package, no prefix adds one.</pre></p>
-        <input type="text" id="packagesInput" name="packages" autocomplete="on" placeholder="Example: luci luci-app-sqm -kmod-usb3 -kmod-usb-ledtrig-usbport">
+        <input type="text" id="packagesInput" name="packages" autocomplete="on" placeholder="E.g. luci luci-app-sqm -kmod-usb3 -kmod-usb-ledtrig-usbport">
         <p>3️⃣ Write a list of services to disable (if needed):</p>
-        <input type="text" id="disabled_servicesInput" name="disabled_services" autocomplete="on" placeholder="Example: dnsmasq firewall odhcpd">
+        <input type="text" id="disabled_servicesInput" name="disabled_services" autocomplete="on" placeholder="E.g. dnsmasq firewall odhcpd">
         <p>4️⃣ Custom uci-defaults scripts:</p>
         <p><pre>scripts found in <a href="" id="repoUrl">files/etc/uci-defaults</a></pre></p>
         <select id="scriptsInput">
