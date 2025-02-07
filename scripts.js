@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await fetchVersions();
     await fetchModelOptions();
+    await fetchScripts();
+
     
     document.getElementById("modelInput").addEventListener("input", function() {
         const selectedOption = Array.from(modelOptions.options).find(option => option.value === this.value);
@@ -17,6 +19,45 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     
 });
+
+function fetchRepo() {
+  // Get the current path from the GitHub Pages URL (e.g., /repository-name/)
+  const path = window.location.pathname;
+  // console.log(path); // Commented out for production
+
+  // Extract the repository name from the path (e.g., "repository-name" from "/repository-name/")
+  let repo = path.split('/')[1];
+
+  // If repoName is empty, fallback to the default repository for a username-based GitHub Pages URL
+  let owner = window.location.hostname.split('.')[0];
+  if (owner === '127') {
+    owner = "AzimsTech";
+    repo = "OpenWrt-Builder";
+  }
+  const repoUrl = document.getElementById("repoUrl");
+  repoUrl.href = `https://github.com/${owner}/${repo}/tree/main/files/etc/uci-defaults`;
+  return { owner, repo };
+}
+
+async function fetchScripts() {
+  const { owner, repo } = fetchRepo();
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/files/etc/uci-defaults?ref=main`;
+  const scriptsOptions = document.getElementById("scriptsInput");
+
+  fetch(apiUrl)
+    .then(response => response.json())
+    .then(data => {
+      data.forEach(item => {
+        if (item.type === 'file') {
+          const option = document.createElement("option");
+          option.value = item.name;
+          option.text = item.name;
+          scriptsOptions.appendChild(option);
+        }
+      });
+    })
+    .catch(error => console.error('Error:', error));
+}
 
 async function fetchVersions() {
     try {
@@ -200,26 +241,11 @@ async function runWorkflow(event) {
         return;
     }
 
-    // Get the current path from the GitHub Pages URL (e.g., /repository-name/)
-    const path = window.location.pathname;
-    // console.log(path); // Commented out for production
-
-    // Extract the repository name from the path (e.g., "repository-name" from "/repository-name/")
-    let repoName = path.split('/')[1];
-
-    // If repoName is empty, fallback to the default repository for a username-based GitHub Pages URL
-    let username = window.location.hostname.split('.')[0];
-    const githubRepoUrl = repoName ? `https://github.com/${username}/${repoName}` : `https://github.com/AzimsTech/OpenWrt-Builder`;
     const workflowFile = "build.yml";
+    const { owner, repo } = fetchRepo();
 
-    // Check if the repoName is "index.html" which indicates the default GitHub Pages URL
-    if (!repoName) {
-        username = "AzimsTech";
-        repoName = "OpenWrt-Builder";
-    }
-    
     // Step 1: Trigger the workflow
-    const triggerResponse = await fetch(`https://api.github.com/repos/${username}/${repoName}/actions/workflows/${workflowFile}/dispatches`, {
+    const triggerResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowFile}/dispatches`, {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${token}`,
@@ -251,7 +277,7 @@ async function runWorkflow(event) {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Step 3: Get the latest workflow run ID
-    const runsResponse = await fetch(`https://api.github.com/repos/${username}/${repoName}/actions/runs`, {
+    const runsResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs`, {
         headers: { "Authorization": `Bearer ${token}` }
     });
 
@@ -264,7 +290,7 @@ async function runWorkflow(event) {
     }
 
     // Step 4: Get the job ID from the run
-    const jobsResponse = await fetch(`https://api.github.com/repos/${username}/${repoName}/actions/runs/${runId}/jobs`, {
+    const jobsResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}/jobs`, {
         headers: { "Authorization": `Bearer ${token}` }
     });
 
@@ -277,7 +303,7 @@ async function runWorkflow(event) {
     }
 
     // Step 5: Update the new tab with the job URL
-    const jobUrl = `https://github.com/${username}/${repoName}/actions/runs/${runId}/job/${jobId}`;
+    const jobUrl = `https://github.com/${owner}/${repo}/actions/runs/${runId}/job/${jobId}`;
     window.open(jobUrl, "_blank");
     console.log("Job URL:", jobUrl);
 }
