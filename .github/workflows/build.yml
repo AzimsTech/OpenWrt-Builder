@@ -12,15 +12,6 @@ on:
       version:
         description: 'OpenWrt Version:'
         required: true
-        default: 'SNAPSHOT'
-        type: 'choice'
-        options:
-          - 'SNAPSHOT'
-          - '24.10.0'
-          - '24.10-SNAPSHOT'
-          - '23.05.5'
-          - '23.05-SNAPSHOT'
-          - '22.03.7'
       packages:
         description: 'Extra Packages:'
         required: false
