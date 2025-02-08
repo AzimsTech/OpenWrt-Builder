@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (token) {
         document.getElementById("tokenForm").style.display = "none";
         document.getElementById("clearTokenButton").style.display = "block";
+    }else {
+      document.getElementById("buildForm").style.display = "none";
     }
 
     await fetchVersions();
@@ -216,6 +218,7 @@ function clearToken() {
     alert("Token cleared successfully!");
     document.getElementById("tokenForm").style.display = "block";
     document.getElementById("clearTokenButton").style.display = "none";
+    document.getElementById("buildForm").style.display = "none";
 }
 
 async function testToken() {
@@ -230,9 +233,12 @@ async function testToken() {
     });
 
     if (response.ok) {
-        document.getElementById("status").innerText = "✅ Token is valid and has the correct permissions!";
+      document.getElementById("status").innerText = "✅ Token is valid and has the correct permissions!";
+      setTimeout(() => {
+        location.reload();
+      }, 3000);
     } else {
-        document.getElementById("status").innerText = "❌ Invalid token or missing required permissions. Make sure the token has 'repo', 'workflow', and 'admin:repo_hook' permissions.";
+      document.getElementById("status").innerText = "❌ Invalid token or missing required permissions. Make sure the token has 'repo', 'workflow', and 'admin:repo_hook' permissions.";
     }
 }
 
