@@ -56,7 +56,10 @@ async function fetchScripts() {
         }
       });
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+      console.error('Error:', error);
+      alert("Failed to load customization scripts. Please refresh the page to try again.");
+    });
 }
 
 async function fetchVersions() {
@@ -158,8 +161,8 @@ async function fetchVersions() {
     
         // Step 4. Append each version in the final list as an <option> in the <select> element.
         const verOptions = document.getElementById('versionInput');
-        if (!modelOptions) {
-          throw new Error('No element with id "modelOptions" found');
+        if (!verOptions) {
+          throw new Error('No element with id "versionInput" found');
         }
     
         finalList.forEach(item => {
@@ -233,6 +236,8 @@ async function testToken() {
     }
 }
 
+
+
 async function runWorkflow(event) {
     event.preventDefault();
     const token = localStorage.getItem("github_token");
@@ -274,20 +279,24 @@ async function runWorkflow(event) {
     alert("Workflow triggered successfully! Fetching job details...");
 
     // Step 2: Wait for GitHub to register the run
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Step 3: Get the latest workflow run ID
-    const runsResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs`, {
-        headers: { "Authorization": `Bearer ${token}` }
-    });
-
-    const runsData = await runsResponse.json();
-    const runId = runsData.workflow_runs[0]?.id;
-    if (!runId) {
-        alert("No workflow run found.");
-        newTab.close();
-        return;
+    async function waitForWorkflowRun(owner, repo, token) {
+      const MAX_RETRIES = 5;
+      for (let i = 0; i < MAX_RETRIES; i++) {
+        const runsResponse = await fetch(
+          `https://api.github.com/repos/${owner}/${repo}/actions/runs`,
+          { headers: { "Authorization": `Bearer ${token}` } }
+        );
+        const runsData = await runsResponse.json();
+        if (runsData.workflow_runs?.length > 0) {
+          return runsData.workflow_runs[0].id;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      }
+      throw new Error('Workflow run not found after multiple attempts');
     }
+    
+    // Step 3: Get the latest workflow run ID
+    const runId = await waitForWorkflowRun(owner, repo, token);
 
     // Step 4: Get the job ID from the run
     const jobsResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}/jobs`, {
