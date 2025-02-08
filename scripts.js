@@ -180,28 +180,44 @@ async function fetchVersions() {
 
 
 async function fetchModelOptions() {
-    const version = document.getElementById("versionInput").value;
-    
-    // Define url outside of any conditional blocks
-    let url;
-    if (version === "SNAPSHOT") {
-        url = "https://downloads.openwrt.org/snapshots/.overview.json";
-    } else {
-        url = `https://downloads.openwrt.org/releases/${version}/.overview.json`;
-    }
-    const response = await fetch(url);
-    const data = await response.json();
-    const modelOptions = document.getElementById("modelOptions");
-    modelOptions.innerHTML = ""; // Clear existing options
+  const version = document.getElementById("versionInput").value;
+  
+  // Define url outside of any conditional blocks
+  let url;
+  if (version === "SNAPSHOT") {
+      url = "https://downloads.openwrt.org/snapshots/.overview.json";
+  } else {
+      url = `https://downloads.openwrt.org/releases/${version}/.overview.json`;
+  }
+  
+  const response = await fetch(url);
+  const data = await response.json();
+  const modelOptions = document.getElementById("modelOptions");
+  modelOptions.innerHTML = ""; // Clear existing options
 
-    data.profiles.forEach(profile => {
-        const option = document.createElement("option");
-        option.value = `${profile.titles[0].vendor} ${profile.titles[0].model}${profile.titles[0].variant ? ' ' + profile.titles[0].variant : ''}`;
-        option.text = profile.id;
-        option.dataset.target = profile.target; // Store target in data attribute
-        modelOptions.appendChild(option);
-    });
+  const modelInput = document.getElementById("modelInput");
+  let modelFound = false;
+
+  data.profiles.forEach(profile => {
+      const option = document.createElement("option");
+      const modelText = `${profile.titles[0].vendor} ${profile.titles[0].model}${profile.titles[0].variant ? ' ' + profile.titles[0].variant : ''}`;
+      option.value = modelText;
+      option.text = profile.id;
+      option.dataset.target = profile.target; // Store target in data attribute
+      modelOptions.appendChild(option);
+      
+      // Check if the modelInput value is in the options
+      if (modelInput.value === modelText) {
+          modelFound = true;
+      }
+  });
+
+  // Clear modelInput if its value isn't found
+  if (!modelFound) {
+      modelInput.value = '';
+  }
 }
+
 
 function saveToken() {
     const token = document.getElementById("tokenInput").value;
