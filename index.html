@@ -25,7 +25,7 @@
     <form id="buildForm" onsubmit="runWorkflow(event)">
         <h2>Build OpenWrt Image</h2>
         <p>1️⃣ Select model of your device, then select a stable build or the nightly "snapshot" build.</p>
-        <input type="text" id="modelInput" list="modelOptions" placeholder="Start typing your model..." autocomplete="off" >
+        <input type="text" id="modelInput" list="modelOptions" placeholder="Start typing your model..." autocomplete="off" onfocus="this.value=''" onchange="this.blur();">
         <datalist id="modelOptions">
             <!-- Options will be populated dynamically from the provided URL -->
         </datalist>
@@ -37,9 +37,9 @@
         
         <p>2️⃣ Include and/or exclude extra packages in the firmware image:</p>
         <p><pre>The minus <code>-PACKAGE_NAME</code> prefix removes a package, no prefix adds one.</pre></p>
-        <input type="text" id="packagesInput" name="packages" autocomplete="on" placeholder="E.g. luci luci-app-sqm -kmod-usb3 -kmod-usb-ledtrig-usbport">
+        <input type="text" id="packagesInput" name="packages" autocomplete="on" placeholder="E.g. luci luci-app-sqm -kmod-usb3 -kmod-usb-ledtrig-usbport" onfocus="this.value=''" onchange="this.blur();">
         <p>3️⃣ Write a list of services to disable (if needed):</p>
-        <input type="text" id="disabled_servicesInput" name="disabled_services" autocomplete="on" placeholder="E.g. dnsmasq firewall odhcpd">
+        <input type="text" id="disabled_servicesInput" name="disabled_services" autocomplete="on" placeholder="E.g. dnsmasq firewall odhcpd" onfocus="this.value=''" onchange="this.blur();">
         <p>4️⃣ Custom uci-defaults scripts:</p>
         <p><pre>scripts found in <a href="" id="repoUrl">files/etc/uci-defaults</a></pre></p>
         <select id="scriptsInput">
