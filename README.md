@@ -39,6 +39,8 @@ The OpenWrt-Builder workflow, running on GitHub Actions, first retrieves the `.o
 - Visit `https://<YOUR-GITHUB-USERNAME>.github.io/OpenWrt-Builder`
 - Replace `<YOUR-GITHUB-USERNAME>` with your actual GitHub username
 
+---
+
 ### 🕒 First-Time Setup Notes
 - Initial build may take 10-15 minutes
 - Pages site becomes available after first successful workflow run
