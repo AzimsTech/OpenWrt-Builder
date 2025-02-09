@@ -137,21 +137,23 @@ jobs:
             FILES="${{ env.files }}" \
             DISABLED_SERVICES="${{ env.disabled_services }}"
 
-      - name: Write Build Info
+      - name: Fetch latest release JSON
+        id: fetch_release
         run: |
-          # Determine if scripts are used
-          scripts="${{ env.SCRIPT != '' && env.SCRIPT || 'false' }}"
-          disabled_services="${{ env.disabled_services != '' && env.disabled_services || 'false' }}"
-          packages="${{ env.packages != '' && env.packages || 'default' }}"
+          LATEST_JSON=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/OWNER/REPO/releases/latest)
+          echo "LATEST_JSON:"
+          echo "$LATEST_JSON"
+          ASSET_URL=$(echo "$LATEST_JSON" | jq -r '.assets[0].browser_download_url')
+          # If ASSET_URL is null, optionally set a default or exit with an error
+          if [ "$ASSET_URL" = "null" ]; then
+            echo "Warning: No asset found in the latest release." >&2
+          fi
+          echo "ASSET_URL=$ASSET_URL" >> $GITHUB_ENV
 
-          # Get the target directory and write build info
-          target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
-          echo "image_path=$target_dir" >> $GITHUB_ENV
-
-          # Get version code from profiles.json
-          version_code=$(grep -o '"version_code":"[^"]*"' $target_dir/profiles.json | awk -F: '{print $2}' | tr -d '"')
-
-          # Create build info markdown file
+      - name: Create build info markdown file
+        run: |
           cat <<EOF > build_info.md
           ## 💡 Custom OpenWrt Build Information
 
@@ -162,6 +164,10 @@ jobs:
           - **Disabled Services**: \`$disabled_services\`
           - **Version Code**: \`$version_code\`
           - **UCI Defaults Scripts**: \`$scripts\`
+
+          -----
+          ### 🔗 Download Link
+          - **Latest Release Asset**: [Download](${{ env.ASSET_URL }})
 
           -----
           ### 🔐 sha256sum
