@@ -14,6 +14,16 @@ button { padding: 10px 15px; cursor: pointer; }
     padding: 10px 15px;
     cursor: pointer;
 }
+#buildInfo {
+    margin: 20px auto; /* Center the element horizontally */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: left;
+    width: 30%; /* Adjust width as needed */
+    box-sizing: border-box; /* Ensure padding and border are included in the width */
+    max-width: 100%; /* Ensure it does not exceed the parent width */
+}
 
 @media (prefers-color-scheme: dark) {
     html {

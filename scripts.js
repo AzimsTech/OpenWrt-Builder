@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("targetInput").value = selectedOption.dataset.target;
             document.getElementById("profileInput").value = selectedOption.text;
         }
+        getBuildInfo(targetInput.value,versionInput.value);
     });
     
 });
@@ -216,6 +217,8 @@ async function fetchModelOptions() {
   if (!modelFound) {
       modelInput.value = '';
   }
+  const target = document.getElementById("targetInput").value;
+  getBuildInfo(target,version);
 }
 
 
@@ -258,7 +261,30 @@ async function testToken() {
     }
 }
 
+async function getBuildInfo(target,version) {
+  let url;
+  if (version === "SNAPSHOT") {
+    url = `https://downloads.openwrt.org/snapshots/targets/${target}/`;
+  } else {
+    url = `https://downloads.openwrt.org/releases/${version}/targets/${target}/`;
+  }
 
+  if (target) {
+    let buildinfo = url + "version.buildinfo";
+    const response = await fetch(buildinfo);
+    if (!response.ok) {
+      buildinfo = "Build info not found!";
+    } else {
+      buildinfo = await response.text();
+      const lastModified = response.headers.get('Last-Modified');
+      const date = new Date(lastModified);
+      document.getElementById("buildInfo").innerHTML = `<b>Version Code:</b> ${buildinfo.trim()} <br><b>Last modified:</b> ${date} <br><b>Target:</b> ${target}<br>`;
+    }
+  }
+
+
+
+}
 
 async function runWorkflow(event) {
     event.preventDefault();
