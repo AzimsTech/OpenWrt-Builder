@@ -1,12 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const token = localStorage.getItem("github_token");
-    if (token) {
-        document.getElementById("tokenForm").style.display = "none";
-        document.getElementById("clearTokenButton").style.display = "block";
-    }else {
-      document.getElementById("buildForm").style.display = "none";
-    }
-
+    
     await fetchVersions();
     await fetchModelOptions();
     await fetchScripts();
@@ -320,10 +314,18 @@ async function runWorkflow(event) {
     event.preventDefault();
     const token = localStorage.getItem("github_token");
     if (!token) {
-        alert("No token found! Please save your token first.");
-        return;
-    }
 
+      alert("No token found! Please save your token first.");
+      document.getElementById("buildForm").style.display = "none";
+      document.getElementById("tokenForm").style.display = "block";
+      document.getElementById("clearTokenButton").style.display = "none";    
+      return;
+    }else {
+      document.getElementById("buildForm").style.display = "block";
+      document.getElementById("tokenForm").style.display = "none";
+      document.getElementById("clearTokenButton").style.display = "block";    
+    }
+    
     const workflowFile = "build.yml";
     const { owner, repo } = fetchRepo();
 
