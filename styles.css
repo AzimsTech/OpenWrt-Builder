@@ -7,7 +7,7 @@ button { padding: 10px 15px; cursor: pointer; }
 #disabled_servicesInput { width: 30%; min-width: 380px; padding: 10px; margin: 10px 0; }
 #scriptsInput { width: 10%; min-width: 200px; padding: 10px; margin: 10px 0; }
 
-#clearTokenButton {
+#clearTokenButton, #setupTokenButton {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -40,6 +40,6 @@ button { padding: 10px 15px; cursor: pointer; }
     }
 }
 
-#tokenForm {
+#tokenForm, #setupTokenButton {
     display: none;
 }
