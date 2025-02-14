@@ -39,3 +39,7 @@ button { padding: 10px 15px; cursor: pointer; }
         color-scheme: dark; /* Include all relevant form elements */
     }
 }
+
+#tokenForm {
+    display: none;
+}
