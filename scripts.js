@@ -21,19 +21,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    ['modelInput', 'packagesInput', 'disabled_servicesInput'].forEach(id => {
-      const input = document.getElementById(id);
-    input.addEventListener('focus', () => {
-      input.value = '';
-      if (input.value === '') {
-        document.getElementById("buildInfo").style.display = "none";
-      } else {
-        document.getElementById("buildInfo").innerHTML = "block";
-      }
+    // Handle modelInput with buildInfo logic
+    const modelInput = document.getElementById('modelInput');
+    const buildInfo = document.getElementById('buildInfo');
 
-    });
+    if (modelInput && buildInfo) {
+      modelInput.addEventListener('focus', () => {
+        // Clear input value
+        modelInput.value = '';
+        // Immediately hide buildInfo
+        buildInfo.style.display = "none";
+      });
+      modelInput.addEventListener('change', () => modelInput.blur());
+    }
+
+    // Handle packagesInput and disabled_servicesInput
+    ['packagesInput', 'disabled_servicesInput'].forEach(id => {
+      const input = document.getElementById(id);
+      if (!input) return;
+      input.addEventListener('focus', () => {
+        input.value = '';
+      });
       input.addEventListener('change', () => input.blur());
-    });    
+    });
+
     
 });
 
