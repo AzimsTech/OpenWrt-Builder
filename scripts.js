@@ -1,5 +1,11 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const token = localStorage.getItem("github_token");
+    if (!token) {
+      document.getElementById("setupTokenButton").style.display = "block";
+    } else {
+      document.getElementById("setupTokenButton").style.display = "none";
+      document.getElementById("clearTokenButton").style.display = "block";
+    }
     
     await fetchVersions();
     await fetchModelOptions();
@@ -264,6 +270,13 @@ function clearToken() {
     document.getElementById("buildForm").style.display = "none";
 }
 
+function setupToken() {
+    document.getElementById("tokenForm").style.display = "block";
+    document.getElementById("setupTokenButton").style.display = "none";
+    document.getElementById("clearTokenButton").style.display = "none";
+    document.getElementById("buildForm").style.display = "none";
+}
+
 async function testToken() {
     const token = localStorage.getItem("github_token");
     if (!token) {
@@ -316,9 +329,7 @@ async function runWorkflow(event) {
     if (!token) {
 
       alert("No token found! Please save your token first.");
-      document.getElementById("buildForm").style.display = "none";
-      document.getElementById("tokenForm").style.display = "block";
-      document.getElementById("clearTokenButton").style.display = "none";    
+      setupToken();  
       return;
     }else {
       document.getElementById("buildForm").style.display = "block";
