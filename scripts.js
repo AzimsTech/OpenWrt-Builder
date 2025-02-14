@@ -12,16 +12,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     await fetchScripts();
 
     
-    document.getElementById("modelInput").addEventListener("input", function() {
+    document.getElementById("modelInput").addEventListener("change", function() {
+        fetchModelOptions();
         const selectedOption = Array.from(modelOptions.options).find(option => option.value === this.value);
         if (selectedOption) {
             document.getElementById("targetInput").value = selectedOption.dataset.target;
             document.getElementById("profileInput").value = selectedOption.text;
         }
-        getBuildInfo(targetInput.value,versionInput.value);
     });
+
+    ['modelInput', 'packagesInput', 'disabled_servicesInput'].forEach(id => {
+      const input = document.getElementById(id);
+    input.addEventListener('focus', () => {
+      input.value = '';
+      if (input.value === '') {
+        document.getElementById("buildInfo").style.display = "none";
+      } else {
+        document.getElementById("buildInfo").innerHTML = "block";
+      }
+
+    });
+      input.addEventListener('change', () => input.blur());
+    });    
     
 });
+
 
 function fetchRepo() {
   // Get the current path from the GitHub Pages URL (e.g., /repository-name/)
@@ -210,15 +225,19 @@ async function fetchModelOptions() {
       // Check if the modelInput value is in the options
       if (modelInput.value === modelText) {
           modelFound = true;
+          const target = profile.target;
+          const version = document.getElementById("versionInput").value;
+          getBuildInfo(target,version);
       }
   });
 
   // Clear modelInput if its value isn't found
   if (!modelFound) {
       modelInput.value = '';
+      document.getElementById("buildInfo").style.display = "none";
+  }else {
+    document.getElementById("buildInfo").style.display = "block";
   }
-  const target = document.getElementById("targetInput").value;
-  getBuildInfo(target,version);
 }
 
 
