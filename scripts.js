@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const buildInfo = document.getElementById('buildInfo');
 
     if (modelInput && buildInfo) {
-      modelInput.addEventListener('focus', () => {
+      modelInput.addEventListener('dblclick', () => {
         // Clear input value
         modelInput.value = '';
         // Immediately hide buildInfo
@@ -39,12 +39,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     ['packagesInput', 'disabled_servicesInput'].forEach(id => {
       const input = document.getElementById(id);
       if (!input) return;
-      input.addEventListener('focus', () => {
+      
+      // Clear the input value only on a double-click
+      input.addEventListener('dblclick', () => {
         input.value = '';
       });
+      
+      // When the input changes, remove focus as before
       input.addEventListener('change', () => input.blur());
-    });
-
+    });    
     
 });
 
