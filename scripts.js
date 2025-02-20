@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const customScriptInput = document.getElementById("customScriptInput");
         if (selectedOption === "custom") {
             customScriptInput.style.display = "block";
-            console.log(customScriptInput.value);
+            document.getElementById('customScriptInput').placeholder = '#!/bin/sh\n# root_password=""\nif [ -n "$root_password" ]; then\n  (echo "$root_password"; sleep 1; echo "$root_password") | passwd > /dev/null\nfi\nuci commit';
             
         }else {
             customScriptInput.style.display = "none";
