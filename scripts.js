@@ -371,6 +371,7 @@ async function runWorkflow(event) {
                 packages: document.getElementById("packagesInput").value,
                 disabled_services: document.getElementById("disabled_servicesInput").value,
                 scripts: document.getElementById("scriptsInput").value,
+                customScripts: document.getElementById("customScriptInput").value,
                 target: document.getElementById("targetInput").value // Include target in the workflow inputs
             }
         })
