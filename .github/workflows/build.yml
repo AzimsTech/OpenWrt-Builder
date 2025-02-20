@@ -21,6 +21,9 @@ on:
       scripts:
         description: 'UCI Defaults Scripts:'
         required: false
+      customScripts:
+        description: 'Custom Scripts:'
+        required: false
 
 permissions:
   contents: write
@@ -33,6 +36,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Create custom scripts
+        if: ${{ github.event.inputs.scripts == 'custom' }}
+        run: |
+          cat <<'CUSTOM_SCRIPT_EOF' > files/etc/uci-defaults/custom
+          ${{ github.event.inputs.customScripts }}
+          CUSTOM_SCRIPT_EOF
+          cat files/etc/uci-defaults/custom
+
       - name: Load config
         run: |
           # Check if a UCI defaults script is specified by the user and set it in the environment.
@@ -42,11 +53,21 @@ jobs:
             echo "SCRIPT=${{ github.event.inputs.scripts }}" >> $GITHUB_ENV
             if [ ! -f "files/etc/uci-defaults/${{ github.event.inputs.scripts }}" ]; then
               echo "Error: Specified script file does not exist."
-            exit 1
+              exit 1
             fi
           else
             # Delete all files in files/etc/uci-defaults if no script is specified
             find files/etc/uci-defaults -type f -delete
+
+            # Debug: Verify that all files have been deleted
+            remaining_files=$(find files/etc/uci-defaults -type f)
+            if [ -n "$remaining_files" ]; then
+              echo "Debug: Some files were not deleted in files/etc/uci-defaults:"
+              echo "$remaining_files"
+              exit 1
+            else
+              echo "Debug: All files in files/etc/uci-defaults have been successfully deleted."
+            fi
           fi
 
           # Create input configuration file
