@@ -46,8 +46,10 @@
         <p><pre>scripts found in <a href="" id="repoUrl">files/etc/uci-defaults</a></pre></p>
         <select id="scriptsInput">
             <option value=""></option>
+            <option value="custom">custom</option>
             <!-- Options will be populated dynamically from the provided URL -->
         </select>
+        <textarea id="customScriptInput" style="display: none;" name="custom_script" placeholder="E.g. 01_custom 02_custom" title="Double-click to clear this field"></textarea>
         <p>▶️ Run Workflow </p>
         <button type="submit">✨ Run Build Workflow</button>
     </form>

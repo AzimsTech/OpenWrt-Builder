@@ -21,6 +21,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
+    document.getElementById("scriptsInput").addEventListener("change", function() {
+        const selectedOption = document.getElementById("scriptsInput").value;
+        const customScriptInput = document.getElementById("customScriptInput");
+        if (selectedOption === "custom") {
+            customScriptInput.style.display = "block";
+            console.log(customScriptInput.value);
+            
+        }else {
+            customScriptInput.style.display = "none";
+        }
+    });
+
     // Handle modelInput with buildInfo logic
     const modelInput = document.getElementById('modelInput');
     const buildInfo = document.getElementById('buildInfo');
@@ -359,6 +371,7 @@ async function runWorkflow(event) {
                 packages: document.getElementById("packagesInput").value,
                 disabled_services: document.getElementById("disabled_servicesInput").value,
                 scripts: document.getElementById("scriptsInput").value,
+                customScripts: document.getElementById("customScriptInput").value,
                 target: document.getElementById("targetInput").value // Include target in the workflow inputs
             }
         })
