@@ -36,6 +36,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Create custom scripts
+        if: ${{ github.event.inputs.scripts == 'custom' }}
+        run: |
+          # Create custom scripts
+          echo "${{ github.event.inputs.customScripts }}" > files/etc/uci-defaults/custom
+          cat files/etc/uci-defaults/custom
+
       - name: Load config
         run: |
           # Check if a UCI defaults script is specified by the user and set it in the environment.
@@ -90,13 +97,6 @@ jobs:
                  -e 's/^# pppoe_name=".*"/pppoe_name="${{ secrets.PPPOE_NAME }}"/' \
                  -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' \
                  files/etc/uci-defaults/${{ env.SCRIPT }}
-
-      - name: Create custom scripts
-        if: ${{ github.event.inputs.scripts == 'custom' }}
-        run: |
-          # Create custom scripts
-          echo "${{ github.event.inputs.customScripts }}" > files/etc/uci-defaults/custom
-          cat files/etc/uci-defaults/custom
 
       - name: Cache apt packages
         uses: awalsh128/cache-apt-pkgs-action@latest
