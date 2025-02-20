@@ -6,7 +6,7 @@ button { padding: 10px 15px; cursor: pointer; }
 #packagesInput { width: 30%; min-width: 380px; padding: 10px; margin: 10px 0; }
 #disabled_servicesInput { width: 30%; min-width: 380px; padding: 10px; margin: 10px 0; }
 #scriptsInput { width: 10%; min-width: 200px; padding: 10px; margin: 10px 0; }
-#customScriptInput { width: 30%; min-width: 380px; padding: 10px; margin: 10px auto; }
+#customScriptInput { width: 30%; min-width: 380px; width: 594px; height: 157px; padding: 10px; margin: 10px auto; }
 
 
 #clearTokenButton, #setupTokenButton {
