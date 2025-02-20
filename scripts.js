@@ -21,6 +21,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
+    document.getElementById("scriptsInput").addEventListener("change", function() {
+        const selectedOption = document.getElementById("scriptsInput").value;
+        const customScriptInput = document.getElementById("customScriptInput");
+        if (selectedOption === "custom") {
+            customScriptInput.style.display = "block";
+            console.log(customScriptInput.value);
+            
+        }else {
+            customScriptInput.style.display = "none";
+        }
+    });
+
     // Handle modelInput with buildInfo logic
     const modelInput = document.getElementById('modelInput');
     const buildInfo = document.getElementById('buildInfo');
