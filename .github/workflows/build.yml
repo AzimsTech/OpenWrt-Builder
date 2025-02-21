@@ -47,14 +47,14 @@ jobs:
       - name: Load config
         run: |
           # Check if a UCI defaults script is specified by the user and set it in the environment.
-          # If a script is specified, ensure it exists in the files/etc/uci-defaults directory.
-          # If no script is specified, delete all existing scripts in the files/etc/uci-defaults directory.
           if [ -n "${{ github.event.inputs.scripts }}" ]; then
             echo "SCRIPT=${{ github.event.inputs.scripts }}" >> $GITHUB_ENV
             if [ ! -f "files/etc/uci-defaults/${{ github.event.inputs.scripts }}" ]; then
               echo "Error: Specified script file does not exist."
               exit 1
             fi
+            # Delete all other scripts in files/etc/uci-defaults except the specified one
+            find files/etc/uci-defaults -type f ! -name "${{ github.event.inputs.scripts }}" -delete
           else
             # Delete all files in files/etc/uci-defaults if no script is specified
             find files/etc/uci-defaults -type f -delete
@@ -87,6 +87,7 @@ jobs:
 
           # Append input configuration to environment variables
           cat input_config >> $GITHUB_ENV
+
 
       - name: Load secrets
         if: ${{ github.event.inputs.scripts }}
