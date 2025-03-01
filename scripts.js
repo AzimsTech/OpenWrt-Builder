@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
 });
 
-function fetchRepo() {
+async function fetchRepo() {
   // Step 1: Get the current site URL
   const siteUrl = window.location.href;
 
@@ -74,19 +74,50 @@ function fetchRepo() {
   }
 
   // Step 3: Parse owner and repo from the URL if it matches the format
+  let owner, repo;
   if (siteUrl.includes('github.io')) {
       // Extract the owner and repo from the URL
       const urlParts = siteUrl.split('/');
-      const owner = urlParts[2].split('.')[0]; // Extract owner from "owner.github.io"
-      const repo = urlParts[3] || ''; // Extract repo if present, otherwise empty string
-
-      // Return the parsed owner and repo
-      return { owner, repo };
+      owner = urlParts[2].split('.')[0]; // Extract owner from "owner.github.io"
+      repo = urlParts[3] || ''; // Extract repo if present, otherwise empty string
+  } else {
+      throw new Error('Invalid URL format. Expected "owner.github.io/repo" or "127.0.0.1".');
   }
 
-  // Step 4: Handle invalid URL format
-  throw new Error('Invalid URL format. Expected "owner.github.io/repo" or "127.0.0.1".');
+  // Step 4: Fetch the actual owner and repo using the GitHub API
+  try {
+      // Validate the owner using the GitHub Users API
+      const userResponse = await fetch(`https://api.github.com/users/${owner}`);
+      if (!userResponse.ok) {
+          throw new Error(`GitHub user "${owner}" not found.`);
+      }
+      const userData = await userResponse.json();
+      owner = userData.login; // Use the official GitHub username
+
+      // Validate the repository using the GitHub Repositories API
+      const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+      if (!repoResponse.ok) {
+          throw new Error(`GitHub repository "${owner}/${repo}" not found.`);
+      }
+      const repoData = await repoResponse.json();
+      repo = repoData.name; // Use the official repository name
+  } catch (error) {
+      console.error('Error fetching GitHub data:', error.message);
+      throw error;
+  }
+
+  // Step 5: Return the validated owner and repo
+  return { owner, repo };
 }
+
+// Example usage:
+fetchRepo()
+  .then(({ owner, repo }) => {
+      console.log(`Owner: ${owner}, Repo: ${repo}`);
+  })
+  .catch((error) => {
+      console.error(error.message);
+  });
 
 async function fetchScripts() {
   const { owner, repo } = fetchRepo();
