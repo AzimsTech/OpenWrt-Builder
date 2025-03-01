@@ -63,30 +63,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     
 });
 
-
 function fetchRepo() {
-  // Get the current path from the GitHub Pages URL (e.g., /repository-name/)
-  const path = window.location.pathname;
-  // console.log(path); // Commented out for production
+  // Step 1: Get the current site URL
+  const siteUrl = window.location.href;
 
-  // Extract the repository name from the path (e.g., "repository-name" from "/repository-name/")
-  let repo = path.split('/')[1];
-
-  // If repoName is empty, fallback to the default repository for a username-based GitHub Pages URL
-  let owner = window.location.hostname.split('.')[0];
-  if (owner === '127') {
-    owner = "AzimsTech";
-    repo = "OpenWrt-Builder";
+  // Step 2: Check if the URL is localhost (127.0.0.1)
+  if (siteUrl.includes('127.0.0.1')) {
+      // Return hardcoded values immediately without any further processing
+      return { owner: 'AzimsTech', repo: 'OpenWrt-Builder' };
   }
-  const repoUrl = document.getElementById("repoUrl");
-  repoUrl.href = `https://github.com/${owner}/${repo}/tree/main/files/etc/uci-defaults`;
-  return { owner, repo };
+
+  // Step 3: Parse owner and repo from the URL if it matches the format
+  if (siteUrl.includes('github.io')) {
+      // Extract the owner and repo from the URL
+      const urlParts = siteUrl.split('/');
+      const owner = urlParts[2].split('.')[0]; // Extract owner from "owner.github.io"
+      const repo = urlParts[3] || ''; // Extract repo if present, otherwise empty string
+
+      // Return the parsed owner and repo
+      return { owner, repo };
+  }
+
+  // Step 4: Handle invalid URL format
+  throw new Error('Invalid URL format. Expected "owner.github.io/repo" or "127.0.0.1".');
 }
 
 async function fetchScripts() {
   const { owner, repo } = fetchRepo();
   const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/files/etc/uci-defaults?ref=main`;
   const scriptsOptions = document.getElementById("scriptsInput");
+  const repoUrl = document.getElementById("repoUrl");
+  repoUrl.href = `https://github.com/${owner}/${repo}/tree/main/files/etc/uci-defaults`;
 
   fetch(apiUrl)
     .then(response => response.json())
