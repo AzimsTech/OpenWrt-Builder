@@ -110,17 +110,8 @@ async function fetchRepo() {
   return { owner, repo };
 }
 
-// Example usage:
-fetchRepo()
-  .then(({ owner, repo }) => {
-      console.log(`Owner: ${owner}, Repo: ${repo}`);
-  })
-  .catch((error) => {
-      console.error(error.message);
-  });
-
 async function fetchScripts() {
-  const { owner, repo } = fetchRepo();
+  const { owner, repo } = await fetchRepo();
   const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/files/etc/uci-defaults?ref=main`;
   const scriptsOptions = document.getElementById("scriptsInput");
   const repoUrl = document.getElementById("repoUrl");
@@ -391,7 +382,7 @@ async function runWorkflow(event) {
     }
     
     const workflowFile = "build.yml";
-    const { owner, repo } = fetchRepo();
+    const { owner, repo } = await fetchRepo();
 
     // Step 1: Trigger the workflow
     const triggerResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowFile}/dispatches`, {
