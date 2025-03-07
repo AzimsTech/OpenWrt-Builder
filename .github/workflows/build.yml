@@ -37,12 +37,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create custom scripts
-        if: ${{ github.event.inputs.scripts == 'custom' }}
+        if: ${{ github.event.inputs.scripts == '99-custom' }}
         run: |
-          cat <<'CUSTOM_SCRIPT_EOF' > files/etc/uci-defaults/custom
+          cat <<'CUSTOM_SCRIPT_EOF' > files/etc/uci-defaults/99-custom
           ${{ github.event.inputs.customScripts }}
           CUSTOM_SCRIPT_EOF
-          cat files/etc/uci-defaults/custom
+          cat files/etc/uci-defaults/99-custom
 
       - name: Load config
         run: |
