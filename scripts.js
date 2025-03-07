@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("scriptsInput").addEventListener("change", function() {
         const selectedOption = document.getElementById("scriptsInput").value;
         const customScriptInput = document.getElementById("customScriptInput");
-        if (selectedOption === "custom") {
+        if (selectedOption === "99-custom") {
             customScriptInput.style.display = "block";
             document.getElementById('customScriptInput').placeholder = '#!/bin/sh\n# root_password=""\nif [ -n "$root_password" ]; then\n  (echo "$root_password"; sleep 1; echo "$root_password") | passwd > /dev/null\nfi\nuci commit';
             
