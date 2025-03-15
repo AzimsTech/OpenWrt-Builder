@@ -44,87 +44,86 @@ jobs:
           CUSTOM_SCRIPT_EOF
           cat files/etc/uci-defaults/99-custom
 
-      - name: Load config
+      - name: Process UCI scripts
         run: |
-          # Check if a UCI defaults script is specified by the user and set it in the environment.
+          # Check if a UCI defaults script is specified by the user
           if [ -n "${{ github.event.inputs.scripts }}" ]; then
             echo "SCRIPT=${{ github.event.inputs.scripts }}" >> $GITHUB_ENV
+            
+            # Verify script exists
             if [ ! -f "files/etc/uci-defaults/${{ github.event.inputs.scripts }}" ]; then
               echo "Error: Specified script file does not exist."
               exit 1
             fi
-            # Delete all other scripts in files/etc/uci-defaults except the specified one
+            
+            # Keep only the specified script
             find files/etc/uci-defaults -type f ! -name "${{ github.event.inputs.scripts }}" -delete
           else
-            # Delete all files in files/etc/uci-defaults if no script is specified
+            # Remove all UCI default scripts if none specified
             find files/etc/uci-defaults -type f -delete
-
-            # Debug: Verify that all files have been deleted
+            
+            # Verify removal
             remaining_files=$(find files/etc/uci-defaults -type f)
             if [ -n "$remaining_files" ]; then
-              echo "Debug: Some files were not deleted in files/etc/uci-defaults:"
+              echo "Warning: These files were not deleted in files/etc/uci-defaults:"
               echo "$remaining_files"
               exit 1
             else
-              echo "Debug: All files in files/etc/uci-defaults have been successfully deleted."
+              echo "All files in files/etc/uci-defaults have been successfully deleted."
             fi
           fi
 
+      - name: Create build configuration
+        run: |
           # Create input configuration file
-          files="files"
           cat <<EOF > input_config
           openwrt_version=${{ github.event.inputs.version }}
           packages=${{ github.event.inputs.packages }}
-          files=$files
+          files=files
           profile=${{ github.event.inputs.model }}
           target=${{ github.event.inputs.target }}
           EOF
 
-          # Add disabled services to the configuration if specified
+          # Add disabled services if specified
           if [ -n "${{ github.event.inputs.disabled_services }}" ]; then
             echo "disabled_services=${{ github.event.inputs.disabled_services }}" >> input_config
           fi
 
-          # Append input configuration to environment variables
+          # Export configuration to environment
           cat input_config >> $GITHUB_ENV
 
-
-      - name: Load secrets
+      - name: Inject secrets into scripts
         if: ${{ github.event.inputs.scripts }}
         run: |
-          # Inject secrets into the specified script
-          sed -i -e 's/^# ssid=".*"/ssid="${{ secrets.WLAN_NAME }}"/' \
-                 -e 's/^# ssid_key=".*"/ssid_key="${{ secrets.WLAN_PASS }}"/' \
-                 -e 's/^# root_password=".*"/root_password="${{ secrets.ROOT_PASS }}"/' \
-                 -e 's/^# pppoe_name=".*"/pppoe_name="${{ secrets.PPPOE_NAME }}"/' \
-                 -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' \
-                 files/etc/uci-defaults/${{ env.SCRIPT }}
+          sed -i \
+            -e 's/^# ssid=".*"/ssid="${{ secrets.WLAN_NAME }}"/' \
+            -e 's/^# ssid_key=".*"/ssid_key="${{ secrets.WLAN_PASS }}"/' \
+            -e 's/^# root_password=".*"/root_password="${{ secrets.ROOT_PASS }}"/' \
+            -e 's/^# pppoe_name=".*"/pppoe_name="${{ secrets.PPPOE_NAME }}"/' \
+            -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' \
+            files/etc/uci-defaults/${{ env.SCRIPT }}
 
       - name: Install dependencies
         run: |
-          # Update package list and install required dependencies
           sudo apt update
           sudo apt install -y \
             build-essential libncurses-dev zlib1g-dev gawk wget git gettext \
             libssl-dev xsltproc rsync unzip python3 python3-setuptools zstd
       
-      - name: Fetch version.buildinfo
+      - name: Fetch version buildinfo
         id: fetch_version_buildinfo
         run: |
-          # Determine the OpenWrt version and download the appropriate image builder
           version="${{ env.openwrt_version }}"
           target="${{ env.target }}"
-          # Fetch the latest version.buildinfo file
-
+          
+          # Construct URL based on version
           if [[ $version == "SNAPSHOT" ]]; then
             url="https://downloads.openwrt.org/${version,,}s/targets/${target}/version.buildinfo"
           else
             url="https://downloads.openwrt.org/releases/${version}/targets/${target}/version.buildinfo"
           fi
-
+          
           wget $url
-
-          # Get the latest version code
           echo "version_buildinfo=$(cat version.buildinfo)" >> $GITHUB_ENV
 
       - name: Cache OpenWrt Image Builder
@@ -137,24 +136,24 @@ jobs:
       - name: Download OpenWrt Image Builder
         if: steps.cache-openwrt.outputs.cache-hit != 'true'
         run: |
-          # Determine the OpenWrt version and download the appropriate image builder
           version="${{ env.openwrt_version }}"
           target="${{ env.target }}"
-
+          target_format=$(echo $target | tr '/' '-')
+          
+          # Determine download URL based on version
           if [[ $version == "SNAPSHOT" ]]; then
-            url="https://downloads.openwrt.org/${version,,}s/targets/${target}/openwrt-imagebuilder-$(echo $target | tr '/' '-').Linux-x86_64.tar.zst"
+            url="https://downloads.openwrt.org/${version,,}s/targets/${target}/openwrt-imagebuilder-${target_format}.Linux-x86_64.tar.zst"
           elif [[ $version < "24.10" ]]; then
-            url="https://downloads.openwrt.org/releases/${version}/targets/${target}/openwrt-imagebuilder-${version}-$(echo $target | tr '/' '-').Linux-x86_64.tar.xz"
+            url="https://downloads.openwrt.org/releases/${version}/targets/${target}/openwrt-imagebuilder-${version}-${target_format}.Linux-x86_64.tar.xz"
           else
-            url="https://downloads.openwrt.org/releases/${version}/targets/${target}/openwrt-imagebuilder-${version}-$(echo $target | tr '/' '-').Linux-x86_64.tar.zst"
+            url="https://downloads.openwrt.org/releases/${version}/targets/${target}/openwrt-imagebuilder-${version}-${target_format}.Linux-x86_64.tar.zst"
           fi
-
+          
           wget "$url"
           
       - name: Build OpenWrt Image
         run: |
           tar -xf openwrt-imagebuilder-*.tar.*
-          # Move necessary files and run the build process
           mv files openwrt-imagebuilder-*/
           cd openwrt-imagebuilder-*/
           make -j $(nproc) image \
@@ -163,18 +162,18 @@ jobs:
             FILES="${{ env.files }}" \
             DISABLED_SERVICES="${{ env.disabled_services }}"
 
-      - name: Write Build Info
+      - name: Generate build information
         run: |
-          # Determine if scripts are used
+          # Format variables for display
           scripts="${{ env.SCRIPT != '' && env.SCRIPT || 'false' }}"
           disabled_services="${{ env.disabled_services != '' && env.disabled_services || 'false' }}"
           packages="${{ env.packages != '' && env.packages || 'default' }}"
 
-          # Get the target directory and write build info
+          # Find target directory
           target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
           echo "image_path=$target_dir" >> $GITHUB_ENV
 
-          # Get version code from profiles.json
+          # Extract version code from profiles.json
           version_code=$(grep -o '"version_code":"[^"]*"' $target_dir/profiles.json | awk -F: '{print $2}' | tr -d '"')
 
           # Create build info markdown file
@@ -184,7 +183,7 @@ jobs:
           - **OpenWrt Version**: \`${{ env.openwrt_version }}\`
           - **Target**: \`${{ env.target }}\`
           - **Profile**: \`${{ env.profile }}\`
-          - **Package Selections**: \`${{ env.packages }}\`
+          - **Package Selections**: \`$packages\`
           - **Disabled Services**: \`$disabled_services\`
           - **Version Code**: \`$version_code\`
           - **UCI Defaults Scripts**: \`$scripts\`
@@ -195,7 +194,7 @@ jobs:
           $(awk '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {printf "`%s`\n**%s**\n\n", $1, $2}' $target_dir/sha256sums)
           EOF
 
-      - name: Release
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.model }}-${{ env.openwrt_version }}-${{ env.version_buildinfo }}
