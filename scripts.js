@@ -345,26 +345,23 @@ async function testToken() {
 async function getBuildInfo(target,version) {
   let url;
   if (version === "SNAPSHOT") {
-    url = `https://downloads.openwrt.org/snapshots/targets/${target}/`;
+      url = `https://downloads.openwrt.org/snapshots/targets/${target}/`;
   } else {
-    url = `https://downloads.openwrt.org/releases/${version}/targets/${target}/`;
+      url = `https://downloads.openwrt.org/releases/${version}/targets/${target}/`;
   }
 
   if (target) {
-    let buildinfo = url + "version.buildinfo";
-    const response = await fetch(buildinfo);
-    if (!response.ok) {
-      buildinfo = "Build info not found!";
-    } else {
-      buildinfo = await response.text();
-      const lastModified = response.headers.get('Last-Modified');
-      const date = new Date(lastModified);
-      document.getElementById("buildInfo").innerHTML = `<b>Version Code:</b> ${buildinfo.trim()} <br><b>Last modified:</b> ${date} <br><b>Target:</b> ${target}<br>`;
-    }
+      let buildinfo = url + "version.buildinfo?cacheBust=" + Date.now(); // Cache-busting
+      const response = await fetch(buildinfo, { cache: 'no-store' });
+      if (!response.ok) {
+          buildinfo = "Build info not found!";
+      } else {
+          buildinfo = await response.text();
+          const lastModified = response.headers.get('Last-Modified');
+          const date = new Date(lastModified);
+          document.getElementById("buildInfo").innerHTML = `<b>Version Code:</b> ${buildinfo.trim()} <br><b>Last modified:</b> ${date} <br><b>Target:</b> ${target}<br>`;
+      }
   }
-
-
-
 }
 
 async function runWorkflow(event) {
