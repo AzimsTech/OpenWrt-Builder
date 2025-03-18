@@ -45,3 +45,11 @@ button { padding: 10px 15px; cursor: pointer; }
 #tokenForm, #setupTokenButton {
     display: none;
 }
+
+#configToUciButton {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 10px 15px;
+    cursor: pointer;
+}
