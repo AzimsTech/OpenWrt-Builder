@@ -25,6 +25,7 @@ uci add_list system.ntp.server='sg.pool.ntp.org'
 uci commit system
 
 # network
+uci -q delete network.globals.ula_prefix # testing
 uci set network.lan.ipaddr="$lan_ip"
 uci set network.lan.ip6assign='64'
 uci set network.lan.hostname="`uci get system.@system[0].hostname`"
