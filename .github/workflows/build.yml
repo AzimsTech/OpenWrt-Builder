@@ -183,8 +183,8 @@ jobs:
           - **OpenWrt Version**: \`${{ env.openwrt_version }}\`
           - **Target**: \`${{ env.target }}\`
           - **Profile**: \`${{ env.profile }}\`
-          - **Package Selections**: \`$packages\`
-          - **Disabled Services**: \`$disabled_services\`
+          - **Package Selections**: $(printf "\`%s\` " $packages)
+          - **Disabled Services**: $(printf "\`%s\` " $disabled_services)
           - **Version Code**: \`$version_code\`
           - **UCI Defaults Scripts**: \`$scripts\`
 
