@@ -1,4 +1,4 @@
-name: Delete old workflow runs
+name: Delete older releases, tags and workflow runs 
 on:
   schedule:
     - cron: '0 0 * * 0'
@@ -10,8 +10,19 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-      contents: read
+      contents: write
     steps:
+      - name: Delete releases and workflows runs
+        uses: ophub/delete-releases-workflows@main
+        with:
+          delete_releases: true
+          releases_keep_latest: 3
+          delete_workflows: false
+          workflows_keep_day: 3
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          delete_tags: true
+          out_log: true
+
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2
         with:
