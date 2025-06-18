@@ -411,40 +411,57 @@ async function runWorkflow(event) {
     }
     alert("Workflow triggered successfully! Fetching job details...");
 
-    // Step 2: Wait for GitHub to register the run
-    async function waitForWorkflowRun(owner, repo, token) {
-      const MAX_RETRIES = 5;
-      for (let i = 0; i < MAX_RETRIES; i++) {
-        const runsResponse = await fetch(
-          `https://api.github.com/repos/${owner}/${repo}/actions/runs`,
-          { headers: { "Authorization": `Bearer ${token}` } }
-        );
-        const runsData = await runsResponse.json();
-        if (runsData.workflow_runs?.length > 0) {
-          return runsData.workflow_runs[0].id;
-        }
-        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-      }
-      throw new Error('Workflow run not found after multiple attempts');
-    }
-    
-    // Step 3: Get the latest workflow run ID
-    const runId = await waitForWorkflowRun(owner, repo, token);
+    // Step 2: Wait for GitHub to register the correct workflow run
+    async function waitForWorkflowRun(owner, repo, token, workflowFilename, commitSha) {
+      const MAX_RETRIES = 10;
+      const RETRY_DELAY_MS = 3000;
 
-    // Step 4: Get the job ID from the run
+      for (let i = 0; i < MAX_RETRIES; i++) {
+        const response = await fetch(
+          `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowFilename}/runs?per_page=5`,
+          {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Accept": "application/vnd.github+json"
+            }
+          }
+        );
+
+        const data = await response.json();
+
+        // Look for the workflow run that matches the exact commit SHA
+        const matchingRun = data.workflow_runs?.find(run => run.head_sha === commitSha);
+
+        if (matchingRun) {
+          return matchingRun.id;
+        }
+
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+      }
+
+      throw new Error("Workflow run not found after retries");
+    }
+
+    // Step 3: Get the latest matching workflow run ID
+    const workflowFilename = "your_workflow.yml"; // e.g. "ci.yml"
+    const commitSha = "abc123..."; // Use the correct commit SHA that triggered the workflow
+    const runId = await waitForWorkflowRun(owner, repo, token, workflowFilename, commitSha);
+
+    // Step 4: Get the job ID from the workflow run
     const jobsResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}/jobs`, {
-        headers: { "Authorization": `Bearer ${token}` }
+      headers: { "Authorization": `Bearer ${token}` }
     });
 
     const jobsData = await jobsResponse.json();
     const jobId = jobsData.jobs[0]?.id;
+
     if (!jobId) {
-        alert("No job found.");
-        newTab.close();
-        return;
+      alert("No job found.");
+      return;
     }
 
-    // Step 5: Update the new tab with the job URL
+    // Step 5: Open the job URL in a new tab
     const jobUrl = `https://github.com/${owner}/${repo}/actions/runs/${runId}/job/${jobId}`;
     window.open(jobUrl, "_blank");
     console.log("Job URL:", jobUrl);
