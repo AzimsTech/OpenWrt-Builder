@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Cache build dependencies
-      - uses: awalsh128/cache-apt-pkgs-action@latest
+        uses: awalsh128/cache-apt-pkgs-action@latest
         with:
             packages: build-essential libncurses-dev zlib1g-dev gawk wget git gettext libssl-dev xsltproc rsync unzip python3 python3-setuptools zstd
             version: 1.0
