@@ -36,6 +36,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache build dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+            packages: build-essential libncurses-dev zlib1g-dev gawk wget git gettext libssl-dev xsltproc rsync unzip python3 python3-setuptools zstd
+            version: 1.0
+
       - name: Create custom scripts
         if: ${{ github.event.inputs.scripts == '99-custom' }}
         run: |
@@ -102,13 +108,6 @@ jobs:
             -e 's/^# pppoe_name=".*"/pppoe_name="${{ secrets.PPPOE_NAME }}"/' \
             -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' \
             files/etc/uci-defaults/${{ env.SCRIPT }}
-
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y \
-            build-essential libncurses-dev zlib1g-dev gawk wget git gettext \
-            libssl-dev xsltproc rsync unzip python3 python3-setuptools zstd
       
       - name: Fetch version buildinfo
         id: fetch_version_buildinfo
