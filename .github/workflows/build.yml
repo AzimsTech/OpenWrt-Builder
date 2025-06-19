@@ -199,5 +199,6 @@ jobs:
           tag_name: ${{ github.event.inputs.model }}-${{ env.openwrt_version }}-${{ env.version_buildinfo }}
           body_path: build_info.md
           files: ${{ env.image_path }}/*
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
