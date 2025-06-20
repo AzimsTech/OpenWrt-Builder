@@ -190,7 +190,7 @@ jobs:
           -----
           ### 🔐 sha256sum
 
-          $(awk '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {printf "`%s`\n**%s**\n\n", $1, $2}' $target_dir/sha256sums)
+          $(awk '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {gsub(/\*/, "", $2); printf "`%s`\n**%s**\n\n", $1, $2}' "$target_dir/sha256sums")
           EOF
 
       - name: Create GitHub release
