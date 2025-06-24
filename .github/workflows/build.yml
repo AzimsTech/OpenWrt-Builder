@@ -147,20 +147,28 @@ jobs:
       - name: Extract and Setup Image Builder
         id: image-builder-setup
         run: |
-          # Extract archive and get directory name
           tar -xf openwrt-imagebuilder-*.tar.*
           builder_dir=$(find . -maxdepth 1 -type d -name 'openwrt-imagebuilder-*' -print -quit)
+          builder_dir=$(realpath "$builder_dir")  # Get absolute path
           echo "Using builder directory: $builder_dir"
-          
-          # Move custom files
           [ -d files ] && mv files "$builder_dir"
-          
-          # Set output for later steps
           echo "builder_dir=$builder_dir" >> $GITHUB_OUTPUT
-          echo "$builder_dir" > builder_dir.txt
-          
-          # Create required tmp directory
           mkdir -p "$builder_dir/tmp"
+
+      # Set up Docker Buildx with caching
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build Docker Image with caching
+      - name: Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ steps.image-builder-setup.outputs.builder_dir }}
+          file: ${{ github.workspace }}/Containerfile-alpine
+          tags: openwrt:alpine
+          load: true  # Make image available locally
+          cache-from: type=gha  # Cache from GitHub Actions
+          cache-to: type=gha,mode=max  # Cache to GitHub Actions
 
       - name: Build Docker Image
         run: docker build --rm --tag openwrt:alpine --file "${{ github.workspace }}/Containerfile-alpine" .
