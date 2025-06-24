@@ -390,7 +390,7 @@ async function runWorkflow(event) {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            ref: "main",
+            ref: "use-docker",
             inputs: {
                 model: document.getElementById("profileInput").value,
                 version: document.getElementById("versionInput").value,
