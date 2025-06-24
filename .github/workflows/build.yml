@@ -36,12 +36,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Cache build dependencies
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-            packages: build-essential libncurses-dev zlib1g-dev gawk wget git gettext libssl-dev xsltproc rsync unzip python3 python3-setuptools zstd
-            version: 1.0
-
       - name: Create custom scripts
         if: ${{ github.event.inputs.scripts == '99-custom' }}
         run: |
@@ -155,6 +149,7 @@ jobs:
           tar -xf openwrt-imagebuilder-*.tar.*
           mv files openwrt-imagebuilder-*/
           cd openwrt-imagebuilder-*/
+          docker run --interactive --rm --ulimit 'nofile=1024:262144' --volume "$(pwd):/workdir" --workdir '/workdir' azimstech/openwrt:alpine /bin/bash
           make -j $(nproc) image \
             PROFILE="${{ env.profile }}" \
             PACKAGES="${{ env.packages }}" \
