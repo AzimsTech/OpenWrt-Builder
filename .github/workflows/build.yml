@@ -150,7 +150,7 @@ jobs:
           mv files openwrt-imagebuilder-*/
           cd openwrt-imagebuilder-*/
           echo "*" > .dockerignore
-          docker build --rm --tag openwrt:alpine --file <path-to-containerfile>/Containerfile-alpine ${{ github.workspace }}
+          docker build --rm --tag openwrt:alpine --file ${{ github.workspace }}/Containerfile-alpine .
           docker run --interactive --rm --tty --ulimit 'nofile=1024:262144' --volume "$(pwd):/workdir" --workdir '/workdir' openwrt:alpine /bin/bash
           make -j $(nproc) image \
             PROFILE="${{ env.profile }}" \
