@@ -144,19 +144,43 @@ jobs:
           
           wget "$url"
           
-      - name: Build OpenWrt Image
+      - name: Extract and Setup Image Builder
+        id: image-builder-setup
         run: |
+          # Extract archive and get directory name
           tar -xf openwrt-imagebuilder-*.tar.*
-          mv files openwrt-imagebuilder-*/
-          cd openwrt-imagebuilder-*/
-          echo "*" > .dockerignore
-          docker build --rm --tag openwrt:alpine --file ${{ github.workspace }}/Containerfile-alpine .
-          docker run --rm --ulimit 'nofile=1024:262144' --volume "$(pwd):/workdir" --workdir '/workdir' openwrt:alpine /bin/bash
-          make -j $(nproc) image \
-            PROFILE="${{ env.profile }}" \
-            PACKAGES="${{ env.packages }}" \
-            FILES="${{ env.files }}" \
-            DISABLED_SERVICES="${{ env.disabled_services }}"
+          builder_dir=$(find . -maxdepth 1 -type d -name 'openwrt-imagebuilder-*' -print -quit)
+          echo "Using builder directory: $builder_dir"
+          
+          # Move custom files
+          [ -d files ] && mv files "$builder_dir"
+          
+          # Set output for later steps
+          echo "builder_dir=$builder_dir" >> $GITHUB_OUTPUT
+          echo "$builder_dir" > builder_dir.txt
+          
+          # Create required tmp directory
+          mkdir -p "$builder_dir/tmp"
+
+      - name: Build Docker Image
+        run: docker build --rm --tag openwrt:alpine --file "${{ github.workspace }}/Containerfile-alpine" .
+        working-directory: ${{ steps.image-builder-setup.outputs.builder_dir }}
+
+      - name: Build OpenWrt Image Inside Container
+        run: |
+          docker run --rm \
+            --user root \
+            --ulimit 'nofile=1024:262144' \
+            -v "$(pwd):/workdir" \
+            -v "$(pwd)/tmp:/workdir/tmp" \
+            -w "/workdir" \
+            openwrt:alpine \
+            sh -c "chmod -R a+rwx /workdir && make -j $(nproc) image \
+              PROFILE='${{ env.profile }}' \
+              PACKAGES='${{ env.packages }}' \
+              FILES='${{ env.files }}' \
+              DISABLED_SERVICES='${{ env.disabled_services }}'"
+        working-directory: ${{ steps.image-builder-setup.outputs.builder_dir }}
 
       - name: Generate build information
         run: |
