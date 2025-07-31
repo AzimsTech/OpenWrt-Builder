@@ -119,12 +119,17 @@ jobs:
           wget $url
           echo "version_buildinfo=$(cat version.buildinfo)" >> $GITHUB_ENV
 
+          # Extract 7-character commit hash directly from file
+          # Format: r28784-155eea44e7 -> 155eea4
+          commit_hash=$(cat version.buildinfo | sed 's/.*-//' | cut -c1-7)
+          echo "commit_hash=$commit_hash" >> $GITHUB_ENV
+
       - name: Cache OpenWrt Image Builder
         id: cache-openwrt
         uses: actions/cache@v4
         with:
           path: openwrt-imagebuilder-*.tar.*
-          key: openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.target }}-${{ env.version_buildinfo }}
+          key: openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.target }}-${{ env.commit_hash }}
       
       - name: Download OpenWrt Image Builder
         if: steps.cache-openwrt.outputs.cache-hit != 'true'
@@ -196,7 +201,7 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.model }}-${{ env.openwrt_version }}-${{ env.version_buildinfo }}
+          tag_name: ${{ github.event.inputs.model }}-${{ env.openwrt_version }}-${{ env.commit_hash }}
           body_path: build_info.md
           files: ${{ env.image_path }}/*
           make_latest: true
