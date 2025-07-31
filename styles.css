@@ -1,55 +1,238 @@
-body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-#tokenInput { width: 34%; min-width: 380px; padding: 10px; margin: 10px 0; }
-#modelInput { width: 32%; min-width: 380px; padding: 10px; margin: 10px 0; }
-#versionInput { width: 5%; min-width: 150px; padding: 10px; margin: 10px 0; }
-button { padding: 10px 15px; cursor: pointer; }
-#packagesInput { width: 30%; min-width: 380px; padding: 10px; margin: 10px 0; }
-#disabled_servicesInput { width: 30%; min-width: 380px; padding: 10px; margin: 10px 0; }
-#scriptsInput { width: 10%; min-width: 200px; padding: 10px; margin: 10px 0; }
-#customScriptInput { width: 30%; min-width: 380px; width: 594px; height: 157px; padding: 10px; margin: 10px auto; }
+body { 
+    font-family: Arial, sans-serif; 
+    text-align: center; 
+    padding: 20px 20px 80px 20px; /* Added bottom padding for buttons */
+    margin: 0;
+    box-sizing: border-box;
+    min-height: 100vh;
+    position: relative;
+}
 
+/* Base form element styles */
+input, select, textarea, button {
+    box-sizing: border-box;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px; /* Prevents zoom on iOS */
+}
 
+/* Token input */
+#tokenInput { 
+    width: 100%; 
+    max-width: 380px;
+}
+
+/* Model and version inputs - stack on mobile */
+#modelInput { 
+    width: 100%; 
+    max-width: 380px;
+}
+
+#versionInput { 
+    width: 100%; 
+    max-width: 200px;
+}
+
+/* Package and services inputs */
+#packagesInput, #disabled_servicesInput { 
+    width: 100%; 
+    max-width: 500px;
+}
+
+/* Scripts dropdown */
+#scriptsInput { 
+    width: 100%; 
+    max-width: 250px;
+}
+
+/* Custom script textarea */
+#customScriptInput { 
+    width: 100%; 
+    max-width: 500px;
+    height: 120px;
+    resize: vertical;
+}
+
+/* Buttons */
+button { 
+    padding: 12px 20px; 
+    cursor: pointer;
+    min-height: 44px; /* Touch-friendly size */
+    font-size: 16px;
+    margin: 5px;
+}
+
+/* Bottom corner buttons */
 #clearTokenButton, #setupTokenButton {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    padding: 10px 15px;
+    padding: 12px 16px;
     cursor: pointer;
-}
-#buildInfo {
-    margin: 20px auto; /* Center the element horizontally */
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    text-align: left;
-    width: 30%; /* Adjust width as needed */
-    box-sizing: border-box; /* Ensure padding and border are included in the width */
-    max-width: 100%; /* Ensure it does not exceed the parent width */
-}
-
-@media (prefers-color-scheme: dark) {
-    html {
-        background-color: #212830;
-        color: #ffffff; /* Ensure text is visible */
-        color-scheme: dark; /* Apply globally */
-    }
-    header, .btn {
-        background-color: #212830;
-        color: #ffffff; /* Consistent text color */
-    }
-    input, button, select, textarea {
-        color-scheme: dark; /* Include all relevant form elements */
-    }
-}
-
-#tokenForm, #setupTokenButton {
-    display: none;
+    font-size: 14px;
+    z-index: 1000;
 }
 
 #configToUciButton {
     position: fixed;
     bottom: 20px;
     left: 20px;
-    padding: 10px 15px;
+    padding: 12px 16px;
     cursor: pointer;
+    font-size: 14px;
+    z-index: 1000;
+}
+
+/* Build info box */
+#buildInfo {
+    margin: 20px auto;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: left;
+    width: 100%;
+    max-width: 500px;
+    box-sizing: border-box;
+}
+
+/* Form sections */
+form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 10px;
+}
+
+/* Headings */
+h2 {
+    margin: 30px 0 20px 0;
+    font-size: 1.5em;
+}
+
+/* Paragraphs and text */
+p {
+    margin: 15px 0;
+    text-align: center; /* Center align description text */
+}
+
+/* Keep build info text left-aligned */
+#buildInfo p {
+    text-align: left;
+}
+
+pre {
+    text-align: center; /* Center align pre text too */
+    font-size: 14px;
+    overflow-x: auto;
+}
+
+/* Keep pre inside build info left-aligned */
+#buildInfo pre {
+    text-align: left;
+}
+
+/* Dark mode styles */
+@media (prefers-color-scheme: dark) {
+    html {
+        background-color: #212830;
+        color: #ffffff;
+        color-scheme: dark;
+    }
+    
+    header, .btn {
+        background-color: #212830;
+        color: #ffffff;
+    }
+    
+    input, button, select, textarea {
+        color-scheme: dark;
+        background-color: #2a3441;
+        border-color: #4a5568;
+        color: #ffffff;
+    }
+    
+    #buildInfo {
+        border-color: #4a5568;
+        background-color: #2a3441;
+    }
+}
+
+/* Token form visibility */
+#tokenForm, #setupTokenButton {
+    display: none;
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 768px) {
+    body {
+        padding: 15px 10px 80px 10px; /* Added bottom padding for buttons */
+    }
+    
+    /* Stack form elements vertically with full width */
+    #modelInput, #versionInput {
+        width: 100%;
+        max-width: none;
+    }
+    
+    /* Adjust corner buttons for mobile */
+    #clearTokenButton, #setupTokenButton {
+        bottom: 15px;
+        right: 10px;
+        font-size: 12px;
+        padding: 10px 12px;
+    }
+    
+    #configToUciButton {
+        bottom: 15px;
+        left: 10px;
+        font-size: 12px;
+        padding: 10px 12px;
+    }
+    
+    /* Smaller text for mobile */
+    h2 {
+        font-size: 1.3em;
+    }
+    
+    pre {
+        font-size: 12px;
+    }
+    
+    /* Adjust build info box */
+    #buildInfo {
+        padding: 12px;
+        font-size: 14px;
+    }
+    
+    /* Make textarea smaller on mobile */
+    #customScriptInput {
+        height: 100px;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+    body {
+        padding: 10px 5px 80px 5px; /* Added bottom padding for buttons */
+    }
+    
+    form {
+        padding: 0 5px;
+    }
+    
+    /* Adjust corner buttons for very small screens */
+    #clearTokenButton, #setupTokenButton {
+        bottom: 10px;
+        right: 5px;
+        font-size: 11px;
+        padding: 8px 10px;
+    }
+    
+    #configToUciButton {
+        bottom: 10px;
+        left: 5px;
+        font-size: 11px;
+        padding: 8px 10px;
+    }
 }
