@@ -175,6 +175,10 @@ jobs:
           # Extract version code from profiles.json
           version_code=$(grep -o '"version_code":"[^"]*"' $target_dir/profiles.json | awk -F: '{print $2}' | tr -d '"')
 
+          # Use GitHub Actions environment variables
+          GITHUB_REPO="${GITHUB_REPOSITORY}"
+          RELEASE_TAG="${{ github.event.inputs.model }}-${{ env.openwrt_version }}-${{ env.commit_hash }}"
+
           # Create build info markdown file
           cat <<EOF > build_info.md
           ## 💡 Custom OpenWrt Build Information
@@ -188,13 +192,12 @@ jobs:
           - **UCI Defaults Scripts**: \`$scripts\`
 
           -----
-          ### 🔐 sha256sum
 
-          | SHA256 Checksum | Filename |
-          |-----------------|----------|
-          $(awk '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {
+          | 🔐 SHA256 Checksum |
+          |:-------------------|
+          $(awk -v repo="$GITHUB_REPO" -v tag="$RELEASE_TAG" '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {
             gsub(/\*/, "", $2); 
-            printf "| `%s` | %s |\n", $1, $2
+            printf "| `%s`<br>[%s](https://github.com/%s/releases/download/%s/%s) |\n", $1, $2, repo, tag, $2
           }' "$target_dir/sha256sums")
           EOF
 
