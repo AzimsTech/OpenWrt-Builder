@@ -124,42 +124,19 @@ jobs:
           commit_hash=$(cat version.buildinfo | sed 's/.*-//' | cut -c1-7)
           echo "commit_hash=$commit_hash" >> $GITHUB_ENV
 
-      - name: Cache OpenWrt Image Builder
-        id: cache-openwrt
-        uses: actions/cache@v4
-        with:
-          path: openwrt-imagebuilder-*.tar.*
-          key: openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.target }}-${{ env.commit_hash }}
-      
-      - name: Download OpenWrt Image Builder
-        if: steps.cache-openwrt.outputs.cache-hit != 'true'
+      - name: Build OpenWrt image via Official OpenWrt Docker imagebuilder image
         run: |
           version="${{ env.openwrt_version }}"
           target="${{ env.target }}"
           target_format=$(echo $target | tr '/' '-')
-          
-          # Determine download URL based on version
-          if [[ $version == "SNAPSHOT" ]]; then
-            url="https://downloads.openwrt.org/${version,,}s/targets/${target}/openwrt-imagebuilder-${target_format}.Linux-x86_64.tar.zst"
-          elif [[ $version < "24.10" ]]; then
-            url="https://downloads.openwrt.org/releases/${version}/targets/${target}/openwrt-imagebuilder-${version}-${target_format}.Linux-x86_64.tar.xz"
-          else
-            url="https://downloads.openwrt.org/releases/${version}/targets/${target}/openwrt-imagebuilder-${version}-${target_format}.Linux-x86_64.tar.zst"
-          fi
-          
-          wget "$url"
-          
-      - name: Build OpenWrt Image
-        run: |
-          tar -xf openwrt-imagebuilder-*.tar.*
-          mv files openwrt-imagebuilder-*/
-          cd openwrt-imagebuilder-*/
-          docker run --interactive --rm --ulimit 'nofile=1024:262144' --volume "$(pwd):/workdir" --workdir '/workdir' azimstech/openwrt:alpine /bin/bash
-          make -j $(nproc) image \
-            PROFILE="${{ env.profile }}" \
-            PACKAGES="${{ env.packages }}" \
-            FILES="${{ env.files }}" \
-            DISABLED_SERVICES="${{ env.disabled_services }}"
+
+          docker run --rm -u 0 -v ${{ github.workspace }}:/workspace -w /workspace \
+            ghcr.io/openwrt/imagebuilder:${target_format}-${version} \
+            bash -c "/builder/setup.sh && make -j $(nproc) image \
+              PROFILE='${{ env.profile }}' \
+              PACKAGES='${{ env.packages }}' \
+              FILES='/workspace/${{ env.files }}' \
+              DISABLED_SERVICES='${{ env.disabled_services }}'"
 
       - name: Generate build information
         run: |
@@ -169,10 +146,10 @@ jobs:
           packages="${{ env.packages != '' && env.packages || 'default' }}"
 
           # Find target directory
-          target_dir=$(find openwrt-imagebuilder-*/bin/targets/*/*/ -type d -print -quit)
+          target_dir=$(find bin/targets/*/*/ -type d -print -quit)
           echo "image_path=$target_dir" >> $GITHUB_ENV
 
-          # Extract version code from profiles.json
+          # Extract version code from profiles.json 
           version_code=$(grep -o '"version_code":"[^"]*"' $target_dir/profiles.json | awk -F: '{print $2}' | tr -d '"')
 
           # Use GitHub Actions environment variables
