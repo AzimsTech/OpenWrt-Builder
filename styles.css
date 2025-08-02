@@ -1,7 +1,8 @@
-body { 
-    font-family: Arial, sans-serif; 
-    text-align: center; 
-    padding: 20px 20px 80px 20px; /* Added bottom padding for buttons */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px 20px 80px 20px;
+    /* Added bottom padding for buttons */
     margin: 0;
     box-sizing: border-box;
     min-height: 100vh;
@@ -9,63 +10,105 @@ body {
 }
 
 /* Base form element styles */
-input, select, textarea, button {
+input,
+select,
+textarea,
+button {
     box-sizing: border-box;
     padding: 12px;
     margin: 10px 0;
     border-radius: 5px;
     border: 1px solid #ccc;
-    font-size: 16px; /* Prevents zoom on iOS */
+    font-size: 16px;
+    /* Prevents zoom on iOS */
 }
 
 /* Token input */
-#tokenInput { 
-    width: 100%; 
+#tokenInput {
+    width: 100%;
     max-width: 380px;
 }
 
 /* Model and version inputs - stack on mobile */
-#modelInput { 
-    width: 100%; 
+#modelInput {
+    width: 100%;
     max-width: 380px;
 }
 
-#versionInput { 
-    width: 100%; 
+#versionInput {
+    width: 100%;
     max-width: 200px;
 }
 
 /* Package and services inputs */
-#packagesInput, #disabled_servicesInput { 
-    width: 100%; 
+#packagesInput,
+#disabled_servicesInput {
+    width: 100%;
     max-width: 500px;
 }
 
 /* Scripts dropdown */
-#scriptsInput { 
-    width: 100%; 
+#scriptsInput {
+    width: 100%;
     max-width: 250px;
 }
 
 /* Custom script textarea */
-#customScriptInput { 
-    width: 100%; 
+#customScriptInput {
+    width: 100%;
     max-width: 500px;
     height: 120px;
     resize: vertical;
 }
 
-/* Buttons */
-button { 
-    padding: 12px 20px; 
+/* Interactive Buttons */
+button {
+    padding: 12px 20px;
     cursor: pointer;
-    min-height: 44px; /* Touch-friendly size */
+    min-height: 44px;
+    /* Touch-friendly size */
     font-size: 16px;
     margin: 5px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    transition: all 0.2s ease-in-out;
+    user-select: none;
 }
 
-/* Bottom corner buttons */
-#clearTokenButton, #setupTokenButton {
+button:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+    background-color: #004085;
+}
+
+button:focus {
+    outline: 2px solid #80bdff;
+    outline-offset: 2px;
+}
+
+button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+button:disabled:hover {
+    background-color: #6c757d;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Bottom corner buttons with enhanced interactivity */
+#clearTokenButton,
+#setupTokenButton {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -73,6 +116,25 @@ button {
     cursor: pointer;
     font-size: 14px;
     z-index: 1000;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
+}
+
+#clearTokenButton:hover,
+#setupTokenButton:hover {
+    background-color: #c82333;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
+}
+
+#clearTokenButton:active,
+#setupTokenButton:active {
+    transform: translateY(0) scale(1.02);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
 }
 
 #configToUciButton {
@@ -83,6 +145,23 @@ button {
     cursor: pointer;
     font-size: 14px;
     z-index: 1000;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+}
+
+#configToUciButton:hover {
+    background-color: #218838;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+#configToUciButton:active {
+    transform: translateY(0) scale(1.02);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
 }
 
 /* Build info box */
@@ -113,7 +192,8 @@ h2 {
 /* Paragraphs and text */
 p {
     margin: 15px 0;
-    text-align: center; /* Center align description text */
+    text-align: center;
+    /* Center align description text */
 }
 
 /* Keep build info text left-aligned */
@@ -122,7 +202,8 @@ p {
 }
 
 pre {
-    text-align: center; /* Center align pre text too */
+    text-align: center;
+    /* Center align pre text too */
     font-size: 14px;
     overflow-x: auto;
 }
@@ -139,19 +220,65 @@ pre {
         color: #ffffff;
         color-scheme: dark;
     }
-    
-    header, .btn {
+
+    header,
+    .btn {
         background-color: #212830;
         color: #ffffff;
     }
-    
-    input, button, select, textarea {
+
+    input,
+    select,
+    textarea {
         color-scheme: dark;
         background-color: #2a3441;
         border-color: #4a5568;
         color: #ffffff;
     }
-    
+
+    /* Dark mode button styles */
+    button {
+        background-color: #0d6efd;
+        color: #ffffff;
+    }
+
+    button:hover {
+        background-color: #0b5ed7;
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.4);
+    }
+
+    button:active {
+        background-color: #0a58ca;
+        box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+    }
+
+    button:focus {
+        outline-color: #6ea8fe;
+    }
+
+    /* Dark mode corner buttons */
+    #clearTokenButton,
+    #setupTokenButton {
+        background-color: #dc3545;
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    }
+
+    #clearTokenButton:hover,
+    #setupTokenButton:hover {
+        background-color: #bb2d3b;
+        box-shadow: 0 6px 16px rgba(220, 53, 69, 0.5);
+    }
+
+    #configToUciButton {
+        background-color: #198754;
+        box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
+    }
+
+    #configToUciButton:hover {
+        background-color: #157347;
+        box-shadow: 0 6px 16px rgba(25, 135, 84, 0.5);
+    }
+
     #buildInfo {
         border-color: #4a5568;
         background-color: #2a3441;
@@ -159,52 +286,65 @@ pre {
 }
 
 /* Token form visibility */
-#tokenForm, #setupTokenButton {
+#tokenForm,
+#setupTokenButton {
     display: none;
 }
 
 /* Mobile specific adjustments */
 @media (max-width: 768px) {
     body {
-        padding: 15px 10px 80px 10px; /* Added bottom padding for buttons */
+        padding: 15px 10px 80px 10px;
+        /* Added bottom padding for buttons */
     }
-    
+
     /* Stack form elements vertically with full width */
-    #modelInput, #versionInput {
+    #modelInput,
+    #versionInput {
         width: 100%;
         max-width: none;
     }
-    
-    /* Adjust corner buttons for mobile */
-    #clearTokenButton, #setupTokenButton {
+
+    /* Adjust corner buttons for mobile - reduce transform effects */
+    #clearTokenButton,
+    #setupTokenButton {
         bottom: 15px;
         right: 10px;
         font-size: 12px;
         padding: 10px 12px;
     }
-    
+
+    #clearTokenButton:hover,
+    #setupTokenButton:hover {
+        transform: translateY(-1px) scale(1.02);
+    }
+
     #configToUciButton {
         bottom: 15px;
         left: 10px;
         font-size: 12px;
         padding: 10px 12px;
     }
-    
+
+    #configToUciButton:hover {
+        transform: translateY(-1px) scale(1.02);
+    }
+
     /* Smaller text for mobile */
     h2 {
         font-size: 1.3em;
     }
-    
+
     pre {
         font-size: 12px;
     }
-    
+
     /* Adjust build info box */
     #buildInfo {
         padding: 12px;
         font-size: 14px;
     }
-    
+
     /* Make textarea smaller on mobile */
     #customScriptInput {
         height: 100px;
@@ -214,25 +354,57 @@ pre {
 /* Very small screens */
 @media (max-width: 480px) {
     body {
-        padding: 10px 5px 80px 5px; /* Added bottom padding for buttons */
+        padding: 10px 5px 80px 5px;
+        /* Added bottom padding for buttons */
     }
-    
+
     form {
         padding: 0 5px;
     }
-    
-    /* Adjust corner buttons for very small screens */
-    #clearTokenButton, #setupTokenButton {
+
+    /* Adjust corner buttons for very small screens - minimal transform effects */
+    #clearTokenButton,
+    #setupTokenButton {
         bottom: 10px;
         right: 5px;
         font-size: 11px;
         padding: 8px 10px;
     }
-    
+
+    #clearTokenButton:hover,
+    #setupTokenButton:hover {
+        transform: translateY(-1px);
+    }
+
     #configToUciButton {
         bottom: 10px;
         left: 5px;
         font-size: 11px;
         padding: 8px 10px;
+    }
+
+    #configToUciButton:hover {
+        transform: translateY(-1px);
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    button {
+        transition: none;
+    }
+
+    button:hover {
+        transform: none;
+    }
+
+    button:active {
+        transform: none;
+    }
+
+    #clearTokenButton:hover,
+    #setupTokenButton:hover,
+    #configToUciButton:hover {
+        transform: none;
     }
 }
