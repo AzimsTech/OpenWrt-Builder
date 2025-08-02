@@ -126,8 +126,8 @@ jobs:
           
           # Extract revision number
           # Format: r28784-155eea44e7 -> r28784
-          revision_number=$(cat version.buildinfo)
-          echo "revision_number=${string%-*}" >> $GITHUB_ENV
+          revision_number=$(cat version.buildinfo | sed 's/-.*//')
+          echo "revision_number=$revision_number" >> $GITHUB_ENV
 
       - name: Build OpenWrt image via Official OpenWrt Docker imagebuilder image
         run: |
