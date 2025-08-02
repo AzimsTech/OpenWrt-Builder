@@ -123,6 +123,11 @@ jobs:
           # Format: r28784-155eea44e7 -> 155eea4
           commit_hash=$(cat version.buildinfo | sed 's/.*-//' | cut -c1-7)
           echo "commit_hash=$commit_hash" >> $GITHUB_ENV
+          
+          # Extract revision number
+          # Format: r28784-155eea44e7 -> r28784
+          revision_number=$(cat version.buildinfo | sed 's/-.*//')
+          echo "revision_number=$revision_number" >> $GITHUB_ENV
 
       - name: Build OpenWrt image via Official OpenWrt Docker imagebuilder image
         run: |
@@ -181,7 +186,8 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.model }}-${{ env.openwrt_version }}-${{ env.commit_hash }}
+          name: ${{ github.event.inputs.model }}-${{ env.openwrt_version }}-${{ env.commit_hash }}
+          tag_name: ${{ env.revision_number }}-${{ github.event.inputs.model }}
           body_path: build_info.md
           files: ${{ env.image_path }}/*
           make_latest: true
