@@ -159,7 +159,7 @@ jobs:
 
           # Use GitHub Actions environment variables
           GITHUB_REPO="${GITHUB_REPOSITORY}"
-          RELEASE_TAG="${{ github.event.inputs.model }}-${{ env.openwrt_version }}-${{ env.commit_hash }}"
+          RELEASE_TAG="${{ env.revision_number }}-${{ github.event.inputs.model }}"
 
           # Create build info markdown file
           cat <<EOF > build_info.md
