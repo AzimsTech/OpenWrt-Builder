@@ -25,6 +25,7 @@ uci add_list system.ntp.server='ntp1.sirim.my'
 uci add_list system.ntp.server='ntp2.sirim.my'
 
 # /etc/config/network
+sed -i "/option ula_prefix/s/^/# /" /etc/config/network # comment out ULA prefix
 uci del network.lan.ipaddr
 uci add_list network.lan.ipaddr="$lan_ip/24"
 gateway=$(echo $lan_ip | sed 's/\.[0-9]*$/\.1/') # Extract network and set gateway to .1
