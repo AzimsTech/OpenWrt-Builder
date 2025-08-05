@@ -34,6 +34,10 @@ uci add_list network.lan.dns="$gateway"
 
 # /etc/config/dhcp
 uci set dhcp.lan.ignore='1'
+uci del dhcp.lan.ra
+uci del dhcp.lan.ra_slaac
+uci del dhcp.lan.ra_flags
+uci del dhcp.lan.dhcpv6
 
 # /etc/config/wireless
 id_5g=$(uci show wireless | grep "\.band='5g'" | cut -d'=' -f1 | cut -d'.' -f2 | sed 's/[^0-9]//g') # get 5Ghz radio id
