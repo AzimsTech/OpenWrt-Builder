@@ -50,33 +50,28 @@ jobs:
           CUSTOM_SCRIPT_EOF
           cat files/etc/uci-defaults/99-custom
 
-      - name: Process UCI scripts
+      - name: Process UCI defaults script
         run: |
-          # Check if a UCI defaults script is specified by the user
+          UCI_DIR="files/etc/uci-defaults"
+          
           if [ -n "${{ github.event.inputs.scripts }}" ]; then
-            echo "SCRIPT=${{ github.event.inputs.scripts }}" >> $GITHUB_ENV
-            
-            # Verify script exists
-            if [ ! -f "files/etc/uci-defaults/${{ github.event.inputs.scripts }}" ]; then
-              echo "Error: Specified script file does not exist."
-              exit 1
-            fi
-            
             # Keep only the specified script
-            find files/etc/uci-defaults -type f ! -name "${{ github.event.inputs.scripts }}" -delete
-          else
-            # Remove all UCI default scripts if none specified
-            find files/etc/uci-defaults -type f -delete
+            SCRIPT="${{ github.event.inputs.scripts }}"
+            echo "SCRIPT=$SCRIPT" >> $GITHUB_ENV
             
-            # Verify removal
-            remaining_files=$(find files/etc/uci-defaults -type f)
-            if [ -n "$remaining_files" ]; then
-              echo "Warning: These files were not deleted in files/etc/uci-defaults:"
-              echo "$remaining_files"
+            if [ ! -f "$UCI_DIR/$SCRIPT" ]; then
+              echo "Error: Script '$SCRIPT' not found"
               exit 1
-            else
-              echo "All files in files/etc/uci-defaults have been successfully deleted."
             fi
+            
+            # Remove all other files
+            find "$UCI_DIR" -type f ! -name "$SCRIPT" -delete 2>/dev/null || true
+            echo "Kept only: $SCRIPT"
+            
+          else
+            # Remove all files
+            rm -f "$UCI_DIR"/* 2>/dev/null || true
+            echo "Removed all UCI scripts"
           fi
 
       - name: Create build configuration
