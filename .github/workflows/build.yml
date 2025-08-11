@@ -139,7 +139,7 @@ jobs:
         id: cache-openwrt
         uses: actions/cache@v4
         with:
-          path: openwrt-imagebuilder-*.tar.*
+          path: ./
           key: openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.target }}-${{ env.commit_hash }}
 
       - name: Download OpenWrt Image Builder

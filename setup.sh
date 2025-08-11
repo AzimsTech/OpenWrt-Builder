@@ -36,4 +36,4 @@ sha256sum -c sha256sums_min
 rm -vrf sha256sums{,_min,.asc} keys/
 
 tar xf "$file_name" --strip=1 --no-same-owner -C .
-# rm -vrf "$file_name"
+rm -vrf "$file_name"
