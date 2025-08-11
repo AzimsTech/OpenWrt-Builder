@@ -36,6 +36,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache build dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+            packages: build-essential libncurses-dev zlib1g-dev gawk wget git gettext libssl-dev xsltproc rsync unzip python3 python3-setuptools zstd
+            version: 1.0
+
       - name: Create custom scripts
         if: ${{ github.event.inputs.scripts == '99-custom' }}
         run: |
@@ -129,19 +135,29 @@ jobs:
           revision_number=$(cat version.buildinfo | sed 's/-.*//')
           echo "revision_number=$revision_number" >> $GITHUB_ENV
 
-      - name: Build OpenWrt image via Official OpenWrt Docker imagebuilder image
-        run: |
-          version="${{ env.openwrt_version }}"
-          target="${{ env.target }}"
-          target_format=$(echo $target | tr '/' '-')
+      - name: Cache OpenWrt Image Builder
+        id: cache-openwrt
+        uses: actions/cache@v4
+        with:
+          path: openwrt-imagebuilder-*.tar.*
+          key: openwrt-imagebuilder-${{ env.openwrt_version }}-${{ env.target }}-${{ env.commit_hash }}
 
-          docker run --rm -u 0 -v ${{ github.workspace }}:/workspace -w /workspace \
-            ghcr.io/openwrt/imagebuilder:${target_format}-${version} \
-            bash -c "/builder/setup.sh && make -j $(nproc) image \
-              PROFILE='${{ env.profile }}' \
-              PACKAGES='${{ env.packages }}' \
-              FILES='/workspace/${{ env.files }}' \
-              DISABLED_SERVICES='${{ env.disabled_services }}'"
+      - name: Download OpenWrt Image Builder
+        if: steps.cache-openwrt.outputs.cache-hit != 'true'
+        run: |
+          version_path=$([ "${{ github.event.inputs.version }}" = "SNAPSHOT" ] && echo snapshots || echo "releases/${{ github.event.inputs.version }}")
+          chmod +x ./setup.sh
+          TARGET=${{ env.target }} \
+          VERSION_PATH=${version_path} ./setup.sh
+
+      - name: Build OpenWrt image
+        run: |          
+          tar xf openwrt-imagebuilder-*.tar.* --strip=1 --no-same-owner -C .
+          make -j $(nproc) image \
+            PROFILE="${{ env.profile }}" \
+            PACKAGES="${{ env.packages }}" \
+            FILES="${{ env.files }}" \
+            DISABLED_SERVICES="${{ env.disabled_services }}"
 
       - name: Generate build information
         run: |
