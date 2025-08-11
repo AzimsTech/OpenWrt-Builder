@@ -36,6 +36,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache build dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+            packages: build-essential libncurses-dev zlib1g-dev gawk wget git gettext libssl-dev xsltproc rsync unzip python3 python3-setuptools zstd
+            version: 1.0
+
       - name: Create custom scripts
         if: ${{ github.event.inputs.scripts == '99-custom' }}
         run: |
@@ -142,6 +148,7 @@ jobs:
       - name: Download OpenWrt Image Builder
         if: steps.cache-openwrt.outputs.cache-hit != 'true'
         run: |
+          chmod +x ./setup.sh
           TARGET=${{ env.target }} \
           VERSION_PATH=${{ env.openwrt_version }} \
           DOWNLOAD_FILE="openwrt-imagebuilder-${{ env.target }}.*tar.zst" ./setup.sh
