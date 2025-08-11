@@ -135,9 +135,6 @@ jobs:
           revision_number=$(cat version.buildinfo | sed 's/-.*//')
           echo "revision_number=$revision_number" >> $GITHUB_ENV
 
-          target=$(echo $target | tr '/' '-')
-          echo "target=$target" >> $GITHUB_ENV
-
       - name: Cache OpenWrt Image Builder
         id: cache-openwrt
         uses: actions/cache@v4
@@ -148,8 +145,9 @@ jobs:
       - name: Download OpenWrt Image Builder
         if: steps.cache-openwrt.outputs.cache-hit != 'true'
         run: |
+          target_format=$(echo ${{ env.target }} | tr '/' '-')
           chmod +x ./setup.sh
-          TARGET=${{ env.target }} \
+          TARGET=${target_format} \
           VERSION_PATH=${{ env.openwrt_version }} \
           DOWNLOAD_FILE="openwrt-imagebuilder-${{ env.target }}.*tar.zst" ./setup.sh
 
