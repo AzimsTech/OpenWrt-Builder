@@ -147,9 +147,9 @@ jobs:
         run: |
           target_format=$(echo ${{ env.target }} | tr '/' '-')
           chmod +x ./setup.sh
-          TARGET=${target_format} \
+          TARGET=${{ env.target }} \
           VERSION_PATH=${{ env.openwrt_version }} \
-          DOWNLOAD_FILE="openwrt-imagebuilder-${{ env.target }}.*tar.zst" ./setup.sh
+          DOWNLOAD_FILE="openwrt-imagebuilder-${target_format}.*tar.zst" ./setup.sh
 
       - name: Build OpenWrt image via Official OpenWrt Docker imagebuilder image
         run: |
