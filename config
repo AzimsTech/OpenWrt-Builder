@@ -1,8 +1,0 @@
-
-target=ramips/mt7621
-
-profile=dlink_dir-882-a1
-
-disabled_services=
-
-debug=
