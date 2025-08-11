@@ -145,11 +145,12 @@ jobs:
       - name: Download OpenWrt Image Builder
         if: steps.cache-openwrt.outputs.cache-hit != 'true'
         run: |
+          version=$([ "${{ github.event.inputs.version }}" = "SNAPSHOT" ] && echo snapshots || echo "${{ github.event.inputs.version }}")
           target="${{ env.target }}"
           target_format=$(echo $target | tr '/' '-')
           chmod +x ./setup.sh
           TARGET=${{ env.target }} \
-          VERSION_PATH=${{ env.openwrt_version }} \
+          VERSION_PATH=${version} \
           DOWNLOAD_FILE="openwrt-imagebuilder-${target_format}.*tar.zst" ./setup.sh
 
       - name: Build OpenWrt image via Official OpenWrt Docker imagebuilder image
