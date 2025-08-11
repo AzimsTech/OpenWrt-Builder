@@ -145,7 +145,8 @@ jobs:
       - name: Download OpenWrt Image Builder
         if: steps.cache-openwrt.outputs.cache-hit != 'true'
         run: |
-          target_format=$(echo ${{ env.target }} | tr '/' '-')
+          target="${{ env.target }}"
+          target_format=$(echo $target | tr '/' '-')
           chmod +x ./setup.sh
           TARGET=${{ env.target }} \
           VERSION_PATH=${{ env.openwrt_version }} \
