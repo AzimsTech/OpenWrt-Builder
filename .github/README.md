@@ -10,7 +10,7 @@ Build custom OpenWrt firmware images with a web interface and automated GitHub A
 
 ## Quick Start
 
-1. **[Fork this repository](../../fork)**
+1. **[Fork this repository](.,/fork)**
 2. **Enable GitHub Pages** in repository settings
 3. **Visit `<username>.github.io/<repo-name>`** to access the builder
 
