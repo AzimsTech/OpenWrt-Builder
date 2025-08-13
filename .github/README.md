@@ -10,7 +10,7 @@ Build custom OpenWrt firmware images with a web interface and automated GitHub A
 
 ## Quick Start
 
-1. **[Fork this repository](.,/fork)**
+1. **Fork this repository** [![GitHub forks][fork-shield]][fork-url]
 2. **Enable GitHub Pages** in repository settings
 3. **Visit `<username>.github.io/<repo-name>`** to access the builder
 
@@ -21,11 +21,55 @@ Build custom OpenWrt firmware images with a web interface and automated GitHub A
 3. OpenWrt ImageBuilder downloads and configures
 4. Firmware image is compiled and uploaded to GitHub Releases
 
+## Repository Secrets 
+
+This repo can use the following secrets, which may be set in the repository (**Settings** → **Secrets and variables** → **Actions**) to automatically populate variables in configuration files located in `files/etc/uci-defaults` directory:
+
+### Secret Variables Mapping
+
+| **Secret Name** | **Variable Name** | **Description**                              | **Example** |
+| --------------- | ----------------- | -------------------------------------------- | ----------- |
+| `ROOT_PASS`     | `root_password`   | Administrator (root) password for the router | root        |
+| `WLAN_NAME`     | `ssid`            | Wireless network SSID                        | OpenWrt     |
+| `WLAN_PASS`     | `ssid_key`        | Wireless network password                    | 12345678    |
+| `PPPOE_NAME`    | `pppoe_name`      | PPPoE username                               | username    |
+| `PPPOE_PASS`    | `pppoe_key`       | PPPoE password                               | password    |
+
+### Example
+
+**Before:**
+
+
+```sh
+# files/etc/uci-defaults/99-custom
+# root_password=""
+# ssid=""
+# ssid_key=""
+# pppoe_name=""
+# pppoe_key=""
+```
+
+**After:**
+
+```sh
+# files/etc/uci-defaults/99-custom
+root_password="root"
+ssid="OpenWrt"
+ssid_key="12345678"
+pppoe_name="username"
+pppoe_key="password"
+```
+
 ## License
 
-GPL-2.0 - See [COPYING](COPYING) and [LICENSE](LICENSE) files.
+GPL-2.0 - See [COPYING](../COPYING) and [LICENSE](../LICENSE) files.
 
 ---
 
-**Live Demo:** [azimstech.github.io/openwrt-builder](https://azimstech.github.io/openwrt-builder)  
-**Issues:** [Report bugs and requests](../../issues)
+**Live Demo:** [azimstech.github.io/openwrt-builder][repo-url]  
+**Issues:** [Report bugs and requests][issues-url]
+
+[fork-shield]:https://img.shields.io/github/forks/AzimsTech/OpenWrt-Builder
+[fork-url]:https://github.com/AzimsTech/OpenWrt-Builder/fork
+[issues-url]:https://github.com/AzimsTech/OpenWrt-Builder/issues
+[repo-url]:https://github.com/AzimsTech/OpenWrt-Builder
