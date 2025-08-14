@@ -4,8 +4,8 @@ Build custom OpenWrt firmware images with a web interface and automated GitHub A
 
 ## Features
 
-- 🌐 **Web Interface** - Build images through GitHub Pages
-- ⚡ **GitHub Actions Build** - Generates and uploads firmware to releases
+- 🌐 **Web Interface** - OpenWrt Image Builder frontends via GitHub Pages
+- ⚡ **GitHub Actions Build** - Builds and uploads firmware to releases
 - 🔧 **Config2UCI** - Convert config files to UCI commands
 
 ## Quick Start
