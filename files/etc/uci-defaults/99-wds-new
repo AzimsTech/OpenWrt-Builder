@@ -40,13 +40,7 @@ uci del dhcp.lan.ra_flags
 uci del dhcp.lan.dhcpv6
 
 # Get wireless interface indexes
-eval $(ubus call network.wireless status \
- | awk -F'"' '
-   /"radio[0-9]+"/ { gsub(/radio/,"",$2); idx=$2 }
-   /"band":/ {
-      if ($4=="2g") print "band2g=" idx;
-      if ($4=="5g") print "band5g=" idx;
-   }')
+band5g=$(uci show wireless | grep "\.band='5g'" | cut -d'=' -f1 | cut -d'.' -f2 | sed 's/[^0-9]//g') # get 5Ghz radio id
 
 # /etc/config/wireless
 uci set  wireless.@wifi-device[$band5g].country='MY'
