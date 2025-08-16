@@ -39,16 +39,18 @@ uci del dhcp.lan.ra_slaac
 uci del dhcp.lan.ra_flags
 uci del dhcp.lan.dhcpv6
 
-# /etc/config/wireless
-id_5g=$(uci show wireless | grep "\.band='5g'" | cut -d'=' -f1 | cut -d'.' -f2 | sed 's/[^0-9]//g') # get 5Ghz radio id
-uci set  wireless.@wifi-device[$id_5g].country='MY'
-uci set wireless.@wifi-device[$id_5g].disabled='0'
+# Get wireless interface indexes
+band5g=$(uci show wireless | grep "\.band='5g'" | cut -d'=' -f1 | cut -d'.' -f2 | sed 's/[^0-9]//g') # get 5Ghz radio id
 
-uci set wireless.@wifi-iface[$id_5g].mode='sta'
-uci set wireless.@wifi-iface[$id_5g].ssid="${ssid}-5G@unifi"
-uci set wireless.@wifi-iface[$id_5g].encryption='psk2+aes'
-uci set wireless.@wifi-iface[$id_5g].key="$ssid_key"
-uci set wireless.@wifi-iface[$id_5g].wds='1'
+# /etc/config/wireless
+uci set  wireless.@wifi-device[$band5g].country='MY'
+uci set wireless.@wifi-device[$band5g].disabled='0'
+
+uci set wireless.@wifi-iface[$band5g].mode='sta'
+uci set wireless.@wifi-iface[$band5g].ssid="${ssid}-5G@unifi"
+uci set wireless.@wifi-iface[$band5g].encryption='psk2+aes'
+uci set wireless.@wifi-iface[$band5g].key="$ssid_key"
+uci set wireless.@wifi-iface[$band5g].wds='1'
 
 uci commit
 echo "All done!"

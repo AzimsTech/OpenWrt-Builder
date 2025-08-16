@@ -60,23 +60,26 @@ uci set network.wan6.peerdns='0'
 
 uci commit network
 
+band5g=$(uci show wireless | grep "\.band='5g'" | cut -d'=' -f1 | cut -d'.' -f2 | sed 's/[^0-9]//g') # get 5Ghz radio id
+band2g=$(uci show wireless | grep "\.band='2g'" | cut -d'=' -f1 | cut -d'.' -f2 | sed 's/[^0-9]//g') # get 2.4Ghz radio id
+
 # wireless
-uci set wireless.@wifi-device[0].country='MY'
-uci set wireless.@wifi-device[0].disabled='0'
+uci set wireless.@wifi-device[$band2g].country='MY'
+uci set wireless.@wifi-device[$band2g].disabled='0'
 
-uci set wireless.@wifi-iface[0].mode='ap'
-uci set wireless.@wifi-iface[0].ssid="${ssid}-2.4G@unifi"
-uci set wireless.@wifi-iface[0].encryption='psk2+aes'
-uci set wireless.@wifi-iface[0].key="$ssid_key"
+uci set wireless.@wifi-iface[$band2g].mode='ap'
+uci set wireless.@wifi-iface[$band2g].ssid="${ssid}-2.4G@unifi"
+uci set wireless.@wifi-iface[$band2g].encryption='psk2+aes'
+uci set wireless.@wifi-iface[$band2g].key="$ssid_key"
 
-uci set wireless.@wifi-device[1].country='MY'
-uci set wireless.@wifi-device[1].disabled='0'
+uci set wireless.@wifi-device[$band5g].country='MY'
+uci set wireless.@wifi-device[$band5g].disabled='0'
 
-uci set wireless.@wifi-iface[1].mode='ap'
-uci set wireless.@wifi-iface[1].ssid="${ssid}-5G@unifi"
-uci set wireless.@wifi-iface[1].encryption='psk2+aes'
-uci set wireless.@wifi-iface[1].key="$ssid_key"
-uci set wireless.@wifi-iface[1].wds='1'
+uci set wireless.@wifi-iface[$band5g].mode='ap'
+uci set wireless.@wifi-iface[$band5g].ssid="${ssid}-5G@unifi"
+uci set wireless.@wifi-iface[$band5g].encryption='psk2+aes'
+uci set wireless.@wifi-iface[$band5g].key="$ssid_key"
+uci set wireless.@wifi-iface[$band5g].wds='1'
 
 uci commit wireless
 
