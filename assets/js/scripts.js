@@ -243,6 +243,11 @@ async function fetchVersions() {
           option.value = item;
           option.text = item;
           verOptions.appendChild(option);
+
+          // Step 5. Manually set default selected option
+          if (item === "SNAPSHOT") {
+            option.selected = true;
+          }
         });
       } catch (error) {
         console.error('Error fetching or processing versions.json:', error);
