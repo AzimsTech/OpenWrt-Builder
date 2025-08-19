@@ -25,6 +25,17 @@ Build custom OpenWrt firmware images with a web interface and automated GitHub A
 
 This repo can use the following secrets, which may be set in the repository (**Settings** → **Secrets and variables** → **Actions**) to automatically populate variables in configuration files located in `files/etc/uci-defaults` directory:
 
+```shell
+.
+├── files
+│   └── etc
+│       └── uci-defaults
+│           ├── script1
+│           ├── script2
+│           └── script3
+├── ... 
+```
+
 ### Secret Variables Mapping
 
 | **Secret Name** | **Variable Name** | **Description**                              | **Example** |
