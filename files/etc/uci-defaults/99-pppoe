@@ -48,14 +48,18 @@ uci set network.wan.metric='10'
 uci set network.wan6.metric='5'
 
 uci -q delete network.wan.dns
-uci add_list network.wan.dns='1.1.1.1'
-uci add_list network.wan.dns='1.0.0.1'
+# uci add_list network.wan.dns='1.1.1.1'
+# uci add_list network.wan.dns='1.0.0.1'
+uci add_list network.wan.dns='8.8.8.8'
+uci add_list network.wan.dns='8.8.4.4'
 uci set network.wan.peerdns='0'
 
 uci set network.wan6.device='@wan'
 uci -q delete network.wan6.dns
-uci add_list network.wan6.dns='2606:4700:4700::1111'
-uci add_list network.wan6.dns='2606:4700:4700::1001'
+# uci add_list network.wan6.dns='2606:4700:4700::1111'
+# uci add_list network.wan6.dns='2606:4700:4700::1001'
+uci add_list network.wan6.dns='2001:4860:4860::8888'
+uci add_list network.wan6.dns='2001:4860:4860::8844'
 uci set network.wan6.peerdns='0'
 
 uci commit network
