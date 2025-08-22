@@ -92,4 +92,11 @@ uci commit wireless
 uci add_list dhcp.@dnsmasq[0].rebind_domain='dns.msftncsi.com'
 uci commit dhcp
 
+# irqbalance
+uci set irqbalance.irqbalance.enabled='1'
+service irqbalance enable
+service irqbalance start
+
+uci commit
+
 echo "All done!"
