@@ -47,6 +47,10 @@ uci set network.wan.ipv6='1'
 uci set network.wan.metric='10'
 uci set network.wan6.metric='5'
 
+uci set network.wan6.reqaddress='try'
+uci set network.wan6.reqprefix='auto'
+uci set network.wan6.norelease='1'
+
 uci -q delete network.wan.dns
 # uci add_list network.wan.dns='1.1.1.1'
 # uci add_list network.wan.dns='1.0.0.1'
@@ -90,6 +94,7 @@ uci set wireless.@wifi-iface[$band5g].wds='1'
 uci commit wireless
 
 # dhcp
+uci del dhcp.lan.ra_slaac
 # whitelist dns.msftncsi.com (Windows Network Connectivity Status Indicator)
 uci add_list dhcp.@dnsmasq[0].rebind_domain='dns.msftncsi.com'
 uci commit dhcp
