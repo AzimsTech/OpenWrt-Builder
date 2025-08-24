@@ -33,6 +33,10 @@ uci add_list network.lan.ipaddr="$lan_ip/24"
 uci set network.lan.ip6assign='64'
 uci set network.lan.hostname="`uci get system.@system[0].hostname`"
 
+uci del network.lan.ip6class
+uci add_list network.lan.ip6class='local'
+uci add_list network.lan.ip6class='wan6'
+
 # uci add network device
 # uci set network.@device[-1].type='8021q'
 # uci set network.@device[-1].ifname='wan'
