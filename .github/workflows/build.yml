@@ -132,6 +132,7 @@ jobs:
 
       - name: Cache OpenWrt Image Builder
         id: cache-openwrt
+        if: always()
         uses: actions/cache@v4
         with:
           path: openwrt-imagebuilder-*.tar.*
@@ -146,6 +147,7 @@ jobs:
           VERSION_PATH=${version_path} ./setup.sh
 
       - name: Build OpenWrt image
+        continue-on-error: true
         run: |
           tar xf openwrt-imagebuilder-*.tar.* --strip=1 --no-same-owner -C .
           make -j $(nproc) image \
