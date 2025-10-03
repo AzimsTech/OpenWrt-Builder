@@ -102,4 +102,6 @@ uci del dhcp.lan.ra_slaac
 uci add_list dhcp.@dnsmasq[0].rebind_domain='dns.msftncsi.com'
 uci commit dhcp
 
+uci commit
+
 echo "All done!"
