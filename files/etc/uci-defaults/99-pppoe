@@ -25,7 +25,6 @@ uci add_list system.ntp.server='ntp2.sirim.my'
 uci commit system
 
 # network
-sed -i "/option ula_prefix/s/^/# /" /etc/config/network # comment out ULA prefix
 # uci set network.globals.packet_steering='2' # set packet steering to "Enabled (all CPUs)"
 # uci -q delete network.globals.ula_prefix # testing
 uci set network.lan.ipaddr="$lan_ip"
