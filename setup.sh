@@ -1,10 +1,5 @@
 set -e
 
-# Download and import OpenWrt public key for verifying builds
-curl -fsSL --retry 3 --retry-delay 2 \
-    "https://git.openwrt.org/?p=keyring.git;a=blob_plain;f=gpg/0x1D53D1877742E911.asc" \
-    | gpg --batch --import
-
 # Mark the key as fully trusted by its official fingerprint
 echo "8A8BC12F46B836C0F9CDB36F1D53D1877742E911:6:" | gpg --batch --import-ownertrust
 
@@ -18,7 +13,7 @@ DOWNLOAD_PATH="$VERSION_PATH/targets/$TARGET"
 wget -nv "$FILE_HOST/$DOWNLOAD_PATH/sha256sums" -O sha256sums
 wget -nv "$FILE_HOST/$DOWNLOAD_PATH/sha256sums.asc" -O sha256sums.asc
 
-# gpg --import /builder/keys/*.asc && rm -rf /builder/keys/
+gpg --import ./keys/*.asc && rm -rf ./keys/
 gpg --with-fingerprint --verify sha256sums.asc sha256sums
 
 # determine archive name
