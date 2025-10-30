@@ -77,10 +77,11 @@ GPL-2.0 - See [COPYING](../COPYING) and [LICENSE](../LICENSE) files.
 
 ---
 
-**Live Demo:** [azimstech.github.io/openwrt-builder][repo-url]  
+**Live Demo:** [azimstech.github.io/openwrt-builder][demo-url]  
 **Issues:** [Report bugs and requests][issues-url]
 
 [fork-shield]:https://img.shields.io/github/forks/AzimsTech/OpenWrt-Builder
 [fork-url]:https://github.com/AzimsTech/OpenWrt-Builder/fork
 [issues-url]:https://github.com/AzimsTech/OpenWrt-Builder/issues
 [repo-url]:https://github.com/AzimsTech/OpenWrt-Builder
+[demo-url]:https://azimstech.github.io/openwrt-builder
