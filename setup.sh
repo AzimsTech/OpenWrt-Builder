@@ -20,7 +20,7 @@ gpg --with-fingerprint --verify sha256sums.asc sha256sums
 file_name="$(grep "$DOWNLOAD_FILE" sha256sums | cut -d "*" -f 2)"
 
 # download imagebuilder/sdk archive
-wget -nv "$FILE_HOST/$DOWNLOAD_PATH/$file_name"
+wget -nv --progress=dot:giga "$FILE_HOST/$DOWNLOAD_PATH/$file_name"
 
 # shrink checksum file to single desired file and verify downloaded archive
 grep "$file_name" sha256sums > sha256sums_min
