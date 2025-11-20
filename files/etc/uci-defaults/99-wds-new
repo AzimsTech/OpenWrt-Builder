@@ -51,6 +51,7 @@ uci set wireless.@wifi-iface[$band5g].ssid="${ssid}-5G@unifi"
 uci set wireless.@wifi-iface[$band5g].encryption='psk2+aes'
 uci set wireless.@wifi-iface[$band5g].key="$ssid_key"
 uci set wireless.@wifi-iface[$band5g].wds='1'
+uci set wireless.@wifi-iface[$band5g].wpa_group_rekey='0'
 
 uci commit
 echo "All done!"
