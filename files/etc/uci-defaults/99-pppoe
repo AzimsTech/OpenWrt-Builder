@@ -77,6 +77,8 @@ band2g=$(uci show wireless | grep "\.band='2g'" | cut -d'=' -f1 | cut -d'.' -f2 
 uci set wireless.@wifi-device[$band2g].country='MY'
 uci set wireless.@wifi-device[$band2g].disabled='0'
 uci set wireless.@wifi-device[$band2g].cell_density='0'
+uci set wireless.@wifi-device[$band2g].channel='auto'
+uci set wireless.@wifi-device[$band2g].channels='1 6 11'
 
 uci set wireless.@wifi-iface[$band2g].mode='ap'
 uci set wireless.@wifi-iface[$band2g].ssid="${ssid}-2.4G@unifi"
@@ -87,6 +89,8 @@ uci set wireless.@wifi-iface[$band2g].wpa_group_rekey='86400'
 uci set wireless.@wifi-device[$band5g].country='MY'
 uci set wireless.@wifi-device[$band5g].disabled='0'
 uci set wireless.@wifi-device[$band5g].cell_density='0'
+uci set wireless.@wifi-device[$band5g].channel='auto'
+uci set wireless.@wifi-device[$band5g].channels='36 40 44 48 149 153 157 161 165 169 173'
 
 uci set wireless.@wifi-iface[$band5g].mode='ap'
 uci set wireless.@wifi-iface[$band5g].ssid="${ssid}-5G@unifi"
