@@ -16,7 +16,7 @@ if [ -n "$root_password" ]; then
 fi
 
 # /etc/config/system
-uci set system.@system[0].hostname='DIR882-STA'
+uci set system.@system[0].hostname='OpenWrt-STA'
 uci set system.@system[0].timezone='<+08>-8'
 uci set system.@system[0].zonename='Asia/Kuala Lumpur'
 uci set system.ntp=timeserver
