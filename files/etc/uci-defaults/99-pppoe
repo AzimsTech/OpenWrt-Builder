@@ -27,7 +27,7 @@ uci commit system
 # network
 # uci set network.globals.packet_steering='2' # set packet steering to "Enabled (all CPUs)"
 # uci -q delete network.globals.ula_prefix # testing
-uci set network.lan.ipaddr="$lan_ip"
+uci set network.lan.ipaddr="$lan_ip/24"
 uci set network.lan.ip6assign='64'
 uci set network.lan.hostname="`uci get system.@system[0].hostname`"
 
