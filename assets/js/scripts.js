@@ -193,6 +193,9 @@ async function fetchVersions() {
     
         // Step 3. Build the final ordered list
         let finalList = [];
+        // Manually add version 25.12-SNAPSHOT for the time being
+        finalList.push("25.12-SNAPSHOT");
+
         sortedGroupKeys.forEach(groupKey => {
           const group = groups[groupKey];
           // Sort each subgroup
