@@ -22,7 +22,9 @@ function convertToUci() {
                 currentConfigType = "dhcp";
             } else if (section === "system" || section === "timeserver" || section === "led") {
                 currentConfigType = "system";
-            } else if (section === "interface" || section === "device" || section === "bridge-vlan" || section === "route" || section === "rule" || section === "switch" || section === "switch_vlan") {
+            } else if (section === "zone" || section === "forwarding" || section === "redirect" || section === "rule" || section === "defaults" || section === "include" || section === "ipset" || section === "snat") {
+                currentConfigType = "firewall";
+            } else if (section === "interface" || section === "device" || section === "bridge-vlan" || section === "route" || section === "switch" || section === "switch_vlan") {
                 currentConfigType = "network";
             } else {
                 // Default fallback
