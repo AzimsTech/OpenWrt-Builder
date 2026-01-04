@@ -19,8 +19,8 @@ gpg --with-fingerprint --verify sha256sums.asc sha256sums
 # determine archive name
 file_name="$(grep "$DOWNLOAD_FILE" sha256sums | cut -d "*" -f 2)"
 
-# download imagebuilder/sdk archive
-wget "$FILE_HOST/$DOWNLOAD_PATH/$file_name"
+# download imagebuilder/sdk archive with parallel connections
+aria2c -x 16 -s 16 -k 1M "$FILE_HOST/$DOWNLOAD_PATH/$file_name"
 
 # shrink checksum file to single desired file and verify downloaded archive
 grep "$file_name" sha256sums > sha256sums_min
