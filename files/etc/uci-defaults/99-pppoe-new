@@ -1,0 +1,118 @@
+#!/bin/sh
+
+# checks: ensure scripts don't overwrite custom settings
+[ "$(uci -q get system.@system[0].zonename)" = "Asia/Kuala_Lumpur" ] && exit 0
+
+# root_password=""
+lan_ip='192.168.0.1'
+# ssid="OpenWrt"
+# ssid_key="12345678"
+# pppoe_name=""
+# pppoe_key=""
+
+# root passwd
+if [ -n "$root_password" ]; then
+  (echo "$root_password"; sleep 1; echo "$root_password") | passwd > /dev/null
+fi
+
+# system
+uci set system.@system[0].hostname='OpenWrt'
+uci set system.@system[0].zonename='Asia/Kuala_Lumpur'
+uci set system.@system[0].timezone='<+08>-8'
+uci del system.ntp.server
+uci add_list system.ntp.server='ntp1.sirim.my'
+uci add_list system.ntp.server='ntp2.sirim.my'
+uci commit system
+
+# network
+# uci set network.globals.packet_steering='2' # set packet steering to "Enabled (all CPUs)"
+# uci -q delete network.globals.ula_prefix # testing
+uci set network.lan.ipaddr="$lan_ip/24"
+uci set network.lan.ip6assign='64'
+uci set network.lan.hostname="`uci get system.@system[0].hostname`"
+
+# uci del network.lan.ip6class
+# uci add_list network.lan.ip6class='local'
+# uci add_list network.lan.ip6class='wan6'
+
+# uci add network device
+# uci set network.@device[-1].type='8021q'
+# uci set network.@device[-1].ifname='wan'
+# uci set network.@device[-1].vid='500'
+# uci set network.@device[-1].name='wan.500'
+
+uci set network.wan.proto='pppoe'
+uci set network.wan.device='wan.500'
+uci set network.wan.username="$pppoe_name"
+uci set network.wan.password="$pppoe_key"
+uci set network.wan.ipv6='auto'
+uci set network.wan.peerdns='0'
+uci set network.wan.reqprefix='64'
+uci set network.wan.norelease='1'
+
+uci -q delete network.wan.dns
+# uci add_list network.wan.dns='1.1.1.1'
+# uci add_list network.wan.dns='1.0.0.1'
+uci add_list network.wan.dns='8.8.8.8'
+uci add_list network.wan.dns='8.8.4.4'
+uci set network.wan.peerdns='0'
+
+# delete default wan6 config
+uci del network.wan6
+
+uci commit network
+
+band5g=$(uci show wireless | grep "\.band='5g'" | cut -d'=' -f1 | cut -d'.' -f2 | sed 's/[^0-9]//g') # get 5Ghz radio id
+band2g=$(uci show wireless | grep "\.band='2g'" | cut -d'=' -f1 | cut -d'.' -f2 | sed 's/[^0-9]//g') # get 2.4Ghz radio id
+
+# wireless
+uci set wireless.@wifi-device[$band2g].country='MY'
+uci set wireless.@wifi-device[$band2g].disabled='0'
+uci set wireless.@wifi-device[$band2g].cell_density='0'
+uci set wireless.@wifi-device[$band2g].channel='auto'
+uci set wireless.@wifi-device[$band2g].channels='1 6 11'
+
+uci set wireless.@wifi-iface[$band2g].mode='ap'
+uci set wireless.@wifi-iface[$band2g].ssid="${ssid}-2.4G@unifi"
+uci set wireless.@wifi-iface[$band2g].encryption='psk2+aes'
+uci set wireless.@wifi-iface[$band2g].key="$ssid_key"
+uci set wireless.@wifi-iface[$band2g].wpa_group_rekey='86400'
+
+uci set wireless.@wifi-device[$band5g].country='MY'
+uci set wireless.@wifi-device[$band5g].disabled='0'
+uci set wireless.@wifi-device[$band5g].cell_density='0'
+uci set wireless.@wifi-device[$band5g].channel='auto'
+uci set wireless.@wifi-device[$band5g].channels='36 40 44 48 149 153 157 161 165'
+
+uci set wireless.@wifi-iface[$band5g].mode='ap'
+uci set wireless.@wifi-iface[$band5g].ssid="${ssid}-5G@unifi"
+uci set wireless.@wifi-iface[$band5g].encryption='psk2+aes'
+uci set wireless.@wifi-iface[$band5g].key="$ssid_key"
+uci set wireless.@wifi-iface[$band5g].wds='1'
+uci set wireless.@wifi-iface[$band5g].wpa_group_rekey='86400'
+
+uci commit wireless
+
+# dhcp
+# uci del dhcp.lan.ra_slaac
+# whitelist dns.msftncsi.com (Windows Network Connectivity Status Indicator)
+uci add_list dhcp.@dnsmasq[0].rebind_domain='dns.msftncsi.com'
+uci commit dhcp
+
+# firewall
+# enable hardware flow offloading
+# uci set 'firewall.@defaults[0].flow_offloading=1'
+# uci set 'firewall.@defaults[0].flow_offloading_hw=1'
+# uci commit firewall
+
+# adblock
+uci del adblock.global.adb_feed
+uci add_list adblock.global.adb_feed='hagezi'
+uci add_list adblock.global.adb_hag_feed='wildcard/pro-onlydomains.txt'
+uci set adblock.global.adb_trigger='wan'
+uci commit adblock
+
+uci commit
+/etc/init.d/firewall restart
+
+echo "All done!"
