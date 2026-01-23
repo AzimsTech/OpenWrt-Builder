@@ -1,5 +1,10 @@
 # OpenWrt Builder 🚀
 
+![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2FAzimsTech%2FOpenWrt-Builder%2F&label=repository%20visits&countColor=%23263759&style=flat&labelStyle=none)
+[![GitHub License](https://img.shields.io/github/license/henriquesebastiao/badges?color=blue)](https://github.com/AzimsTech/OpenWrt-Builder/blob/main/LICENSE)
+![OpenWrt](https://img.shields.io/badge/OpenWrt-00B5E2?style=flat&logo=OpenWrt&logoColor=white)
+![GitHub Repo stars](https://img.shields.io/github/stars/AzimsTech/OpenWrt-Builder)
+
 Build custom OpenWrt firmware images with a web interface and automated GitHub Actions.
 
 ## Features
