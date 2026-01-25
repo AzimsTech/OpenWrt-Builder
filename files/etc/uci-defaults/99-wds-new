@@ -47,6 +47,7 @@ uci set  wireless.@wifi-device[$band5g].country='MY'
 uci set wireless.@wifi-device[$band5g].disabled='0'
 
 uci set wireless.@wifi-iface[$band5g].mode='sta'
+uci set wireless.@wifi-iface[$band5g].disabled='0'
 uci set wireless.@wifi-iface[$band5g].ssid="${ssid}-5G@unifi"
 uci set wireless.@wifi-iface[$band5g].encryption='psk2+aes'
 uci set wireless.@wifi-iface[$band5g].key="$ssid_key"

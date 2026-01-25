@@ -73,6 +73,7 @@ uci set wireless.@wifi-device[$band2g].channel='auto'
 uci set wireless.@wifi-device[$band2g].channels='1 6 11'
 
 uci set wireless.@wifi-iface[$band2g].mode='ap'
+uci set wireless.@wifi-iface[$band2g].disabled='0'
 uci set wireless.@wifi-iface[$band2g].ssid="${ssid}-2.4G@unifi"
 uci set wireless.@wifi-iface[$band2g].encryption='psk2+aes'
 uci set wireless.@wifi-iface[$band2g].key="$ssid_key"
@@ -85,6 +86,7 @@ uci set wireless.@wifi-device[$band5g].channel='auto'
 uci set wireless.@wifi-device[$band5g].channels='36 40 44 48 149 153 157 161 165'
 
 uci set wireless.@wifi-iface[$band5g].mode='ap'
+uci set wireless.@wifi-iface[$band5g].disabled='0'
 uci set wireless.@wifi-iface[$band5g].ssid="${ssid}-5G@unifi"
 uci set wireless.@wifi-iface[$band5g].encryption='psk2+aes'
 uci set wireless.@wifi-iface[$band5g].key="$ssid_key"
