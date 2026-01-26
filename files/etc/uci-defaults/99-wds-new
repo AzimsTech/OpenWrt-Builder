@@ -39,8 +39,9 @@ uci del dhcp.lan.ra_slaac
 uci del dhcp.lan.ra_flags
 uci del dhcp.lan.dhcpv6
 
-# Get wireless interface indexes
-band5g=$(uci show wireless | grep "\.band='5g'" | cut -d'=' -f1 | cut -d'.' -f2 | sed 's/[^0-9]//g') # get 5Ghz radio id
+# Determine which radio serves 2.4GHz vs 5GHz
+band2g=$( [ "$(uci get wireless.radio0.band)" = "2g" ] && echo 0 || echo 1 )
+band5g=$((1 - band2g))
 
 # /etc/config/wireless
 uci set  wireless.@wifi-device[$band5g].country='MY'
