@@ -1,33 +1,79 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background-color: white;
-    color: black;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+/* Base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    color-scheme: light dark;
+}
+
+h2 {
+    width: 100%;
+    max-width: 1400px;
+    padding: 0 20px;
+    margin: 20px 0 10px 0;
+    font-size: 28px;
+    color: #333;
+    box-sizing: border-box;
+}
+
+/* Main container */
 .container {
     display: flex;
-    gap: 20px;
+    gap: 10px;
     flex: 1;
+    width: 100%;
+    max-width: 1400px;
+    padding: 0 20px 20px 20px;
+    box-sizing: border-box;
 }
 
 .box {
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
+.box label {
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #666;
+}
+
+/* Textareas */
 textarea {
     flex: 1;
     width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
     resize: none;
+    transition: border-color 0.3s;
 }
 
+textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+textarea::placeholder {
+    color: #999;
+}
+
+/* Center convert button */
 .button-container {
     display: flex;
     justify-content: center;
@@ -36,29 +82,123 @@ textarea {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    z-index: 100;
 }
 
+/* Buttons */
 button {
-    padding: 10px;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-@media (prefers-color-scheme: dark) {
-    body {
-        background-color: #121212;
-        color: white;
-    }
-    textarea {
-        background-color: #1e1e1e;
-        color: white;
-        border: 1px solid #444;
-    }
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
 }
 
-#configToUciButton {
+button:active {
+    transform: translateY(0);
+}
+
+/* Back button */
+#backButton {
     position: fixed;
     bottom: 20px;
     left: 20px;
-    padding: 10px 15px;
-    cursor: pointer;
+    padding: 12px 16px;
+    font-size: 14px;
+    background: #28a745;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+#backButton:hover {
+    background: #218838;
+    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #1a1d23;
+        color: #ffffff;
+    }
+
+    h2 {
+        color: #ffffff;
+    }
+
+    .box label {
+        color: #b8c5d6;
+    }
+
+    textarea {
+        background-color: #2a3441;
+        border-color: #4a5568;
+        color: #ffffff;
+    }
+
+    textarea:focus {
+        border-color: #667eea;
+    }
+
+    textarea::placeholder {
+        color: #6b7280;
+    }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        padding: 0 10px 80px 10px;
+    }
+
+    .box {
+        min-height: 200px;
+    }
+
+    h2 {
+        font-size: 24px;
+        margin: 15px;
+    }
+
+    #backButton {
+        bottom: 15px;
+        left: 10px;
+        font-size: 12px;
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    h2 {
+        font-size: 20px;
+        margin: 10px;
+    }
+
+    #backButton {
+        bottom: 10px;
+        left: 5px;
+        font-size: 11px;
+        padding: 8px 10px;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    button:hover {
+        transform: none;
+    }
 }
