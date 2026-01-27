@@ -111,21 +111,28 @@ function loadFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const config = urlParams.get('config');
     
+    console.log('loadFromURL: config param =', config);
+    
     if (config) {
         const state = decodeFormState(config);
+        console.log('loadFromURL: decoded state =', state);
+        
         if (state) {
             formFields.forEach(fieldId => {
                 const el = document.getElementById(fieldId);
                 if (el && state[fieldId]) {
+                    console.log(`Setting ${fieldId} to:`, state[fieldId]);
                     el.value = state[fieldId];
                     
                     // Trigger change event for scriptsInput to show/hide customScriptInput
                     if (fieldId === 'scriptsInput') {
                         const customScriptInput = document.getElementById('customScriptInput');
+                        console.log('scriptsInput set to:', state[fieldId]);
                         if (state[fieldId] === '99-custom') {
                             customScriptInput.style.display = 'block';
                             // Ensure customScriptInput value is set if it exists in state
                             if (state['customScriptInput']) {
+                                console.log('Setting customScriptInput to:', state['customScriptInput']);
                                 customScriptInput.value = state['customScriptInput'];
                             }
                         } else {
