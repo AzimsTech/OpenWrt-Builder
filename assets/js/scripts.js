@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await fetchModelOptions();
     await fetchScripts();
 
-    // Load form state from URL if present
+    // Load form state from URL if present - AFTER scripts are loaded
     loadFromURL();
     
     document.getElementById("modelInput").addEventListener("change", function() {
@@ -119,9 +119,18 @@ function loadFromURL() {
                 if (el && state[fieldId]) {
                     el.value = state[fieldId];
                     
-                    // Trigger change events for certain fields
-                    if (fieldId === 'scriptsInput' && state[fieldId] === '99-custom') {
-                        document.getElementById('customScriptInput').style.display = 'block';
+                    // Trigger change event for scriptsInput to show/hide customScriptInput
+                    if (fieldId === 'scriptsInput') {
+                        const customScriptInput = document.getElementById('customScriptInput');
+                        if (state[fieldId] === '99-custom') {
+                            customScriptInput.style.display = 'block';
+                            // Ensure customScriptInput value is set if it exists in state
+                            if (state['customScriptInput']) {
+                                customScriptInput.value = state['customScriptInput'];
+                            }
+                        } else {
+                            customScriptInput.style.display = 'none';
+                        }
                     }
                 }
             });
@@ -236,7 +245,7 @@ async function fetchScripts() {
   const repoUrl = document.getElementById("repoUrl");
   repoUrl.href = `https://github.com/${owner}/${repo}/tree/main/files/etc/uci-defaults`;
 
-  fetch(apiUrl)
+  return fetch(apiUrl)
     .then(response => response.json())
     .then(data => {
       data.forEach(item => {
