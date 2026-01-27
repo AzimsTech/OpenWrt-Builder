@@ -182,23 +182,33 @@ jobs:
           SHARE_URL="https://${OWNER}.github.io/${REPO_NAME}?config=${CONFIG_BASE64}"
 
 
-          # Create build info markdown file
-          cat <<'EOF' > build_info.md
+          # Format display variables
+          packages_display=$(printf "\`%s\` " $packages)
+          disabled_services_display=$(printf "\`%s\` " $disabled_services)
+          
+          # Generate checksums table first
+          checksums_table=$(awk -v repo="$GITHUB_REPO" -v tag="$RELEASE_TAG" '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {
+            gsub(/\*/, "", $2); 
+            printf "| `%s`<br>[%s](https://github.com/%s/releases/download/%s/%s) |\n", $1, $2, repo, tag, $2
+          }' "$target_dir/sha256sums")
+
+          # Create build info markdown file with direct variable expansion
+          cat > build_info.md <<EOF
           ## 💡 Custom OpenWrt Build Information
 
-          - **OpenWrt Version**: `${openwrt_version}`
-          - **Target**: `${target}`
-          - **Profile**: `${profile}`
+          - **OpenWrt Version**: \`${{ env.openwrt_version }}\`
+          - **Target**: \`${{ env.target }}\`
+          - **Profile**: \`${{ env.profile }}\`
           - **Package Selections**: ${packages_display}
           - **Disabled Services**: ${disabled_services_display}
-          - **Version Code**: `${version_code}`
-          - **UCI Defaults Scripts**: `${scripts}`
+          - **Version Code**: \`${version_code}\`
+          - **UCI Defaults Scripts**: \`${scripts}\`
 
           ### 🔗 Rebuild Configuration
           
           Click to rebuild with the same settings:
           
-          [`🔄 Rebuild with this config`](${SHARE_URL})
+          [\`🔄 Rebuild with this config\`](${SHARE_URL})
 
           -----
 
@@ -206,26 +216,6 @@ jobs:
           |:-------------------|
           ${checksums_table}
           EOF
-          
-          # Now do variable substitution
-          sed -i \
-            -e "s#\${openwrt_version}#${{ env.openwrt_version }}#g" \
-            -e "s#\${target}#${{ env.target }}#g" \
-            -e "s#\${profile}#${{ env.profile }}#g" \
-            -e "s#\${packages_display}#$(printf "\\\`%s\\\` " $packages)#g" \
-            -e "s#\${disabled_services_display}#$(printf "\\\`%s\\\` " $disabled_services)#g" \
-            -e "s#\${version_code}#${version_code}#g" \
-            -e "s#\${scripts}#${scripts}#g" \
-            -e "s#\${SHARE_URL}#${SHARE_URL}#g" \
-            build_info.md
-          
-          # Generate checksums table
-          checksums_table=$(awk -v repo="$GITHUB_REPO" -v tag="$RELEASE_TAG" '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {
-            gsub(/\*/, "", $2); 
-            printf "| `%s`<br>[%s](https://github.com/%s/releases/download/%s/%s) |\n", $1, $2, repo, tag, $2
-          }' "$target_dir/sha256sums")
-          
-          sed -i "s#\${checksums_table}#${checksums_table}#g" build_info.md
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
