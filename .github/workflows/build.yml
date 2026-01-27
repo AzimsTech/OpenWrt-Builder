@@ -173,6 +173,29 @@ jobs:
           # Use GitHub Actions environment variables
           GITHUB_REPO="${GITHUB_REPOSITORY}"
           RELEASE_TAG="${{ env.revision_number }}-${{ github.event.inputs.model }}"
+          # Generate shareable URL
+          OWNER=$(echo "$GITHUB_REPO" | cut -d'/' -f1)
+          CONFIG_JSON=$(cat <<'EOF_JSON'
+          {
+            "modelInput": "${{ github.event.inputs.model }}",
+            "versionInput": "${{ github.event.inputs.version }}",
+            "profileInput": "${{ github.event.inputs.model }}",
+            "targetInput": "${{ github.event.inputs.target }}",
+            "packagesInput": "${{ github.event.inputs.packages }}",
+            "disabled_servicesInput": "${{ github.event.inputs.disabled_services }}",
+            "scriptsInput": "${{ github.event.inputs.scripts }}"
+          }
+          EOF_JSON
+          )
+          ### 🔗 Rebuild This Configuration
+          
+          [Click here to rebuild with the same settings]($SHARE_URL)
+
+          CONFIG_BASE64=$(echo "$CONFIG_JSON" | tr -d '\n' | base64 -w 0)
+          REPO_NAME=$(echo "$GITHUB_REPO" | cut -d'/' -f2)
+          PAGES_URL="https://${OWNER}.github.io/${REPO_NAME}"
+          SHARE_URL="${PAGES_URL}?config=${CONFIG_BASE64}"
+
 
           # Create build info markdown file
           cat <<EOF > build_info.md
@@ -185,6 +208,12 @@ jobs:
           - **Disabled Services**: $(printf "\`%s\` " $disabled_services)
           - **Version Code**: \`$version_code\`
           - **UCI Defaults Scripts**: \`$scripts\`
+
+          ### 🔗 Rebuild Configuration
+          
+          Click to rebuild with the same settings:
+          
+          [\`🔄 Rebuild with this config\`]($SHARE_URL)
 
           -----
 
