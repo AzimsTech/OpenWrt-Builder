@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await fetchScripts();
 
     // Load form state from URL if present - AFTER scripts are loaded
-    loadFromURL();
+    await loadFromURL();
     
     document.getElementById("modelInput").addEventListener("change", function() {
         fetchModelOptions();
@@ -69,6 +69,52 @@ document.addEventListener("DOMContentLoaded", async () => {
 // URL PREFILLING FUNCTIONS
 // ============================================
 
+// Simple encryption using token as key
+async function encryptWithToken(text, token) {
+    if (!text || !token) return null;
+    
+    // Create a simple hash of token + text for verification
+    const key = await hashString(token);
+    const data = btoa(unescape(encodeURIComponent(text)));
+    const signature = await hashString(key + data);
+    
+    return JSON.stringify({ data, signature });
+}
+
+async function decryptWithToken(encrypted, token) {
+    if (!encrypted || !token) return null;
+    
+    try {
+        const { data, signature } = JSON.parse(encrypted);
+        const key = await hashString(token);
+        const expectedSignature = await hashString(key + data);
+        
+        // Verify signature matches (token is correct)
+        if (signature !== expectedSignature) {
+            console.log('Token mismatch - cannot decrypt customScriptInput');
+            return null;
+        }
+        
+        // Decrypt
+        return decodeURIComponent(escape(atob(data)));
+    } catch (e) {
+        console.error('Failed to decrypt:', e);
+        return null;
+    }
+}
+
+async function hashString(str) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ============================================
+// URL PREFILLING FUNCTIONS
+// ============================================
+
 // List of all form fields to save/restore
 const formFields = [
     'modelInput',
@@ -82,14 +128,23 @@ const formFields = [
 ];
 
 // Encode form state to base64 URL param
-function encodeFormState() {
+async function encodeFormState() {
+    const token = localStorage.getItem("github_token");
     const state = {};
-    formFields.forEach(fieldId => {
+    
+    for (const fieldId of formFields) {
         const el = document.getElementById(fieldId);
         if (el && el.value) {
-            state[fieldId] = el.value;
+            // Encrypt customScriptInput with user's token
+            if (fieldId === 'customScriptInput' && token) {
+                state[fieldId] = await encryptWithToken(el.value, token);
+            } else if (fieldId !== 'customScriptInput') {
+                state[fieldId] = el.value;
+            }
+            // If no token, skip customScriptInput entirely
         }
-    });
+    }
+    
     const json = JSON.stringify(state);
     const base64 = btoa(unescape(encodeURIComponent(json)));
     return base64;
@@ -107,9 +162,10 @@ function decodeFormState(base64) {
 }
 
 // Load form state from URL on page load
-function loadFromURL() {
+async function loadFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const config = urlParams.get('config');
+    const token = localStorage.getItem("github_token");
     
     console.log('loadFromURL: config param =', config);
     
@@ -118,11 +174,23 @@ function loadFromURL() {
         console.log('loadFromURL: decoded state =', state);
         
         if (state) {
-            formFields.forEach(fieldId => {
+            for (const fieldId of formFields) {
                 const el = document.getElementById(fieldId);
                 if (el && state[fieldId]) {
-                    console.log(`Setting ${fieldId} to:`, state[fieldId]);
-                    el.value = state[fieldId];
+                    // Decrypt customScriptInput if encrypted
+                    if (fieldId === 'customScriptInput' && token) {
+                        const decrypted = await decryptWithToken(state[fieldId], token);
+                        if (decrypted) {
+                            console.log('Successfully decrypted customScriptInput');
+                            el.value = decrypted;
+                        } else {
+                            console.log('Failed to decrypt customScriptInput - wrong token or not encrypted');
+                            el.value = '';
+                        }
+                    } else if (fieldId !== 'customScriptInput') {
+                        console.log(`Setting ${fieldId} to:`, state[fieldId]);
+                        el.value = state[fieldId];
+                    }
                     
                     // Trigger change event for scriptsInput to show/hide customScriptInput
                     if (fieldId === 'scriptsInput') {
@@ -130,17 +198,12 @@ function loadFromURL() {
                         console.log('scriptsInput set to:', state[fieldId]);
                         if (state[fieldId] === '99-custom') {
                             customScriptInput.style.display = 'block';
-                            // Ensure customScriptInput value is set if it exists in state
-                            if (state['customScriptInput']) {
-                                console.log('Setting customScriptInput to:', state['customScriptInput']);
-                                customScriptInput.value = state['customScriptInput'];
-                            }
                         } else {
                             customScriptInput.style.display = 'none';
                         }
                     }
                 }
-            });
+            }
             
             // Trigger model options fetch if model is set
             if (state.modelInput) {
@@ -151,8 +214,8 @@ function loadFromURL() {
 }
 
 // Generate shareable URL
-function generateShareURL() {
-    const base64 = encodeFormState();
+async function generateShareURL() {
+    const base64 = await encodeFormState();
     const baseURL = window.location.origin + window.location.pathname;
     const shareURL = `${baseURL}?config=${base64}`;
     
@@ -499,6 +562,10 @@ async function runWorkflow(event) {
       document.getElementById("clearTokenButton").style.display = "block";    
     }
     
+    // Generate shareable URL to include in release notes
+    const shareConfig = await encodeFormState();
+    const shareURL = `${window.location.origin}${window.location.pathname}?config=${shareConfig}`;
+    
     const workflowFile = "build.yml";
     const { owner, repo } = await fetchRepo();
 
@@ -519,7 +586,8 @@ async function runWorkflow(event) {
                 disabled_services: document.getElementById("disabled_servicesInput").value,
                 scripts: document.getElementById("scriptsInput").value,
                 customScripts: document.getElementById("customScriptInput").value,
-                target: document.getElementById("targetInput").value // Include target in the workflow inputs
+                target: document.getElementById("targetInput").value,
+                share_url: shareURL // Pass the generated share URL to the workflow
             }
         })
     });

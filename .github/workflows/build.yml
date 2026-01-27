@@ -24,6 +24,9 @@ on:
       customScripts:
         description: 'Custom Scripts:'
         required: false
+      share_url:
+        description: 'Shareable Configuration URL:'
+        required: false
 
 permissions:
   contents: write
@@ -173,27 +176,42 @@ jobs:
           # Use GitHub Actions environment variables
           GITHUB_REPO="${GITHUB_REPOSITORY}"
           RELEASE_TAG="${{ env.revision_number }}-${{ github.event.inputs.model }}"
+          SHARE_URL="${{ github.event.inputs.share_url }}"
 
-          # Create build info markdown file
-          cat <<EOF > build_info.md
+
+          # Format display variables
+          packages_display=$(printf "\`%s\` " $packages)
+          disabled_services_display=$(printf "\`%s\` " $disabled_services)
+          
+          # Generate checksums table first
+          checksums_table=$(awk -v repo="$GITHUB_REPO" -v tag="$RELEASE_TAG" '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {
+            gsub(/\*/, "", $2); 
+            printf "| `%s`<br>[%s](https://github.com/%s/releases/download/%s/%s) |\n", $1, $2, repo, tag, $2
+          }' "$target_dir/sha256sums")
+
+          # Create build info markdown file with direct variable expansion
+          cat > build_info.md <<EOF
           ## 💡 Custom OpenWrt Build Information
 
           - **OpenWrt Version**: \`${{ env.openwrt_version }}\`
           - **Target**: \`${{ env.target }}\`
           - **Profile**: \`${{ env.profile }}\`
-          - **Package Selections**: $(printf "\`%s\` " $packages)
-          - **Disabled Services**: $(printf "\`%s\` " $disabled_services)
-          - **Version Code**: \`$version_code\`
-          - **UCI Defaults Scripts**: \`$scripts\`
+          - **Package Selections**: ${packages_display}
+          - **Disabled Services**: ${disabled_services_display}
+          - **Version Code**: \`${version_code}\`
+          - **UCI Defaults Scripts**: \`${scripts}\`
+
+          ### 🔗 Rebuild Configuration
+          
+          Click to rebuild with the same settings:
+          
+          [\`🔄 Rebuild with this config\`](${SHARE_URL})
 
           -----
 
           | 🔐 SHA256 Checksum |
           |:-------------------|
-          $(awk -v repo="$GITHUB_REPO" -v tag="$RELEASE_TAG" '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {
-            gsub(/\*/, "", $2); 
-            printf "| `%s`<br>[%s](https://github.com/%s/releases/download/%s/%s) |\n", $1, $2, repo, tag, $2
-          }' "$target_dir/sha256sums")
+          ${checksums_table}
           EOF
 
       - name: Create GitHub release
