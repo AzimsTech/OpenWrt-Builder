@@ -11,6 +11,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     await fetchModelOptions();
     await fetchScripts();
 
+    // Load form state from URL if present
+    loadFromURL();
     
     document.getElementById("modelInput").addEventListener("change", function() {
         fetchModelOptions();
@@ -62,6 +64,123 @@ document.addEventListener("DOMContentLoaded", async () => {
     });    
     
 });
+
+// ============================================
+// URL PREFILLING FUNCTIONS
+// ============================================
+
+// List of all form fields to save/restore
+const formFields = [
+    'modelInput',
+    'versionInput', 
+    'profileInput',
+    'targetInput',
+    'packagesInput',
+    'disabled_servicesInput',
+    'scriptsInput',
+    'customScriptInput'
+];
+
+// Encode form state to base64 URL param
+function encodeFormState() {
+    const state = {};
+    formFields.forEach(fieldId => {
+        const el = document.getElementById(fieldId);
+        if (el && el.value) {
+            state[fieldId] = el.value;
+        }
+    });
+    const json = JSON.stringify(state);
+    const base64 = btoa(unescape(encodeURIComponent(json)));
+    return base64;
+}
+
+// Decode base64 URL param to form state
+function decodeFormState(base64) {
+    try {
+        const json = decodeURIComponent(escape(atob(base64)));
+        return JSON.parse(json);
+    } catch (e) {
+        console.error('Failed to decode form state:', e);
+        return null;
+    }
+}
+
+// Load form state from URL on page load
+function loadFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const config = urlParams.get('config');
+    
+    if (config) {
+        const state = decodeFormState(config);
+        if (state) {
+            formFields.forEach(fieldId => {
+                const el = document.getElementById(fieldId);
+                if (el && state[fieldId]) {
+                    el.value = state[fieldId];
+                    
+                    // Trigger change events for certain fields
+                    if (fieldId === 'scriptsInput' && state[fieldId] === '99-custom') {
+                        document.getElementById('customScriptInput').style.display = 'block';
+                    }
+                }
+            });
+            
+            // Trigger model options fetch if model is set
+            if (state.modelInput) {
+                fetchModelOptions();
+            }
+        }
+    }
+}
+
+// Generate shareable URL
+function generateShareURL() {
+    const base64 = encodeFormState();
+    const baseURL = window.location.origin + window.location.pathname;
+    const shareURL = `${baseURL}?config=${base64}`;
+    
+    const displayEl = document.getElementById('shareURL');
+    displayEl.textContent = shareURL;
+    displayEl.style.display = 'block';
+    document.getElementById('copyBtn').style.display = 'block';
+    
+    // Store for copy function
+    window.currentShareURL = shareURL;
+}
+
+// Copy URL to clipboard
+function copyShareURL() {
+    if (window.currentShareURL) {
+        navigator.clipboard.writeText(window.currentShareURL).then(() => {
+            const btn = document.getElementById('copyBtn');
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Copied!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        }).catch(err => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = window.currentShareURL;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            const btn = document.getElementById('copyBtn');
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Copied!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        });
+    }
+}
+
+// ============================================
+// ORIGINAL FUNCTIONS
+// ============================================
 
 async function fetchRepo() {
   // Step 1: Get the current site URL
@@ -200,57 +319,38 @@ async function fetchVersions() {
           group.rcs.sort(sortRCs);
     
           // If there are any final (non‑rc) versions, take the highest as the primary final.
-          if (group.finals.length > 0) {
-            const primaryFinal = group.finals.shift(); // highest final version
-            finalList.push(primaryFinal);
+          // Otherwise fall back to the highest RC as the primary.
+          const primaryVersion = group.finals[0] || group.rcs[0];
     
-            // For the stable version group (data.stable_version, e.g. "24.10.0"),
-            // insert first a generic "SNAPSHOT" (at index 1) and then a version-specific snapshot.
-            if (primaryFinal === data.stable_version) {
-              finalList.push("SNAPSHOT");             // Insert a plain "SNAPSHOT"
-              finalList.push(`${groupKey}-SNAPSHOT`);   // e.g. "24.10-SNAPSHOT"
-            } else {
-              // For other groups, insert only the version-specific snapshot
-              finalList.push(`${groupKey}-SNAPSHOT`);
-            }
-            // Append any remaining final versions from this group (if any)
-            finalList.push(...group.finals);
-          } else {
-            // If there are no finals, add the snapshot for the group
-            finalList.push(`${groupKey}-SNAPSHOT`);
-          }
-          // Append all RC versions for this group
-          finalList.push(...group.rcs);
+          // Always place the primary version first, followed by a SNAPSHOT for that major.minor.
+          finalList.push(primaryVersion);
+          finalList.push(`${groupKey}-SNAPSHOT`);
+    
+          // Then list remaining final versions (skipping the first one, which is already listed).
+          finalList.push(...group.finals.slice(1));
+    
+          // Then list remaining RCs (again skipping the first if it was chosen as primary).
+          const rcsToAdd = (group.finals[0] === primaryVersion) ? group.rcs : group.rcs.slice(1);
+          finalList.push(...rcsToAdd);
         });
     
-        // At this point, finalList should be (for example):
-        // [
-        //   "24.10.0", "SNAPSHOT", "24.10-SNAPSHOT",
-        //   "24.10.0-rc7", "24.10.0-rc6", "24.10.0-rc5",
-        //   "24.10.0-rc4", "24.10.0-rc3", "24.10.0-rc2", "24.10.0-rc1",
-        //   "23.05.5", "23.05-SNAPSHOT", "23.05.4", "23.05.3", "23.05.2",
-        //   "23.05.1", "23.05.0", "23.05.0-rc4", "23.05.0-rc3", "23.05.0-rc2", "23.05.0-rc1"
-        // ]
+        // Step 4. Add the global SNAPSHOT at the very beginning.
+        finalList.unshift("SNAPSHOT");
     
-        // Step 4. Append each version in the final list as an <option> in the <select> element.
-        const verOptions = document.getElementById('versionInput');
-        if (!verOptions) {
-          throw new Error('No element with id "versionInput" found');
-        }
-    
-        finalList.forEach(item => {
+        // Step 5. Populate the dropdown and set the first item (SNAPSHOT) as selected.
+        const versionInput = document.getElementById("versionInput");
+        versionInput.innerHTML = "";
+        finalList.forEach(version => {
           const option = document.createElement("option");
-          option.value = item;
-          option.text = item;
-          verOptions.appendChild(option);
-
-          // Step 5. Manually set default selected option
-          if (item === "SNAPSHOT") {
-            option.selected = true;
-          }
+          option.value = version;
+          option.text = version;
+          versionInput.appendChild(option);
         });
+        versionInput.selectedIndex = 0;
+        versionInput.value = "SNAPSHOT";
       } catch (error) {
-        console.error('Error fetching or processing versions.json:', error);
+        console.error('Error fetching versions:', error);
+        alert("Failed to load versions. Please refresh the page to try again.");
       }
 }
 

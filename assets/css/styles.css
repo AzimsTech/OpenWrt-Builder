@@ -1,112 +1,247 @@
-body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 20px 20px 80px 20px;
-    /* Added bottom padding for buttons */
+* {
     margin: 0;
+    padding: 0;
     box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
     min-height: 100vh;
+    padding: 20px;
     position: relative;
+    color-scheme: light dark;
 }
 
-/* Base form element styles */
-input,
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Forms styling */
+form {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    margin: 0 auto 20px auto;
+    max-width: min(700px, 90%);
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 24px;
+    font-size: 28px;
+}
+
+h3 {
+    color: #333;
+    margin-bottom: 12px;
+    font-size: 20px;
+}
+
+p {
+    color: #666;
+    margin-bottom: 12px;
+    line-height: 1.6;
+}
+
+pre {
+    background: #3b82f622;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin: 1em 0;
+    overflow-x: auto;
+    font-size: 12px;
+    text-align: left;
+    border: 1px solid #3b82f615;
+}
+
+code {
+    background: #e0e0e0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+}
+
+/* Input styling */
+input[type="text"],
+input[type="password"],
 select,
-textarea,
-button {
-    box-sizing: border-box;
+textarea {
+    width: 100%;
     padding: 12px;
-    margin: 10px 0;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-    /* Prevents zoom on iOS */
+    margin-bottom: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
 }
 
-/* Token input */
-#tokenInput {
-    width: 100%;
-    max-width: 380px;
+/* Model and Version side by side */
+.model-version-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
 }
 
-/* Model and version inputs - stack on mobile */
-#modelInput {
-    width: 100%;
-    max-width: 380px;
+.model-version-row input,
+.model-version-row select {
+    margin-bottom: 0;
 }
 
-#versionInput {
-    width: 100%;
-    max-width: 200px;
+.model-version-row input {
+    flex: 2;
 }
 
-/* Package and services inputs */
-#packagesInput,
-#disabled_servicesInput {
-    width: 100%;
-    max-width: 500px;
+.model-version-row select {
+    flex: 1;
 }
 
-/* Scripts dropdown */
-#scriptsInput {
-    width: 100%;
-    max-width: 250px;
+input[type="text"]:focus,
+input[type="password"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #667eea;
 }
 
-/* Custom script textarea */
-#customScriptInput {
-    width: 100%;
-    max-width: 500px;
-    height: 120px;
+textarea {
+    min-height: 150px;
+    font-family: 'Courier New', monospace;
     resize: vertical;
 }
 
-/* Interactive Buttons */
+/* Datalist styling */
+datalist {
+    display: none;
+}
+
+/* Autocomplete styling for dark mode */
+input[type="text"]:-webkit-autofill,
+input[type="text"]:-webkit-autofill:hover,
+input[type="text"]:-webkit-autofill:focus {
+    -webkit-text-fill-color: #000;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+@media (prefers-color-scheme: dark) {
+    input[type="text"]:-webkit-autofill,
+    input[type="text"]:-webkit-autofill:hover,
+    input[type="text"]:-webkit-autofill:focus {
+        -webkit-text-fill-color: #ffffff;
+        -webkit-box-shadow: 0 0 0px 1000px #1e2936 inset;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+}
+
+/* Button styling */
 button {
-    padding: 12px 20px;
-    cursor: pointer;
-    min-height: 44px;
-    /* Touch-friendly size */
-    font-size: 16px;
-    margin: 5px;
-    background-color: #007bff;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    transition: all 0.2s ease-in-out;
-    user-select: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin: 5px 0;
 }
 
 button:hover {
-    background-color: #0056b3;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
 }
 
 button:active {
     transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
-    background-color: #004085;
-}
-
-button:focus {
-    outline: 2px solid #80bdff;
-    outline-offset: 2px;
 }
 
 button:disabled {
-    background-color: #6c757d;
+    background: #ccc;
     cursor: not-allowed;
     transform: none;
-    box-shadow: none;
 }
 
-button:disabled:hover {
-    background-color: #6c757d;
-    transform: none;
-    box-shadow: none;
+/* Share Configuration Section */
+.share-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 30px;
 }
 
-/* Bottom corner buttons with enhanced interactivity */
+.share-section h3 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+}
+
+.share-section p {
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.button-group button {
+    flex: 1;
+    min-width: 150px;
+}
+
+.secondary-btn {
+    background: #6c757d !important;
+}
+
+.secondary-btn:hover {
+    background: #5a6268 !important;
+    box-shadow: 0 8px 20px rgba(108, 117, 125, 0.4);
+}
+
+.success-btn {
+    background: #28a745 !important;
+}
+
+.success-btn:hover {
+    background: #218838 !important;
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+}
+
+.url-display {
+    background: white;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    word-break: break-all;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    max-height: 150px;
+    overflow-y: auto;
+    margin-top: 8px;
+}
+
+/* Build Info */
+#buildInfo {
+    background: #f8f9fa;
+    padding: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    text-align: left;
+    margin: 15px 0;
+}
+
+#buildInfo p {
+    margin: 5px 0;
+}
+
+/* Corner Buttons */
 #clearTokenButton,
 #setupTokenButton {
     position: fixed;
@@ -116,25 +251,20 @@ button:disabled:hover {
     cursor: pointer;
     font-size: 14px;
     z-index: 1000;
-    background-color: #dc3545;
+    background: #dc3545 !important;
     color: white;
     border: none;
     border-radius: 8px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    width: auto;
 }
 
 #clearTokenButton:hover,
 #setupTokenButton:hover {
-    background-color: #c82333;
+    background: #c82333 !important;
     transform: translateY(-2px) scale(1.05);
     box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
-}
-
-#clearTokenButton:active,
-#setupTokenButton:active {
-    transform: translateY(0) scale(1.02);
-    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
 }
 
 #configToUciButton {
@@ -145,167 +275,142 @@ button:disabled:hover {
     cursor: pointer;
     font-size: 14px;
     z-index: 1000;
-    background-color: #28a745;
+    background: #28a745 !important;
     color: white;
     border: none;
     border-radius: 8px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    width: auto;
 }
 
 #configToUciButton:hover {
-    background-color: #218838;
+    background: #218838 !important;
     transform: translateY(-2px) scale(1.05);
     box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
 }
 
-#configToUciButton:active {
-    transform: translateY(0) scale(1.02);
-    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+/* Links */
+a {
+    color: #667eea;
+    text-decoration: none;
 }
 
-/* Build info box */
-#buildInfo {
-    margin: 20px auto;
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    text-align: left;
-    width: 100%;
-    max-width: 500px;
-    box-sizing: border-box;
+a:hover {
+    text-decoration: underline;
 }
 
-/* Form sections */
-form {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 0 10px;
+/* Status messages */
+#status {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
 }
 
-/* Headings */
-h2 {
-    margin: 30px 0 20px 0;
-    font-size: 1.5em;
-}
-
-/* Paragraphs and text */
-p {
-    margin: 15px 0;
-    text-align: center;
-    /* Center align description text */
-}
-
-/* Keep build info text left-aligned */
-#buildInfo p {
-    text-align: left;
-}
-
-pre {
-    text-align: center;
-    /* Center align pre text too */
-    font-size: 14px;
-    overflow-x: auto;
-}
-
-/* Keep pre inside build info left-aligned */
-#buildInfo pre {
-    text-align: left;
+/* Token form visibility */
+#tokenForm {
+    display: none;
 }
 
 /* Dark mode styles */
 @media (prefers-color-scheme: dark) {
-    html {
-        background-color: #212830;
-        color: #ffffff;
-        color-scheme: dark;
+    body {
+        background: #1a1d23;
     }
 
-    header,
-    .btn {
-        background-color: #212830;
+    form {
+        background: #2a3441;
         color: #ffffff;
     }
 
-    input,
+    h2, h3 {
+        color: #ffffff;
+    }
+
+    p {
+        color: #b8c5d6;
+    }
+
+    pre {
+        background: #3b82f618;
+        color: #e0e0e0;
+        border-color: #3b82f612;
+    }
+
+    code {
+        background: #1e2936;
+        color: #e0e0e0;
+    }
+
+    input[type="text"],
+    input[type="password"],
     select,
     textarea {
-        color-scheme: dark;
-        background-color: #2a3441;
+        background-color: #1e2936;
         border-color: #4a5568;
         color: #ffffff;
     }
 
-    /* Dark mode button styles */
-    button {
-        background-color: #0d6efd;
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    select:focus,
+    textarea:focus {
+        border-color: #667eea;
+    }
+
+    .share-section {
+        background: #1e2936;
+    }
+
+    .url-display {
+        background: #2a3441;
+        border-color: #4a5568;
         color: #ffffff;
-    }
-
-    button:hover {
-        background-color: #0b5ed7;
-        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.4);
-    }
-
-    button:active {
-        background-color: #0a58ca;
-        box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
-    }
-
-    button:focus {
-        outline-color: #6ea8fe;
-    }
-
-    /* Dark mode corner buttons */
-    #clearTokenButton,
-    #setupTokenButton {
-        background-color: #dc3545;
-        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
-    }
-
-    #clearTokenButton:hover,
-    #setupTokenButton:hover {
-        background-color: #bb2d3b;
-        box-shadow: 0 6px 16px rgba(220, 53, 69, 0.5);
-    }
-
-    #configToUciButton {
-        background-color: #198754;
-        box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
-    }
-
-    #configToUciButton:hover {
-        background-color: #157347;
-        box-shadow: 0 6px 16px rgba(25, 135, 84, 0.5);
     }
 
     #buildInfo {
+        background: #1e2936;
         border-color: #4a5568;
-        background-color: #2a3441;
+    }
+
+    a {
+        color: #9da9f5;
     }
 }
 
-/* Token form visibility */
-#tokenForm,
-#setupTokenButton {
-    display: none;
-}
-
-/* Mobile specific adjustments */
+/* Mobile responsive */
 @media (max-width: 768px) {
     body {
-        padding: 15px 10px 80px 10px;
-        /* Added bottom padding for buttons */
+        padding: 15px;
     }
 
-    /* Stack form elements vertically with full width */
-    #modelInput,
-    #versionInput {
+    form {
+        padding: 25px;
+    }
+
+    h2 {
+        font-size: 24px;
+    }
+
+    .model-version-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .model-version-row input,
+    .model-version-row select {
+        margin-bottom: 16px;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .button-group button {
         width: 100%;
-        max-width: none;
     }
 
-    /* Adjust corner buttons for mobile - reduce transform effects */
     #clearTokenButton,
     #setupTokenButton {
         bottom: 15px;
@@ -314,94 +419,53 @@ pre {
         padding: 10px 12px;
     }
 
-    #clearTokenButton:hover,
-    #setupTokenButton:hover {
-        transform: translateY(-1px) scale(1.02);
-    }
-
     #configToUciButton {
         bottom: 15px;
         left: 10px;
         font-size: 12px;
         padding: 10px 12px;
     }
-
-    #configToUciButton:hover {
-        transform: translateY(-1px) scale(1.02);
-    }
-
-    /* Smaller text for mobile */
-    h2 {
-        font-size: 1.3em;
-    }
-
-    pre {
-        font-size: 12px;
-    }
-
-    /* Adjust build info box */
-    #buildInfo {
-        padding: 12px;
-        font-size: 14px;
-    }
-
-    /* Make textarea smaller on mobile */
-    #customScriptInput {
-        height: 100px;
-    }
 }
 
-/* Very small screens */
 @media (max-width: 480px) {
     body {
-        padding: 10px 5px 80px 5px;
-        /* Added bottom padding for buttons */
+        padding: 10px;
     }
 
     form {
-        padding: 0 5px;
+        padding: 20px;
     }
 
-    /* Adjust corner buttons for very small screens - minimal transform effects */
+    h2 {
+        font-size: 20px;
+    }
+
     #clearTokenButton,
-    #setupTokenButton {
+    #setupTokenButton,
+    #configToUciButton {
         bottom: 10px;
-        right: 5px;
         font-size: 11px;
         padding: 8px 10px;
     }
 
-    #clearTokenButton:hover,
-    #setupTokenButton:hover {
-        transform: translateY(-1px);
+    #clearTokenButton,
+    #setupTokenButton {
+        right: 5px;
     }
 
     #configToUciButton {
-        bottom: 10px;
         left: 5px;
-        font-size: 11px;
-        padding: 8px 10px;
-    }
-
-    #configToUciButton:hover {
-        transform: translateY(-1px);
     }
 }
 
-/* Accessibility improvements */
+/* Accessibility */
 @media (prefers-reduced-motion: reduce) {
-    button {
-        transition: none;
+    * {
+        animation: none !important;
+        transition: none !important;
     }
 
-    button:hover {
-        transform: none;
-    }
-
-    button:active {
-        transform: none;
-    }
-
+    button:hover,
     #clearTokenButton:hover,
     #setupTokenButton:hover,
     #configToUciButton:hover {

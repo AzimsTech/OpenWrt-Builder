@@ -26,14 +26,17 @@
 
     <form id="buildForm" onsubmit="runWorkflow(event)">
         <h2>Build OpenWrt Image</h2>
+        
         <p>1️⃣ Select model of your device, then select a stable build or the nightly "snapshot" build.</p>
-        <input type="text" id="modelInput" list="modelOptions" placeholder="Start typing your model..." autocomplete="off" title="Double-click to clear this field">
+        <div class="model-version-row">
+            <input type="text" id="modelInput" list="modelOptions" placeholder="Start typing your model..." autocomplete="off" title="Double-click to clear this field">
+            <select id="versionInput" onchange="fetchModelOptions()">
+                <!-- Options will be populated dynamically from the provided URL -->
+            </select>
+        </div>
         <datalist id="modelOptions">
             <!-- Options will be populated dynamically from the provided URL -->
         </datalist>
-        <select id="versionInput" onchange="fetchModelOptions()">
-            <!-- Options will be populated dynamically from the provided URL -->
-        </select>
         <input type="hidden" id="profileInput" name="profile">
         <input type="hidden" id="targetInput" name="target">
         <p id="buildInfo"></p>
@@ -51,8 +54,20 @@
             <!-- Options will be populated dynamically from the provided URL -->
         </select>
         <textarea id="customScriptInput" style="display: none;" name="custom_script" title="Double-click to clear this field" placeholder=""></textarea>
+        
         <p>▶️ Run Workflow </p>
         <button type="submit">✨ Run Build Workflow</button>
+        
+        <!-- Share Configuration Section -->
+        <div class="share-section">
+            <h3>🔗 Share Configuration</h3>
+            <p>Generate a shareable URL with your current settings:</p>
+            <div class="button-group">
+                <button type="button" onclick="generateShareURL()" class="secondary-btn">📋 Generate Share URL</button>
+                <button type="button" onclick="copyShareURL()" id="copyBtn" class="success-btn" style="display: none;">📄 Copy URL</button>
+            </div>
+            <div id="shareURL" class="url-display" style="display: none;"></div>
+        </div>
     </form>
 
     <script src="assets/js/scripts.js"></script>
