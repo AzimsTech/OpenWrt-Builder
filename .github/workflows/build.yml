@@ -173,57 +173,59 @@ jobs:
           # Use GitHub Actions environment variables
           GITHUB_REPO="${GITHUB_REPOSITORY}"
           RELEASE_TAG="${{ env.revision_number }}-${{ github.event.inputs.model }}"
-          # Generate shareable URL
-          OWNER=$(echo "$GITHUB_REPO" | cut -d'/' -f1)
-          CONFIG_JSON=$(cat <<'EOF_JSON'
-          {
-            "modelInput": "${{ github.event.inputs.model }}",
-            "versionInput": "${{ github.event.inputs.version }}",
-            "profileInput": "${{ github.event.inputs.model }}",
-            "targetInput": "${{ github.event.inputs.target }}",
-            "packagesInput": "${{ github.event.inputs.packages }}",
-            "disabled_servicesInput": "${{ github.event.inputs.disabled_services }}",
-            "scriptsInput": "${{ github.event.inputs.scripts }}"
-          }
-          EOF_JSON
-          )
-          ### 🔗 Rebuild This Configuration
           
-          [Click here to rebuild with the same settings]($SHARE_URL)
-
-          CONFIG_BASE64=$(echo "$CONFIG_JSON" | tr -d '\n' | base64 -w 0)
+          # Generate shareable URL using the same logic as generateShareURL()
+          CONFIG_JSON='{"modelInput":"${{ github.event.inputs.model }}","versionInput":"${{ github.event.inputs.version }}","profileInput":"${{ github.event.inputs.model }}","targetInput":"${{ github.event.inputs.target }}","packagesInput":"${{ github.event.inputs.packages }}","disabled_servicesInput":"${{ github.event.inputs.disabled_services }}","scriptsInput":"${{ github.event.inputs.scripts }}"}'
+          CONFIG_BASE64=$(echo "$CONFIG_JSON" | base64 -w 0)
+          OWNER=$(echo "$GITHUB_REPO" | cut -d'/' -f1)
           REPO_NAME=$(echo "$GITHUB_REPO" | cut -d'/' -f2)
-          PAGES_URL="https://${OWNER}.github.io/${REPO_NAME}"
-          SHARE_URL="${PAGES_URL}?config=${CONFIG_BASE64}"
+          SHARE_URL="https://${OWNER}.github.io/${REPO_NAME}?config=${CONFIG_BASE64}"
 
 
           # Create build info markdown file
-          cat <<EOF > build_info.md
+          cat <<'EOF' > build_info.md
           ## 💡 Custom OpenWrt Build Information
 
-          - **OpenWrt Version**: \`${{ env.openwrt_version }}\`
-          - **Target**: \`${{ env.target }}\`
-          - **Profile**: \`${{ env.profile }}\`
-          - **Package Selections**: $(printf "\`%s\` " $packages)
-          - **Disabled Services**: $(printf "\`%s\` " $disabled_services)
-          - **Version Code**: \`$version_code\`
-          - **UCI Defaults Scripts**: \`$scripts\`
+          - **OpenWrt Version**: `${openwrt_version}`
+          - **Target**: `${target}`
+          - **Profile**: `${profile}`
+          - **Package Selections**: ${packages_display}
+          - **Disabled Services**: ${disabled_services_display}
+          - **Version Code**: `${version_code}`
+          - **UCI Defaults Scripts**: `${scripts}`
 
           ### 🔗 Rebuild Configuration
           
           Click to rebuild with the same settings:
           
-          [\`🔄 Rebuild with this config\`]($SHARE_URL)
+          [`🔄 Rebuild with this config`](${SHARE_URL})
 
           -----
 
           | 🔐 SHA256 Checksum |
           |:-------------------|
-          $(awk -v repo="$GITHUB_REPO" -v tag="$RELEASE_TAG" '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {
+          ${checksums_table}
+          EOF
+          
+          # Now do variable substitution
+          sed -i \
+            -e "s|\${openwrt_version}|${{ env.openwrt_version }}|g" \
+            -e "s|\${target}|${{ env.target }}|g" \
+            -e "s|\${profile}|${{ env.profile }}|g" \
+            -e "s|\${packages_display}|$(printf "\\\`%s\\\` " $packages)|g" \
+            -e "s|\${disabled_services_display}|$(printf "\\\`%s\\\` " $disabled_services)|g" \
+            -e "s|\${version_code}|${version_code}|g" \
+            -e "s|\${scripts}|${scripts}|g" \
+            -e "s|\${SHARE_URL}|${SHARE_URL}|g" \
+            build_info.md
+          
+          # Generate checksums table
+          checksums_table=$(awk -v repo="$GITHUB_REPO" -v tag="$RELEASE_TAG" '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {
             gsub(/\*/, "", $2); 
             printf "| `%s`<br>[%s](https://github.com/%s/releases/download/%s/%s) |\n", $1, $2, repo, tag, $2
           }' "$target_dir/sha256sums")
-          EOF
+          
+          sed -i "s|\${checksums_table}|${checksums_table}|g" build_info.md
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
