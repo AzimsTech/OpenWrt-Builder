@@ -115,6 +115,13 @@ uci add_list adblock.global.adb_hag_feed='wildcard/pro-onlydomains.txt'
 uci set adblock.global.adb_trigger='wan'
 uci commit adblock
 
+# presistent uci-defaults script for owut attended sysupgrade 
+# https://openwrt.org/docs/guide-user/installation/sysupgrade.owut#persistent_uci-defaults
+mkdir -p /etc/owut.d/
+SCRIPT=$(echo /rom/etc/uci-defaults/99-*)
+cp "$SCRIPT" /etc/owut.d/
+uci set "attendedsysupgrade.owut.init_script=/etc/owut.d/${SCRIPT##*/}"
+
 uci commit
 /etc/init.d/firewall restart
 

@@ -62,5 +62,12 @@ done
 uci set wireless.@wifi-device[$band5g].channels='36 40 44 48 149 153 157 161 165'
 uci set wireless.@wifi-iface[$band5g].wds='1'
 
+# presistent uci-defaults script for owut attended sysupgrade 
+# https://openwrt.org/docs/guide-user/installation/sysupgrade.owut#persistent_uci-defaults
+mkdir -p /etc/owut.d/
+SCRIPT=$(echo /rom/etc/uci-defaults/99-*)
+cp "$SCRIPT" /etc/owut.d/
+uci set "attendedsysupgrade.owut.init_script=/etc/owut.d/${SCRIPT##*/}"
+
 uci commit
-echo "All done!"
+echo "All done!" 
