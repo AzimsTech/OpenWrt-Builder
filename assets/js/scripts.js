@@ -547,7 +547,9 @@ async function getBuildInfo(target,version) {
           const profileId = document.getElementById("profileInput").value;
           const profilesRes = await fetch(url + "profiles.json");
           const profilesData = await profilesRes.json();
-          const devicePkgs = (profilesData.profiles[profileId]?.device_packages || []).join(" ");
+          const rawPkgs = profilesData.profiles[profileId]?.device_packages || [];
+          const removals = new Set(rawPkgs.filter(p => p.startsWith('-')).map(p => p.slice(1)));
+          const devicePkgs = rawPkgs.filter(p => !p.startsWith('-') ? !removals.has(p) : true).join(" ");
           window.devicePkgs = devicePkgs;
 
           document.getElementById("buildInfo").innerHTML = `<b>Version Code:</b> ${buildinfo.trim()} <br><b>Last modified:</b> ${date} <br><b>Target:</b> ${target}<br><b>Device Packages:</b> ${devicePkgs || "none"}<br>`;
