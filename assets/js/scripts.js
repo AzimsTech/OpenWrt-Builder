@@ -543,7 +543,14 @@ async function getBuildInfo(target,version) {
           buildinfo = await response.text();
           const lastModified = response.headers.get('Last-Modified');
           const date = new Date(lastModified);
-          document.getElementById("buildInfo").innerHTML = `<b>Version Code:</b> ${buildinfo.trim()} <br><b>Last modified:</b> ${date} <br><b>Target:</b> ${target}<br>`;
+
+          const profileId = document.getElementById("profileInput").value;
+          const profilesRes = await fetch(url + "profiles.json");
+          const profilesData = await profilesRes.json();
+          const devicePkgs = (profilesData.profiles[profileId]?.device_packages || []).join(" ");
+          window.devicePkgs = devicePkgs;
+
+          document.getElementById("buildInfo").innerHTML = `<b>Version Code:</b> ${buildinfo.trim()} <br><b>Last modified:</b> ${date} <br><b>Target:</b> ${target}<br><b>Device Packages:</b> ${devicePkgs || "none"}<br>`;
       }
   }
 }
@@ -582,7 +589,7 @@ async function runWorkflow(event) {
             inputs: {
                 model: document.getElementById("profileInput").value,
                 version: document.getElementById("versionInput").value,
-                packages: document.getElementById("packagesInput").value,
+                packages: (document.getElementById("packagesInput").value + " " + (window.devicePkgs || "")).trim(),
                 disabled_services: document.getElementById("disabled_servicesInput").value,
                 scripts: document.getElementById("scriptsInput").value,
                 customScripts: document.getElementById("customScriptInput").value,
