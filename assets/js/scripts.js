@@ -577,6 +577,18 @@ async function runWorkflow(event) {
     const { owner, repo } = await fetchRepo();
 
     // Step 1: Trigger the workflow
+    const inputs = {
+        model: document.getElementById("profileInput").value,
+        version: document.getElementById("versionInput").value,
+        packages: (document.getElementById("packagesInput").value + " " + (window.devicePkgs || "")).trim(),
+        disabled_services: document.getElementById("disabled_servicesInput").value,
+        scripts: document.getElementById("scriptsInput").value,
+        customScripts: document.getElementById("customScriptInput").value,
+        target: document.getElementById("targetInput").value,
+        share_url: shareURL
+    };
+    console.log("Workflow inputs:", inputs);
+
     const triggerResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowFile}/dispatches`, {
         method: "POST",
         headers: {
@@ -584,19 +596,7 @@ async function runWorkflow(event) {
             "Accept": "application/vnd.github+json",
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-            ref: "main",
-            inputs: {
-                model: document.getElementById("profileInput").value,
-                version: document.getElementById("versionInput").value,
-                packages: (document.getElementById("packagesInput").value + " " + (window.devicePkgs || "")).trim(),
-                disabled_services: document.getElementById("disabled_servicesInput").value,
-                scripts: document.getElementById("scriptsInput").value,
-                customScripts: document.getElementById("customScriptInput").value,
-                target: document.getElementById("targetInput").value,
-                share_url: shareURL // Pass the generated share URL to the workflow
-            }
-        })
+        body: JSON.stringify({ ref: "main", inputs })
     });
 
     if (!triggerResponse.ok) {
