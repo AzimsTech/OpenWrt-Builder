@@ -56,7 +56,6 @@ jobs:
       - name: Process UCI defaults script
         run: |
           UCI_DIR="files/etc/uci-defaults"
-
           if [ -n "${{ github.event.inputs.scripts }}" ]; then
             # Keep only the specified script
             SCRIPT="${{ github.event.inputs.scripts }}"
@@ -70,6 +69,9 @@ jobs:
             # Remove all other files
             find "$UCI_DIR" -type f ! -name "$SCRIPT" -delete 2>/dev/null || true
             echo "Kept only: $SCRIPT"
+            
+            # Make the script executable
+            chmod +x "$UCI_DIR/$SCRIPT"
             
           else
             # Remove all files
