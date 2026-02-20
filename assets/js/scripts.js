@@ -584,7 +584,8 @@ async function runWorkflow(event) {
     const inputs = {
         model: document.getElementById("profileInput").value,
         version: document.getElementById("versionInput").value,
-        packages: (document.getElementById("packagesInput").value + " " + (window.devicePkgs || "")).trim(),
+        packages: document.getElementById("packagesInput").value.trim(),
+        device_packages: (window.devicePkgs || "").trim(),
         disabled_services: document.getElementById("disabled_servicesInput").value,
         scripts: document.getElementById("scriptsInput").value,
         customScripts: document.getElementById("customScriptInput").value,

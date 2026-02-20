@@ -15,6 +15,9 @@ on:
       packages:
         description: 'Extra Packages:'
         required: false
+      device_packages:
+        description: 'Device Packages:'
+        required: false
       disabled_services:
         description: 'Disabled Services:'
         required: false
@@ -85,6 +88,7 @@ jobs:
           cat <<EOF > input_config
           openwrt_version=${{ github.event.inputs.version }}
           packages=${{ github.event.inputs.packages }}
+          device_packages=${{ github.event.inputs.device_packages }}
           files=files
           profile=${{ github.event.inputs.model }}
           target=${{ github.event.inputs.target }}
@@ -157,7 +161,7 @@ jobs:
           tar xf openwrt-imagebuilder-*.tar.* --strip=1 --no-same-owner -C .
           make -j $(nproc) image \
             PROFILE="${{ env.profile }}" \
-            PACKAGES="${{ env.packages }}" \
+            PACKAGES="${{ env.packages }} ${{ env.device_packages }}" \
             FILES="${{ env.files }}" \
             DISABLED_SERVICES="${{ env.disabled_services }}"
 
@@ -166,7 +170,8 @@ jobs:
           # Format variables for display
           scripts="${{ env.SCRIPT != '' && env.SCRIPT || 'false' }}"
           disabled_services="${{ env.disabled_services != '' && env.disabled_services || 'false' }}"
-          packages="${{ env.packages != '' && env.packages || 'default' }}"
+          packages="${{ env.packages != '' && env.packages || 'none' }}"
+          device_packages="${{ env.device_packages != '' && env.device_packages || 'none' }}"
 
           # Find target directory
           target_dir=$(find bin/targets/*/*/ -type d -print -quit)
@@ -183,6 +188,7 @@ jobs:
 
           # Format display variables
           packages_display=$(printf "\`%s\` " $packages)
+          device_packages_display=$(printf "\`%s\` " $device_packages)
           disabled_services_display=$(printf "\`%s\` " $disabled_services)
           
           # Generate checksums table first
@@ -198,7 +204,8 @@ jobs:
           - **OpenWrt Version**: \`${{ env.openwrt_version }}\`
           - **Target**: \`${{ env.target }}\`
           - **Profile**: \`${{ env.profile }}\`
-          - **Package Selections**: ${packages_display}
+          - **Extra Packages**: ${packages_display}
+          - **Device Packages**: ${device_packages_display}
           - **Disabled Services**: ${disabled_services_display}
           - **Version Code**: \`${version_code}\`
           - **UCI Defaults Scripts**: \`${scripts}\`
