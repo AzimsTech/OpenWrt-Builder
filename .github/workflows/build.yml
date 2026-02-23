@@ -208,6 +208,7 @@ jobs:
           - **Device Packages**: ${device_packages_display}
           - **Disabled Services**: ${disabled_services_display}
           - **Version Code**: \`${version_code}\`
+          - **Changelog**: [View Commits](https://git.openwrt.org/?p=openwrt/openwrt.git;a=shortlog;h=${{ env.commit_hash }})
           - **UCI Defaults Scripts**: \`${scripts}\`
 
           ### 🔗 Rebuild Configuration
