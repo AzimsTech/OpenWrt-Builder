@@ -50,8 +50,8 @@ jobs:
 
       - name: Prepare Build Environment (Scripts & Secrets)
         run: |
-          chmod +x ./scripts/prepare_build.sh
-          ./scripts/prepare_build.sh "${{ github.event.inputs.scripts }}" "${{ github.event.inputs.customScripts }}"
+          chmod +x ./prepare_build.sh
+          ./prepare_build.sh "${{ github.event.inputs.scripts }}" "${{ github.event.inputs.customScripts }}"
         env:
           # Pass secrets securely as environment variables
           SECRET_WLAN_NAME: ${{ secrets.WLAN_NAME }}
