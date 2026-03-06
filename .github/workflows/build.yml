@@ -48,39 +48,21 @@ jobs:
           packages: build-essential file libncurses-dev zlib1g-dev gawk git gettext libssl-dev xsltproc rsync wget unzip python3 python3-distutils aria2
           version: 1.0
 
-      - name: Create custom scripts
-        if: ${{ github.event.inputs.scripts == '99-custom' }}
+      - name: Prepare Build Environment (Scripts & Secrets)
         run: |
-          cat <<'CUSTOM_SCRIPT_EOF' > files/etc/uci-defaults/99-custom
-          ${{ github.event.inputs.customScripts }}
-          CUSTOM_SCRIPT_EOF
-          cat files/etc/uci-defaults/99-custom
-
-      - name: Process UCI defaults script
-        run: |
-          UCI_DIR="files/etc/uci-defaults"
-          if [ -n "${{ github.event.inputs.scripts }}" ]; then
-            # Keep only the specified script
-            SCRIPT="${{ github.event.inputs.scripts }}"
-            echo "SCRIPT=$SCRIPT" >> $GITHUB_ENV
-            
-            if [ ! -f "$UCI_DIR/$SCRIPT" ]; then
-              echo "Error: Script '$SCRIPT' not found"
-              exit 1
-            fi
-            
-            # Remove all other files
-            find "$UCI_DIR" -type f ! -name "$SCRIPT" -delete 2>/dev/null || true
-            echo "Kept only: $SCRIPT"
-            
-            # Make the script executable
-            chmod +x "$UCI_DIR/$SCRIPT"
-            
-          else
-            # Remove all files
-            rm -f "$UCI_DIR"/* 2>/dev/null || true
-            echo "Removed all UCI scripts"
-          fi
+          chmod +x ./prepare_build.sh
+          ./prepare_build.sh "${{ github.event.inputs.scripts }}" "${{ github.event.inputs.customScripts }}"
+        env:
+          # Pass secrets securely as environment variables
+          SECRET_WLAN_NAME: ${{ secrets.WLAN_NAME }}
+          SECRET_WLAN_PASS: ${{ secrets.WLAN_PASS }}
+          SECRET_ROOT_PASS: ${{ secrets.ROOT_PASS }}
+          SECRET_PPPOE_NAME: ${{ secrets.PPPOE_NAME }}
+          SECRET_PPPOE_PASS: ${{ secrets.PPPOE_PASS }}
+          
+      - name: Set SCRIPT environment variable for later steps
+        if: ${{ github.event.inputs.scripts }}
+        run: echo "SCRIPT=${{ github.event.inputs.scripts }}" >> $GITHUB_ENV
 
       - name: Create build configuration
         run: |
