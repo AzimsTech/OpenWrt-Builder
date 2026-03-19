@@ -93,7 +93,7 @@ async function fetchBuildInfo(target, version, profileId) {
         
         window.devicePkgs = devicePkgs; // Store for build submission
         
-        return `<b>Version Code:</b> ${buildinfo.trim()} <br><b>Last modified:</b> ${lastModified} <br><b>Target:</b> ${target}<br><b>Device Packages:</b> ${devicePkgs || "none"}<br>`;
+        return `<b>Version Code:</b> <a href="https://git.openwrt.org/openwrt/openwrt/log/?id=${buildinfo.trim().match(/-(.+)/)[1]}" target="_blank">${buildinfo.trim()}</a> <br><b>Last modified:</b> ${lastModified} <br><b>Target:</b> ${target}<br><b>Device Packages:</b> ${devicePkgs || "none"}<br>`;
     } catch (e) {
         window.devicePkgs = "";
         return "Build info not found!";
