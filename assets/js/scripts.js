@@ -215,6 +215,40 @@ function copyShareURL() {
     setTimeout(() => btn.textContent = '📄 Copy URL', 2000);
 }
 
+// Save current form state to local storage
+function saveToLocalStorage() {
+    const state = {};
+    for (const field of formFields) {
+        const el = document.getElementById(field);
+        if (el) {
+            state[field] = el.value;
+        }
+    }
+    localStorage.setItem('openwrt_builder_state', JSON.stringify(state));
+}
+
+// Load form state from local storage
+function loadFromLocalStorage() {
+    const saved = localStorage.getItem('openwrt_builder_state');
+    if (saved) {
+        try {
+            const state = JSON.parse(saved);
+            for (const field of formFields) {
+                const el = document.getElementById(field);
+                if (el && state[field]) {
+                    el.value = state[field];
+                }
+            }
+            // Ensure the custom script text area is visible if "99-custom" was saved
+            if (state.scriptsInput === '99-custom') {
+                document.getElementById('customScriptInput').style.display = 'block';
+            }
+        } catch (e) { 
+            console.error("Failed to load local state", e); 
+        }
+    }
+}
+
 // ============================================
 // 4. CONTROLLER (Init & Events)
 // ============================================
@@ -240,8 +274,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     const scripts = await fetchAvailableScripts(owner, repo);
     renderDropdown("scriptsInput", scripts);
 
+    // Restore from local storage first, then let URL override if present
+    loadFromLocalStorage();
     await loadFromURL();
     if (document.getElementById("modelInput").value) updateBuildInfoDisplay();
+
+    // Automatically save to local storage whenever an input changes
+    formFields.forEach(field => {
+        const el = document.getElementById(field);
+        if (el) {
+            el.addEventListener('input', saveToLocalStorage);
+            el.addEventListener('change', saveToLocalStorage);
+        }
+    });
 
     // Events
     document.getElementById("versionInput").addEventListener("change", async function() {
