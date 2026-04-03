@@ -5,7 +5,7 @@
 ![OpenWrt](https://img.shields.io/badge/OpenWrt-00B5E2?style=flat&logo=OpenWrt&logoColor=white)
 ![GitHub Repo stars](https://img.shields.io/github/stars/AzimsTech/OpenWrt-Builder)
 
-Builds custom OpenWrt firmware via GitHub Actions.
+Build OpenWrt images using the Image Builder in GitHub Actions online.
 
 ## Features
 
