@@ -82,7 +82,13 @@ async function fetchBuildInfo(target, version, profileId) {
         if (!buildInfoRes.ok) throw new Error("Build info not found");
         
         const buildinfo = await buildInfoRes.text();
-        const lastModified = new Date(buildInfoRes.headers.get('Last-Modified'));
+        
+        // Format Date and Time
+        const dateObj = new Date(buildInfoRes.headers.get('Last-Modified'));
+        const lastModified = dateObj.toLocaleString('en-US', { 
+            month: 'short', day: 'numeric', year: 'numeric', 
+            hour: 'numeric', minute: '2-digit', hour12: true 
+        });
         
         const profilesRes = await fetch(baseUrl + "profiles.json");
         const profilesData = await profilesRes.json();
@@ -91,12 +97,45 @@ async function fetchBuildInfo(target, version, profileId) {
         const removals = new Set(rawPkgs.filter(p => p.startsWith('-')).map(p => p.slice(1)));
         const devicePkgs = rawPkgs.filter(p => !p.startsWith('-') ? !removals.has(p) : true).join(" ");
         
-        window.devicePkgs = devicePkgs; // Store for build submission
+        window.devicePkgs = devicePkgs; 
         
-        return `<b>Version Code:</b> <a href="https://git.openwrt.org/openwrt/openwrt/log/?id=${buildinfo.trim().match(/-(.+)/)[1]}" target="_blank">${buildinfo.trim()}</a> <br><b>Last modified:</b> ${lastModified} <br><b>Target:</b> ${target}<br><b>Device Packages:</b> ${devicePkgs || "none"}<br>`;
+        // Package styling with uniform vertical padding to center text
+        const packagesHtml = devicePkgs 
+            ? devicePkgs.split(' ').map(p => `<span class="text-[11px] text-on-surface-variant py-[2px] px-1.5 rounded-sm border border-outline-variant/10 whitespace-nowrap bg-surface-container-highest/20">${p}</span>`).join('') 
+            : `<span class="text-[11px] text-on-surface-variant">none</span>`;
+
+        return `
+            <div class="flex flex-col gap-3 w-full mt-1">
+                <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+                    <div class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-on-surface-variant text-[16px]">fingerprint</span>
+                        <span class="text-on-surface-variant font-label uppercase text-[10px] font-bold tracking-wider">Ver:</span>
+                        <a href="https://git.openwrt.org/openwrt/openwrt/log/?id=${buildinfo.trim().match(/-(.+)/)[1]}" target="_blank" class="text-primary font-mono text-[11px] hover:underline transition-colors">${buildinfo.trim()}</a>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-on-surface-variant text-[16px]">target</span>
+                        <span class="text-on-surface-variant font-label uppercase text-[10px] font-bold tracking-wider">Target:</span>
+                        <span class="text-on-surface font-mono text-[11px]">${target}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-on-surface-variant text-[16px]">calendar_today</span>
+                        <span class="text-on-surface-variant font-label uppercase text-[10px] font-bold tracking-wider">Date:</span>
+                        <span class="text-on-surface font-mono text-[11px]">${lastModified}</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-t border-outline-variant/10 pt-2.5">
+                    <div class="flex items-center gap-1 min-w-max">
+                        <span class="material-symbols-outlined text-on-surface-variant text-[16px]">package</span>
+                        <span class="text-on-surface-variant font-label uppercase text-[10px] font-bold tracking-wider">Pkgs:</span>
+                    </div>
+                    ${packagesHtml}
+                </div>
+            </div>
+        `;
     } catch (e) {
         window.devicePkgs = "";
-        return "Build info not found!";
+        return "<p class='text-sm text-error'>Build info not found!</p>";
     }
 }
 
@@ -135,14 +174,16 @@ async function updateBuildInfoDisplay() {
     const version = document.getElementById("versionInput").value;
     const target = document.getElementById("targetInput").value;
     const profileId = document.getElementById("profileInput").value;
+    const buildInfoContainer = document.getElementById("buildInfoContainer");
     const buildInfoEl = document.getElementById("buildInfo");
 
     if (modelInput && target && profileId) {
-        buildInfoEl.style.display = "block";
-        buildInfoEl.innerHTML = "Fetching build info...";
+        buildInfoContainer.style.display = "flex";
+        buildInfoEl.innerHTML = "<p class='text-[11px] text-on-surface-variant italic'>Fetching build info...</p>";
         buildInfoEl.innerHTML = await fetchBuildInfo(target, version, profileId);
     } else {
-        buildInfoEl.style.display = "none";
+        buildInfoContainer.style.display = "none";
+        buildInfoEl.innerHTML = "";
     }
 }
 
@@ -202,32 +243,31 @@ async function loadFromURL() {
 async function generateShareURL() {
     const base64 = await encodeFormState();
     const shareURL = `${window.location.origin}${window.location.pathname}?config=${base64}`;
-    document.getElementById('shareURL').textContent = shareURL;
-    document.getElementById('shareURL').style.display = 'block';
-    document.getElementById('copyBtn').style.display = 'block';
+    const urlContainer = document.getElementById('shareURL');
+    urlContainer.textContent = shareURL;
+    urlContainer.style.display = 'block';
+    document.getElementById('copyBtn').style.display = 'flex';
     window.currentShareURL = shareURL;
 }
 
 function copyShareURL() {
     navigator.clipboard.writeText(window.currentShareURL);
     const btn = document.getElementById('copyBtn');
-    btn.textContent = '✅ Copied!';
-    setTimeout(() => btn.textContent = '📄 Copy URL', 2000);
+    btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">check</span> Copied!`;
+    setTimeout(() => {
+        btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">content_copy</span> Copy URL`;
+    }, 2000);
 }
 
-// Save current form state to local storage
 function saveToLocalStorage() {
     const state = {};
     for (const field of formFields) {
         const el = document.getElementById(field);
-        if (el) {
-            state[field] = el.value;
-        }
+        if (el) state[field] = el.value;
     }
     localStorage.setItem('openwrt_builder_state', JSON.stringify(state));
 }
 
-// Load form state from local storage
 function loadFromLocalStorage() {
     const saved = localStorage.getItem('openwrt_builder_state');
     if (saved) {
@@ -235,17 +275,12 @@ function loadFromLocalStorage() {
             const state = JSON.parse(saved);
             for (const field of formFields) {
                 const el = document.getElementById(field);
-                if (el && state[field]) {
-                    el.value = state[field];
-                }
+                if (el && state[field]) el.value = state[field];
             }
-            // Ensure the custom script text area is visible if "99-custom" was saved
             if (state.scriptsInput === '99-custom') {
                 document.getElementById('customScriptInput').style.display = 'block';
             }
-        } catch (e) { 
-            console.error("Failed to load local state", e); 
-        }
+        } catch (e) { console.error("Failed to load local state", e); }
     }
 }
 
@@ -254,32 +289,45 @@ function loadFromLocalStorage() {
 // ============================================
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // Check Token UI
+    // 1. Setup UI and Github Link
     if (!localStorage.getItem("github_token")) {
-        document.getElementById("setupTokenButton").style.display = "block";
+        document.getElementById("setupTokenButton").style.display = "flex";
     } else {
-        document.getElementById("clearTokenButton").style.display = "block";
+        document.getElementById("clearTokenButton").style.display = "flex";
     }
-
-    // Initialize Data
-    const versions = await fetchOpenWrtVersions();
-    renderDropdown("versionInput", versions);
-    
-    const initialVersion = document.getElementById("versionInput").value;
-    const models = await fetchModelsForVersion(initialVersion);
-    renderModelDatalist(models);
 
     const { owner, repo } = await fetchRepo();
     document.getElementById("repoUrl").href = `https://github.com/${owner}/${repo}/tree/main/files/etc/uci-defaults`;
-    const scripts = await fetchAvailableScripts(owner, repo);
-    renderDropdown("scriptsInput", scripts);
 
-    // Restore from local storage first, then let URL override if present
+    // 2. Fetch independent dropdown data first (Versions and Scripts)
+    const versionsPromise = fetchOpenWrtVersions();
+    const scriptsPromise = fetchAvailableScripts(owner, repo);
+
+    const [versions, scripts] = await Promise.all([versionsPromise, scriptsPromise]);
+
+    renderDropdown("versionInput", versions);
+    renderDropdown("scriptsInput", scripts); // Render scripts BEFORE restoring state
+    
+    // 3. CRITICAL FIX: Restore state now that ALL options actually exist in the DOM
     loadFromLocalStorage();
     await loadFromURL();
-    if (document.getElementById("modelInput").value) updateBuildInfoDisplay();
 
-    // Automatically save to local storage whenever an input changes
+    // 4. Fetch the model list for whichever version is currently selected (restored or default)
+    const currentVersion = document.getElementById("versionInput").value || versions[0];
+    const models = await fetchModelsForVersion(currentVersion);
+    renderModelDatalist(models);
+
+    // 5. If we loaded a model from memory, try mapping its hidden variables and display it
+    if (document.getElementById("modelInput").value) {
+        const option = Array.from(document.getElementById("modelOptions").options).find(o => o.value === document.getElementById("modelInput").value);
+        if (option) {
+            document.getElementById("targetInput").value = option.dataset.target;
+            document.getElementById("profileInput").value = option.text;
+        }
+        updateBuildInfoDisplay();
+    }
+
+    // 6. General Auto-save bindings
     formFields.forEach(field => {
         const el = document.getElementById(field);
         if (el) {
@@ -288,36 +336,60 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Events
+    // 7. Specific Input Events
     document.getElementById("versionInput").addEventListener("change", async function() {
         renderModelDatalist(await fetchModelsForVersion(this.value));
+        
+        // If the model they had selected doesn't exist in the newly selected OpenWrt version, clear it out
+        const currentModel = document.getElementById("modelInput").value;
+        const option = Array.from(document.getElementById("modelOptions").options).find(o => o.value === currentModel);
+        if (!option) {
+            document.getElementById("modelInput").value = '';
+            document.getElementById("targetInput").value = '';
+            document.getElementById("profileInput").value = '';
+            document.getElementById("buildInfoContainer").style.display = "none";
+        }
+        
+        saveToLocalStorage();
         updateBuildInfoDisplay();
     });
 
     document.getElementById("modelInput").addEventListener("change", function() {
         const option = Array.from(document.getElementById("modelOptions").options).find(o => o.value === this.value);
+        
         if (option) {
             document.getElementById("targetInput").value = option.dataset.target;
             document.getElementById("profileInput").value = option.text;
             updateBuildInfoDisplay();
         } else {
             this.value = '';
-            document.getElementById("buildInfo").style.display = "none";
+            document.getElementById("targetInput").value = '';
+            document.getElementById("profileInput").value = '';
+            document.getElementById("buildInfoContainer").style.display = "none";
         }
+        
+        saveToLocalStorage();
         this.blur();
     });
 
     document.getElementById("scriptsInput").addEventListener("change", function() {
         const customInput = document.getElementById("customScriptInput");
         customInput.style.display = this.value === "99-custom" ? "block" : "none";
-        if (this.value === "99-custom") customInput.placeholder = '#!/bin/sh\n# root_password=""\nif [ -n "$root_password" ]; then\n  (echo "$root_password"; sleep 1; echo "$root_password") | passwd > /dev/null\nfi\nuci commit';
+        if (this.value === "99-custom" && !customInput.value) {
+            customInput.placeholder = '#!/bin/sh\n# root_password=""\nif [ -n "$root_password" ]; then\n  (echo "$root_password"; sleep 1; echo "$root_password") | passwd > /dev/null\nfi\nuci commit';
+        }
     });
 
     ['modelInput', 'packagesInput', 'disabled_servicesInput'].forEach(id => {
         const el = document.getElementById(id);
         el?.addEventListener('dblclick', () => { 
             el.value = ''; 
-            if (id === 'modelInput') document.getElementById("buildInfo").style.display = "none"; 
+            if (id === 'modelInput') {
+                document.getElementById("targetInput").value = '';
+                document.getElementById("profileInput").value = '';
+                document.getElementById("buildInfoContainer").style.display = "none";
+            }
+            saveToLocalStorage();
         });
         if (id !== 'modelInput') el?.addEventListener('change', () => el.blur());
     });
@@ -365,12 +437,12 @@ async function runWorkflow(event) {
     }
 }
 
-// Token management functions (kept unchanged)
 function saveToken() {
     const token = document.getElementById("tokenInput").value;
     if (!token) return alert("Please enter a valid token!");
     localStorage.setItem("github_token", token);
     alert("Token saved successfully!");
+    location.reload();
 }
 
 function clearToken() {
@@ -380,7 +452,7 @@ function clearToken() {
 }
 
 function setupToken() {
-    document.getElementById("tokenForm").style.display = "block";
+    document.getElementById("tokenForm").style.display = "flex";
     document.getElementById("setupTokenButton").style.display = "none";
     document.getElementById("buildForm").style.display = "none";
 }
@@ -389,6 +461,6 @@ async function testToken() {
     const token = localStorage.getItem("github_token");
     if (!token) return alert("No token found! Please save your token first.");
     const res = await fetch("https://api.github.com/user", { headers: { "Authorization": `Bearer ${token}` } });
-    document.getElementById("status").innerText = res.ok ? "✅ Token is valid!" : "❌ Invalid token or permissions.";
+    document.getElementById("status").innerText = res.ok ? "✅ Valid!" : "❌ Invalid";
     if (res.ok) setTimeout(() => location.reload(), 2000);
 }
