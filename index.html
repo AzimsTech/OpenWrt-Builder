@@ -1,73 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <meta name="color-scheme" content="dark light">
-    <title>Build OpenWrt Image</title>
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <title>OpenWrt Image Builder</title>
+    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22black%22>🚀</text></svg>">
-
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: 'media',
+        theme: {
+          extend: {
+            colors: {
+              "background": "rgb(var(--background) / <alpha-value>)",
+              "on-background": "rgb(var(--on-background) / <alpha-value>)",
+              "surface-container-low": "rgb(var(--surface-container-low) / <alpha-value>)",
+              "surface-container": "rgb(var(--surface-container) / <alpha-value>)",
+              "surface-container-highest": "rgb(var(--surface-container-highest) / <alpha-value>)",
+              "surface-container-lowest": "rgb(var(--surface-container-lowest) / <alpha-value>)",
+              "surface-bright": "rgb(var(--surface-bright) / <alpha-value>)",
+              "surface-variant": "rgb(var(--surface-variant) / <alpha-value>)",
+              "on-surface": "rgb(var(--on-surface) / <alpha-value>)",
+              "on-surface-variant": "rgb(var(--on-surface-variant) / <alpha-value>)",
+              "outline": "rgb(var(--outline) / <alpha-value>)",
+              "outline-variant": "rgb(var(--outline-variant) / <alpha-value>)",
+              "primary": "rgb(var(--primary) / <alpha-value>)",
+              "on-primary": "rgb(var(--on-primary) / <alpha-value>)",
+              "primary-container": "rgb(var(--primary-container) / <alpha-value>)",
+              "primary-dim": "rgb(var(--primary-dim) / <alpha-value>)",
+              "error": "rgb(var(--error) / <alpha-value>)",
+              "error-container": "rgb(var(--error-container) / <alpha-value>)",
+              "error-dim": "rgb(var(--error-dim) / <alpha-value>)",
+              "tertiary": "rgb(var(--tertiary) / <alpha-value>)",
+              "tertiary-dim": "rgb(var(--tertiary-dim) / <alpha-value>)",
+              "on-tertiary-container": "rgb(var(--on-tertiary-container) / <alpha-value>)",
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.75rem", "lg": "1.5rem", "xl": "2rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
-<body>
-    <form id="tokenForm">
-            <h2>Setup Your GitHub Personal Access Token ⚠️</h2>
-            <p>1️⃣ Click below to open GitHub's token creation page:</p>
-            <button type="button" onclick="window.open('https://github.com/settings/tokens/new?scopes=repo,workflow,admin:repo_hook&description=GitHub%20Workflow%20Trigger', '_blank')">🔑 Create Token</button>
-            <p>2️⃣ After generating your token, copy & paste it below:</p>
-            <input type="password" id="tokenInput" placeholder="Paste your token here">
-            <button type="button" onclick="saveToken()">💾 Save Token</button>
-            <p>3️⃣ Click below to test your token:</p>
-            <button type="button" onclick="testToken()">🔓 Test Token</button>
-            <p id="status"></p>
-    </form>
-    <button id="clearTokenButton" style="display: none;" onclick="clearToken()">🗑️ Clear Token</button>
-    <button id="setupTokenButton" style="display: none;" onclick="setupToken()">⚠️ Setup GitHub Token</button>
-    <button id="configToUciButton" onclick="location.href='config2uci/index.html'">📝 Config to UCI Converter</button>
+<body class="bg-background text-on-background font-body min-h-screen flex flex-col items-center">
 
-    <form id="buildForm" onsubmit="runWorkflow(event)">
-        <h2>Build OpenWrt Image</h2>
-        
-        <p>1️⃣ Select model of your device, then select a stable build or the nightly "snapshot" build.</p>
-        <div class="model-version-row">
-            <input type="text" id="modelInput" list="modelOptions" placeholder="Start typing your model..." autocomplete="off" title="Double-click to clear this field">
-            <select id="versionInput" onchange="fetchModelOptions()">
-                <!-- Options will be populated dynamically from the provided URL -->
-            </select>
+    <header class="w-full max-w-[1100px] flex items-center justify-between px-6 py-2.5 mt-4 rounded-xl bg-surface-container-low shadow-[0_4px_40px_rgba(var(--primary) / 0.08)]">
+        <div class="flex items-center gap-3">
+            <h1 class="font-headline text-xl font-bold tracking-tight text-on-surface">Image Builder</h1>
         </div>
-        <datalist id="modelOptions">
-            <!-- Options will be populated dynamically from the provided URL -->
-        </datalist>
-        <input type="hidden" id="profileInput" name="profile">
-        <input type="hidden" id="targetInput" name="target">
-        <p id="buildInfo"></p>
-        
-        <p>2️⃣ Include and/or exclude extra packages in the firmware image:</p>
-        <p><pre>The minus <code>-PACKAGE_NAME</code> prefix removes a package, no prefix adds one.</pre></p>
-        <input type="text" id="packagesInput" name="packages" autocomplete="on" placeholder="E.g. luci luci-app-sqm -kmod-usb3 -kmod-usb-ledtrig-usbport" title="Double-click to clear this field">
-        <p>3️⃣ Write a list of services to disable (if needed):</p>
-        <input type="text" id="disabled_servicesInput" name="disabled_services" autocomplete="on" placeholder="E.g. dnsmasq firewall odhcpd" title="Double-click to clear this field">
-        <p>4️⃣ Custom uci-defaults scripts:</p>
-        <p><pre>scripts found in <a href="" id="repoUrl">files/etc/uci-defaults</a></pre></p>
-        <select id="scriptsInput">
-            <option value=""></option>
-            <option value="99-custom">custom</option>
-            <!-- Options will be populated dynamically from the provided URL -->
-        </select>
-        <textarea id="customScriptInput" style="display: none;" name="custom_script" title="Double-click to clear this field" placeholder=""></textarea>
-        
-        <p>▶️ Run Workflow </p>
-        <button type="submit">✨ Run Build Workflow</button>
-        
-        <!-- Share Configuration Section -->
-        <div class="share-section">
-            <h3>🔗 Share Configuration</h3>
-            <p>Generate a shareable URL with your current settings:</p>
-            <div class="button-group">
-                <button type="button" onclick="generateShareURL()" class="secondary-btn">📋 Generate Share URL</button>
-                <button type="button" onclick="copyShareURL()" id="copyBtn" class="success-btn" style="display: none;">📄 Copy URL</button>
+        <div class="flex items-center gap-4">
+            <button id="setupTokenButton" style="display: none;" onclick="setupToken()" type="button" class="h-8 px-4 bg-surface-container hover:bg-surface-container-highest text-primary rounded-full font-label text-[11px] font-bold tracking-wide uppercase transition-colors flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">key</span> Setup Token
+            </button>
+            <button id="clearTokenButton" style="display: none;" onclick="clearToken()" type="button" class="h-8 px-4 bg-surface-container hover:bg-surface-container-highest text-error rounded-full font-label text-[11px] font-bold tracking-wide uppercase transition-colors flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">delete_sweep</span> Clear Token
+            </button>
+        </div>
+    </header>
+
+    <form id="tokenForm" class="w-full max-w-[1100px] flex flex-col gap-4 px-6 py-6" style="display: none;">
+        <section class="bg-surface-container-low rounded-xl p-8 flex flex-col gap-5 shadow-[0_8px_40px_rgba(0,0,0,0.4)] border border-error/20">
+            <h2 class="font-headline text-2xl font-bold text-error flex items-center gap-2">
+                <span class="material-symbols-outlined text-3xl">warning</span> Setup Your GitHub Personal Access Token
+            </h2>
+            <div class="flex flex-col gap-3">
+                <p class="text-on-surface-variant text-sm">1️⃣ Click below to open GitHub's token creation page:</p>
+                <button type="button" onclick="window.open('https://github.com/settings/tokens/new?scopes=repo,workflow,admin:repo_hook&description=GitHub%20Workflow%20Trigger', '_blank')" class="w-max h-10 px-6 bg-surface-container-highest hover:bg-surface-variant text-on-surface rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 border border-outline-variant/20">
+                    <span class="material-symbols-outlined text-[18px]">key</span> Create Token
+                </button>
             </div>
-            <div id="shareURL" class="url-display" style="display: none;"></div>
+            <div class="flex flex-col gap-3 mt-4">
+                <p class="text-on-surface-variant text-sm">2️⃣ After generating your token, copy & paste it below:</p>
+                <div class="flex gap-4 items-center">
+                    <input type="password" id="tokenInput" placeholder="Paste your token here" class="flex-1 max-w-md bg-surface-container-highest border border-outline-variant/20 rounded-lg h-11 px-4 text-sm text-on-surface focus:ring-2 focus:ring-primary/50 transition-shadow">
+                    <button type="button" onclick="saveToken()" class="h-11 px-6 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-bold text-sm transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">save</span> Save Token
+                    </button>
+                </div>
+            </div>
+            <div class="flex flex-col gap-3 mt-4 border-t border-outline-variant/15 pt-6">
+                <p class="text-on-surface-variant text-sm">3️⃣ Click below to test your token:</p>
+                <div class="flex items-center gap-4">
+                    <button type="button" onclick="testToken()" class="h-10 px-6 bg-tertiary-dim hover:bg-tertiary text-on-tertiary-container rounded-lg font-semibold text-sm transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">lock_open</span> Test Token
+                    </button>
+                    <p id="status" class="text-sm font-bold"></p>
+                </div>
+            </div>
+        </section>
+    </form>
+
+    <form id="buildForm" onsubmit="runWorkflow(event)" class="w-full max-w-[1100px] flex flex-col gap-4 px-6 py-6 main-container">
+        
+        <section class="flex flex-col gap-1 pl-1">
+            <h2 class="font-headline text-3xl font-extrabold text-on-surface tracking-tight leading-tight">Build OpenWrt Image</h2>
+            <p class="text-on-surface-variant text-sm max-w-2xl">Configure and generate custom OpenWrt firmware images tailored to your specific hardware and networking needs.</p>
+        </section>
+
+        <section class="bg-surface-container-low rounded-xl p-5 flex flex-col gap-5 shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
+            <div class="flex items-center gap-3">
+                <div class="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold font-headline text-xs">1</div>
+                <h3 class="font-headline text-lg font-bold text-on-surface">Select Device</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="flex flex-col gap-1.5">
+                    <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-1">Device Model</span>
+                    <input type="text" id="modelInput" list="modelOptions" placeholder="Start typing your model..." autocomplete="off" title="Double-click to clear this field" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-11 px-4 text-sm text-on-surface focus:ring-2 focus:ring-primary/50 transition-shadow">
+                    <datalist id="modelOptions"></datalist>
+                    <input type="hidden" id="profileInput" name="profile">
+                    <input type="hidden" id="targetInput" name="target">
+                </label>
+                <label class="flex flex-col gap-1.5">
+                    <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-1">Build Type / Version</span>
+                    <div class="relative focus-ring rounded-lg transition-shadow">
+                        <select id="versionInput" class="w-full bg-surface-container-highest border-none rounded-lg h-11 px-4 text-sm text-on-surface appearance-none focus:ring-0 cursor-pointer">
+                        </select>
+                        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-xl">expand_more</span>
+                    </div>
+                </label>
+            </div>
+
+            <div id="buildInfoContainer" class="bg-surface-container rounded-xl p-4 flex flex-col gap-1 border border-outline-variant/10" style="display: none;">
+                <div class="flex items-center gap-2 text-tertiary">
+                    <span class="material-symbols-outlined text-[18px]">info</span>
+                    <span class="font-headline font-bold text-sm tracking-wide">Profile Info</span>
+                </div>
+                <div id="buildInfo"></div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <section class="bg-surface-container-low rounded-xl p-5 flex flex-col gap-4 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+                <div class="flex items-center gap-3">
+                    <div class="h-6 w-6 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-bold font-headline text-xs border border-outline-variant/30">2</div>
+                    <h3 class="font-headline text-base font-bold text-on-surface">Packages</h3>
+                </div>
+                <label class="flex flex-col gap-1.5 h-full">
+                    <div class="flex items-center justify-between">
+                        <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Include / Exclude</span>
+                        <span class="text-[10px] text-outline italic">Use '-' to exclude</span>
+                    </div>
+                    <textarea id="packagesInput" name="packages" title="Double-click to clear this field" class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-3 text-sm text-on-surface min-h-[90px] resize-none focus-ring" placeholder="luci luci-app-sqm -kmod-usb3"></textarea>
+                </label>
+            </section>
+
+            <section class="bg-surface-container-low rounded-xl p-5 flex flex-col gap-4 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+                <div class="flex items-center gap-3">
+                    <div class="h-6 w-6 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-bold font-headline text-xs border border-outline-variant/30">3</div>
+                    <h3 class="font-headline text-base font-bold text-on-surface">Services</h3>
+                </div>
+                <label class="flex flex-col gap-1.5 h-full">
+                    <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Disable Services</span>
+                    <textarea id="disabled_servicesInput" name="disabled_services" title="Double-click to clear this field" class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-3 text-sm text-on-surface min-h-[90px] resize-none focus-ring" placeholder="dnsmasq firewall odhcpd"></textarea>
+                </label>
+            </section>
+
+            <div class="flex flex-col gap-4">
+                <section class="bg-surface-container-low rounded-xl p-5 flex flex-col gap-4 shadow-[0_4px_20px_rgba(0,0,0,0.2)] flex-1">
+                    <div class="flex items-center gap-3">
+                        <div class="h-6 w-6 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-bold font-headline text-xs border border-outline-variant/30">4</div>
+                        <h3 class="font-headline text-base font-bold text-on-surface">Scripts</h3>
+                    </div>
+                    <label class="flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Select Script</span>
+                            <a id="repoUrl" target="_blank" class="text-[10px] text-primary italic hover:underline">View repo files</a>
+                        </div>
+                        <div class="relative focus-ring rounded-lg transition-shadow">
+                            <select id="scriptsInput" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-10 px-3 text-sm text-on-surface appearance-none focus:ring-0 cursor-pointer">
+                            </select>
+                            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-lg">expand_more</span>
+                        </div>
+                    </label>
+                    <textarea id="customScriptInput" style="display: none;" name="custom_script" title="Double-click to clear this field" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-3 text-xs font-mono text-primary-dim min-h-[90px] resize-none focus-ring mt-2" placeholder="#!/bin/sh"></textarea>
+                </section>
+
+                <button type="button" id="configToUciButton" onclick="location.href='config2uci/index.html'" class="w-full h-11 px-4 rounded-xl bg-surface-bright text-on-surface border border-outline-variant/20 hover:border-primary/50 transition-colors flex items-center justify-center gap-2 group">
+                    <span class="material-symbols-outlined text-primary text-xl">code_blocks</span>
+                    <span class="font-semibold text-xs">UCI Converter</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-4 pt-6 pb-4 border-t border-outline-variant/15 mt-2">
+            
+            <div id="shareURL" class="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg p-4 text-xs font-mono text-primary break-all" style="display: none;"></div>
+
+            <div class="flex items-center justify-between gap-8">
+                <div class="flex-1 flex flex-col gap-1 hidden md:flex">
+                    <h4 class="font-headline text-sm font-bold text-on-surface">Configuration ready?</h4>
+                    <p class="text-[12px] text-on-surface-variant">Review settings before starting the build.</p>
+                </div>
+                <div class="flex items-center gap-4 w-full md:w-auto justify-end">
+                    <button type="button" onclick="generateShareURL()" class="h-12 px-6 rounded-lg bg-surface-container-highest text-on-surface font-semibold text-xs hover:bg-surface-variant transition-colors flex items-center gap-2 border border-outline-variant/10">
+                        <span class="material-symbols-outlined text-[18px]">share</span>
+                        Share URL
+                    </button>
+                    <button type="button" id="copyBtn" onclick="copyShareURL()" style="display: none;" class="h-12 px-6 rounded-lg bg-tertiary-dim text-on-tertiary-container font-semibold text-xs hover:bg-tertiary transition-colors flex items-center gap-2 border border-outline-variant/10">
+                        <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                        Copy URL
+                    </button>
+                    <button type="submit" class="h-12 px-8 rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold text-sm flex items-center justify-center gap-2.5 shadow-[0_8px_24px_rgba(var(--primary) / 0.25)] hover:shadow-[0_12px_32px_rgba(var(--primary) / 0.35)] transition-all transform hover:-translate-y-0.5 whitespace-nowrap">
+                        <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+                        Run Build Workflow
+                    </button>
+                </div>
+            </div>
         </div>
     </form>
 
