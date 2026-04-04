@@ -253,9 +253,18 @@ async function generateShareURL() {
 function copyShareURL() {
     navigator.clipboard.writeText(window.currentShareURL);
     const btn = document.getElementById('copyBtn');
-    btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">check</span> Copied!`;
+    
+    // 1. Show Copied State
+    // We intentionally wrap 'Copied!' in a standard span so it stays visible on mobile, 
+    // causing the circle to temporarily expand into a pill shape to show success.
+    btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">check</span> <span>Copied!</span>`;
+    
     setTimeout(() => {
-        btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">content_copy</span> Copy URL`;
+        // 2. Revert to Default State
+        // We put the "hidden sm:inline" classes back on the text! 
+        // This makes the text instantly disappear on mobile, allowing the button 
+        // to naturally shrink back down into a perfect 48x48 circle.
+        btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">content_copy</span> <span class="hidden sm:inline">Copy URL</span>`;
     }, 2000);
 }
 
