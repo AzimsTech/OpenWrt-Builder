@@ -155,29 +155,22 @@
             </div>
         </div>
 
-        <div class="flex flex-col gap-4 pt-6 pb-4 border-t border-outline-variant/15 mt-2">
-            
+        <div class="flex flex-col gap-4 pt-6 pb-4 border-t border-outline-variant/15 mt-2">     
             <div id="shareURL" class="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg p-4 text-xs font-mono text-primary break-all" style="display: none;"></div>
-
-            <div class="flex items-center justify-between gap-8">
-                <div class="flex-1 flex flex-col gap-1 hidden md:flex">
-                    <h4 class="font-headline text-sm font-bold text-on-surface">Configuration ready?</h4>
-                    <p class="text-[12px] text-on-surface-variant">Review settings before starting the build.</p>
-                </div>
-                <div class="flex items-center gap-4 w-full md:w-auto justify-end">
-                    <button type="button" onclick="generateShareURL()" class="h-12 px-6 rounded-lg bg-surface-container-highest text-on-surface font-semibold text-xs hover:bg-surface-variant transition-colors flex items-center gap-2 border border-outline-variant/10">
-                        <span class="material-symbols-outlined text-[18px]">share</span>
-                        Share URL
-                    </button>
-                    <button type="button" id="copyBtn" onclick="copyShareURL()" style="display: none;" class="h-12 px-6 rounded-lg bg-tertiary-dim text-on-tertiary-container font-semibold text-xs hover:bg-tertiary transition-colors flex items-center gap-2 border border-outline-variant/10">
-                        <span class="material-symbols-outlined text-[18px]">content_copy</span>
-                        Copy URL
-                    </button>
-                    <button type="submit" class="h-12 px-8 rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold text-sm flex items-center justify-center gap-2.5 shadow-[0_8px_24px_rgba(var(--primary) / 0.25)] hover:shadow-[0_12px_32px_rgba(var(--primary) / 0.35)] transition-all transform hover:-translate-y-0.5 whitespace-nowrap">
-                        <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
-                        Run Build Workflow
-                    </button>
-                </div>
+        
+            <div class="flex items-center gap-2 sm:gap-4 w-full md:w-auto justify-end">
+                <button type="button" onclick="generateShareURL()" class="h-12 w-12 shrink-0 sm:w-auto sm:px-6 rounded-full bg-surface-container-highest text-on-surface font-semibold text-xs hover:bg-surface-variant transition-colors flex items-center justify-center gap-2 border border-outline-variant/10">
+                    <span class="material-symbols-outlined text-[18px]">share</span>
+                    <span class="hidden sm:inline">Share URL</span>
+                </button>
+                <button type="button" id="copyBtn" onclick="copyShareURL()" style="display: none;" class="h-12 px-3 sm:px-6 rounded-lg bg-tertiary-dim text-on-tertiary-container font-semibold text-xs hover:bg-tertiary transition-colors flex items-center justify-center gap-2 border border-outline-variant/10">
+                    <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                    <span class="hidden sm:inline">Copy URL</span>
+                </button>
+                <button type="submit" class="h-12 px-4 sm:px-8 rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-2.5 shadow-[0_8px_24px_rgba(var(--primary) / 0.25)] hover:shadow-[0_12px_32px_rgba(var(--primary) / 0.35)] transition-all transform hover:-translate-y-0.5 whitespace-nowrap">
+                    <span class="material-symbols-outlined text-lg sm:text-xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+                    <span>Run Build Workflow</span>
+                </button>
             </div>
         </div>
     </form>
