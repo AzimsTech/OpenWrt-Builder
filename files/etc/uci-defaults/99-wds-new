@@ -30,9 +30,10 @@ uci del network.lan.ipaddr
 uci add_list network.lan.ipaddr="$lan_ip/24"
 gateway=$(echo $lan_ip | sed 's/\.[0-9]*$/\.1/') # Extract network and set gateway to .1
 uci set network.lan.gateway="$gateway"
-uci add_list network.lan.dns="$gateway"
+# uci add_list network.lan.dns="$gateway"
 
 # /etc/config/dhcp
+uci add_list dhcp.@dnsmasq[0].server="$gateway"
 uci set dhcp.lan.ignore='1'
 uci del dhcp.lan.ra
 uci del dhcp.lan.ra_slaac
