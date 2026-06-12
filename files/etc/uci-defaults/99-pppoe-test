@@ -111,8 +111,7 @@ uci commit dhcp
 
 # adblock
 uci del adblock.global.adb_feed
-uci add_list adblock.global.adb_feed='adguard'
-uci add_list adblock.global.adb_feed='adguard_tracking'
+uci add_list adblock.global.adb_feed='oisd_small'
 uci set adblock.global.adb_dnsflush='1'
 uci set adblock.global.adb_trigger='wan'
 uci commit adblock
