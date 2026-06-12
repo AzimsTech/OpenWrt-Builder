@@ -127,4 +127,16 @@ uci set "attendedsysupgrade.owut.init_script=/etc/owut.d/${SCRIPT##*/}"
 uci commit
 /etc/init.d/firewall restart
 
+# scheduled tasks
+new="# update the adblock feeds every morning at 4 o'clock
+00 04 * * * /etc/init.d/adblock reload
+
+# improve stability
+00 19 * * * sync && echo 3 > /proc/sys/vm/drop_caches"
+
+{ crontab -u root -l 2>/dev/null; printf '%s\n' "$new"; } | crontab -u root -
+
+/etc/init.d/cron enable
+/etc/init.d/cron restart
+
 echo "All done!"
