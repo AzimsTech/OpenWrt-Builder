@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  --font-headline: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+
+  --color-background: rgb(var(--background));
+  --color-on-background: rgb(var(--on-background));
+  --color-surface-container-low: rgb(var(--surface-container-low));
+  --color-surface-container: rgb(var(--surface-container));
+  --color-surface-container-highest: rgb(var(--surface-container-highest));
+  --color-surface-container-lowest: rgb(var(--surface-container-lowest));
+  --color-surface-bright: rgb(var(--surface-bright));
+  --color-surface-variant: rgb(var(--surface-variant));
+  --color-on-surface: rgb(var(--on-surface));
+  --color-on-surface-variant: rgb(var(--on-surface-variant));
+  --color-outline: rgb(var(--outline));
+  --color-outline-variant: rgb(var(--outline-variant));
+  --color-primary: rgb(var(--primary));
+  --color-on-primary: rgb(var(--on-primary));
+  --color-primary-container: rgb(var(--primary-container));
+  --color-primary-dim: rgb(var(--primary-dim));
+  --color-error: rgb(var(--error));
+  --color-error-container: rgb(var(--error-container));
+  --color-error-dim: rgb(var(--error-dim));
+  --color-tertiary: rgb(var(--tertiary));
+  --color-tertiary-dim: rgb(var(--tertiary-dim));
+  --color-on-tertiary-container: rgb(var(--on-tertiary-container));
+}
