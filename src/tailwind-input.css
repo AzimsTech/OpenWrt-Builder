@@ -27,4 +27,8 @@
   --color-tertiary: rgb(var(--tertiary));
   --color-tertiary-dim: rgb(var(--tertiary-dim));
   --color-on-tertiary-container: rgb(var(--on-tertiary-container));
+
+  --radius: 0.75rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
 }
