@@ -1,27 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenWRT Config to UCI Converter</title>
-    <link rel="stylesheet" href="css/config2uci.css">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta name="color-scheme" content="dark light">
+    <title>Config to UCI Converter</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: 'media',
+        theme: {
+          extend: {
+            colors: {
+              "background": "rgb(var(--background) / <alpha-value>)",
+              "on-background": "rgb(var(--on-background) / <alpha-value>)",
+              "surface-container-low": "rgb(var(--surface-container-low) / <alpha-value>)",
+              "surface-container": "rgb(var(--surface-container) / <alpha-value>)",
+              "surface-container-highest": "rgb(var(--surface-container-highest) / <alpha-value>)",
+              "surface-container-lowest": "rgb(var(--surface-container-lowest) / <alpha-value>)",
+              "surface-bright": "rgb(var(--surface-bright) / <alpha-value>)",
+              "surface-variant": "rgb(var(--surface-variant) / <alpha-value>)",
+              "on-surface": "rgb(var(--on-surface) / <alpha-value>)",
+              "on-surface-variant": "rgb(var(--on-surface-variant) / <alpha-value>)",
+              "outline": "rgb(var(--outline) / <alpha-value>)",
+              "outline-variant": "rgb(var(--outline-variant) / <alpha-value>)",
+              "primary": "rgb(var(--primary) / <alpha-value>)",
+              "on-primary": "rgb(var(--on-primary) / <alpha-value>)",
+              "primary-container": "rgb(var(--primary-container) / <alpha-value>)",
+              "primary-dim": "rgb(var(--primary-dim) / <alpha-value>)",
+              "error": "rgb(var(--error) / <alpha-value>)",
+              "error-container": "rgb(var(--error-container) / <alpha-value>)",
+              "error-dim": "rgb(var(--error-dim) / <alpha-value>)",
+              "tertiary": "rgb(var(--tertiary) / <alpha-value>)",
+              "tertiary-dim": "rgb(var(--tertiary-dim) / <alpha-value>)",
+              "on-tertiary-container": "rgb(var(--on-tertiary-container) / <alpha-value>)",
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.75rem", "lg": "1.5rem", "xl": "2rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
 </head>
-<body>
-    <h2>OpenWRT Config to UCI Converter</h2>
-    <div class="container">
-        <div class="box">
-            <label>Paste OpenWRT Config:</label>
-            <textarea id="configInput" placeholder="Paste config file here..."></textarea>
+<body class="bg-background text-on-background font-body min-h-screen flex flex-col items-center">
+
+    <header class="w-full max-w-[1200px] flex items-center px-6 py-2.5 mt-4 rounded-xl bg-surface-container-low shadow-[0_4px_40px_rgba(var(--primary) / 0.08)]">
+        <div class="flex items-center gap-4">
+            <button onclick="location.href='../index.html'" class="h-8 px-4 bg-surface-container hover:bg-surface-container-highest text-primary rounded-full font-label text-[11px] font-bold tracking-wide uppercase transition-colors flex items-center gap-1.5 border border-outline-variant/10">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                Back
+            </button>
+            <h1 class="font-headline text-xl font-bold tracking-tight text-on-surface">Config to UCI Converter</h1>
         </div>
-        <div class="box">
-            <label>Generated UCI Commands:</label>
-            <textarea id="uciOutput" readonly></textarea>
+    </header>
+
+    <main class="w-full max-w-[1200px] flex flex-col gap-6 px-6 py-6 flex-1 h-full">
+        <section class="flex flex-col gap-1 pl-1">
+            <h2 class="font-headline text-3xl font-extrabold text-on-surface tracking-tight leading-tight">UCI Command Generator</h2>
+            <p class="text-on-surface-variant text-sm max-w-2xl">Paste your raw OpenWrt configuration to instantly translate it into executable UCI commands.</p>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-[500px]">
+            <section class="bg-surface-container-low rounded-xl p-5 flex flex-col gap-4 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">description</span>
+                    <h3 class="font-headline text-base font-bold text-on-surface">Paste OpenWrt Config</h3>
+                </div>
+                <textarea id="configInput" class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-4 text-sm font-mono text-on-surface resize-none focus-ring min-h-[300px]" placeholder="config system\n    option hostname 'OpenWrt'\n    option timezone 'UTC'"></textarea>
+            </section>
+
+            <section class="bg-surface-container-low rounded-xl p-5 flex flex-col gap-4 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tertiary-dim">terminal</span>
+                    <h3 class="font-headline text-base font-bold text-on-surface">Generated Commands</h3>
+                </div>
+                <textarea id="uciOutput" readonly class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-4 text-sm font-mono text-on-surface-variant resize-none focus-ring min-h-[300px]" placeholder="uci set system.@system[0].hostname='OpenWrt'..."></textarea>
+            </section>
         </div>
-    </div>
-    <div class="button-container">
-        <button onclick="convertToUci()">Convert</button>
-    </div>
-    <button id="backButton" onclick="location.href='../index.html'">🚀 Build OpenWrt Image</button>
+        
+        <div class="flex justify-center mt-2 pb-8 pt-4">
+            <button onclick="convertToUci()" class="h-14 px-10 rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold text-sm flex items-center gap-2.5 shadow-[0_8px_24px_rgba(var(--primary) / 0.25)] hover:shadow-[0_12px_32px_rgba(var(--primary) / 0.35)] transition-all transform hover:-translate-y-0.5">
+                <span class="material-symbols-outlined text-xl">transform</span>
+                Convert Configuration
+            </button>
+        </div>
+    </main>
+
     <script src="js/config2uci.js"></script>
 </body>
 </html>
