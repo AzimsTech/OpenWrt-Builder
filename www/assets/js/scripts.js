@@ -127,7 +127,7 @@ async function fetchBuildInfo(target, version, profileId) {
                     </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-t border-outline-variant/10 pt-2.5">
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-t border-outline-variant/10 pt-2">
                     <div class="flex items-center gap-1 min-w-max">
                         <span class="material-symbols-outlined text-on-surface-variant text-[16px]">package</span>
                         <span class="text-on-surface-variant font-label uppercase text-[10px] font-bold tracking-wider">Pkgs:</span>

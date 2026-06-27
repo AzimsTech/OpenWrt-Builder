@@ -55,7 +55,21 @@
 }
 
 .material-symbols-outlined {
+    font-size: var(--ms-size, 24px);
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.text-\[10px\] { --ms-size: 10px; }
+.text-\[11px\] { --ms-size: 11px; }
+.text-\[16px\] { --ms-size: 16px; }
+.text-\[18px\] { --ms-size: 18px; }
+.text-base { --ms-size: 1rem; }
+.text-lg { --ms-size: 1.125rem; }
+.text-xl { --ms-size: 1.25rem; }
+.text-3xl { --ms-size: 1.875rem; }
+
+@media (min-width: 40rem) {
+    .sm\:text-xl { --ms-size: 1.25rem; }
 }
 
 .focus-ring:focus-within {
