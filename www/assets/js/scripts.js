@@ -66,10 +66,8 @@ async function fetchModelsForVersion(version) {
 }
 
 async function fetchAvailableScripts(owner, repo) {
-    const token = localStorage.getItem("github_token");
-    const headers = token ? { "Authorization": `Bearer ${token}` } : {};
     const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/files/etc/uci-defaults?ref=main`;
-    const response = await fetch(apiUrl, { headers });
+    const response = await fetch(apiUrl);
     if (!response.ok) return [];
     const data = await response.json();
     return data.filter(item => item.type === 'file').map(item => item.name);
