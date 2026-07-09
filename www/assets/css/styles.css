@@ -26,6 +26,10 @@
     --on-tertiary-container: 0 33 12;
 }
 
+body {
+    background-image: radial-gradient(ellipse 80% 50% at 50% 50%, rgba(var(--primary) / 0.12), transparent);
+}
+
 @media (prefers-color-scheme: dark) {
     :root {
         /* DARK THEME (From your prototype) */
@@ -51,6 +55,10 @@
         --tertiary: 181 255 194;
         --tertiary-dim: 36 240 126;
         --on-tertiary-container: 0 93 44;
+    }
+
+    body {
+        background-image: radial-gradient(ellipse 80% 50% at 50% 50%, rgba(var(--primary) / 0.15), transparent);
     }
 }
 
