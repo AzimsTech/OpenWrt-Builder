@@ -148,16 +148,17 @@ async function fetchBuildInfo(target, version, profileId) {
 
 function renderDropdown(elementId, items, selectedValue = null) {
     const select = document.getElementById(elementId);
-    select.innerHTML = "";
-    if (elementId === "scriptsInput") select.innerHTML = '<option value=""></option><option value="99-custom">custom</option>';
-    
+    select.innerHTML = elementId === "scriptsInput"
+        ? '<option value=""></option><option value="99-custom">custom</option>'
+        : "";
+
     items.forEach(item => {
         const option = document.createElement("option");
         option.value = item;
         option.text = item;
         select.appendChild(option);
     });
-    if (selectedValue) select.value = selectedValue;
+    if (selectedValue !== null) select.value = selectedValue;
 }
 
 function renderModelDatalist(models) {
@@ -166,7 +167,7 @@ function renderModelDatalist(models) {
     models.forEach(model => {
         const option = document.createElement("option");
         option.value = model.title;
-        option.text = model.id;
+        option.dataset.profile = model.id;
         option.dataset.target = model.target;
         datalist.appendChild(option);
     });
@@ -366,22 +367,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateBuildInfoDisplay();
     });
 
-    document.getElementById("modelInput").addEventListener("change", function() {
+    document.getElementById("modelInput").addEventListener("input", function() {
         const option = Array.from(document.getElementById("modelOptions").options).find(o => o.value === this.value);
         
         if (option) {
             document.getElementById("targetInput").value = option.dataset.target;
-            document.getElementById("profileInput").value = option.text;
+            document.getElementById("profileInput").value = option.dataset.profile;
             updateBuildInfoDisplay();
+            saveToLocalStorage();
         } else {
-            this.value = '';
             document.getElementById("targetInput").value = '';
             document.getElementById("profileInput").value = '';
             document.getElementById("buildInfoContainer").style.display = "none";
         }
-        
-        saveToLocalStorage();
-        this.blur();
     });
 
     document.getElementById("scriptsInput").addEventListener("change", function() {
