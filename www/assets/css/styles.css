@@ -160,9 +160,9 @@ body {
 
 strong.match { font-weight: 600; color: rgb(var(--primary)); }
 
-.custom-dropdown-menu::-webkit-scrollbar { width: 6px; }
+.custom-dropdown-menu::-webkit-scrollbar { width: 4px; }
 .custom-dropdown-menu::-webkit-scrollbar-track { background: transparent; }
-.custom-dropdown-menu::-webkit-scrollbar-thumb { background: rgba(var(--outline) / 0.3); border-radius: 3px; }
-.custom-dropdown-menu::-webkit-scrollbar-thumb:hover { background: rgba(var(--outline) / 0.5); }
+.custom-dropdown-menu::-webkit-scrollbar-thumb { background: rgba(var(--on-surface) / 0.38); border-radius: 2px; }
+.custom-dropdown-menu::-webkit-scrollbar-thumb:hover { background: rgba(var(--on-surface) / 0.5); }
 
 datalist { display: none; }
