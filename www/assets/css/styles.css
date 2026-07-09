@@ -27,7 +27,7 @@
 }
 
 body {
-    background-image: radial-gradient(ellipse 80% 50% at 50% 50%, rgba(var(--primary) / 0.12), transparent);
+    background-image: radial-gradient(ellipse 35% 50% at 50% 50%, rgba(var(--primary) / 0.12), transparent);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -58,7 +58,7 @@ body {
     }
 
     body {
-        background-image: radial-gradient(ellipse 80% 50% at 50% 50%, rgba(var(--primary) / 0.15), transparent);
+        background-image: radial-gradient(ellipse 35% 50% at 50% 50%, rgba(var(--primary) / 0.15), transparent);
     }
 }
 
