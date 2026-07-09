@@ -610,10 +610,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("versionInput").addEventListener("change", async function() {
         renderModelDatalist(await fetchModelsForVersion(this.value));
         
-        // If the model they had selected doesn't exist in the newly selected OpenWrt version, clear it out
+        // Refresh model data for the new version
         const currentModel = document.getElementById("modelInput").value;
         const option = Array.from(document.getElementById("modelOptions").options).find(o => o.value === currentModel);
-        if (!option) {
+        if (option) {
+            document.getElementById("targetInput").value = option.dataset.target;
+            document.getElementById("profileInput").value = option.dataset.profile;
+        } else {
             document.getElementById("modelInput").value = '';
             document.getElementById("targetInput").value = '';
             document.getElementById("profileInput").value = '';
