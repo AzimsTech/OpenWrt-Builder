@@ -159,6 +159,7 @@ function renderDropdown(elementId, items, selectedValue = null) {
         select.appendChild(option);
     });
     if (selectedValue !== null) select.value = selectedValue;
+    if (customSelects[elementId]) rebuildCustomSelect(elementId);
 }
 
 function renderModelDatalist(models) {
@@ -171,6 +172,253 @@ function renderModelDatalist(models) {
         option.dataset.target = model.target;
         datalist.appendChild(option);
     });
+}
+
+// ============================================
+// CUSTOM DROPDOWN / COMBOBOX
+// ============================================
+
+const customSelects = {};
+
+function initCustomSelect(id) {
+    if (customSelects[id]) return;
+    const select = document.getElementById(id);
+    if (!select) return;
+
+    const wrapper = select.parentElement;
+    wrapper.classList.add('relative');
+    const existingIcon = wrapper.querySelector(':scope > .material-symbols-outlined');
+    if (existingIcon) existingIcon.remove();
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-11 px-4 text-sm text-on-surface text-left flex items-center justify-between gap-2 cursor-pointer focus-ring transition-shadow';
+    trigger.innerHTML = '<span class="truncate flex-1"></span><span class="material-symbols-outlined text-on-surface-variant text-xl pointer-events-none">expand_more</span>';
+
+    const menu = document.createElement('ul');
+    menu.className = 'custom-dropdown-menu';
+    menu.setAttribute('role', 'listbox');
+
+    customSelects[id] = { select, wrapper, trigger, menu };
+
+    menu.addEventListener('mouseover', e => {
+        const li = e.target.closest('li');
+        if (!li) return;
+        menu.querySelectorAll('.highlighted').forEach(h => h.classList.remove('highlighted'));
+        li.classList.add('highlighted');
+    });
+
+    menu.addEventListener('mousedown', e => {
+        const li = e.target.closest('li');
+        if (!li) return;
+        e.preventDefault();
+        select.selectedIndex = parseInt(li.dataset.index);
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        closeCustomSelect(id);
+    });
+
+    trigger.addEventListener('click', () => {
+        menu.classList.contains('open') ? closeCustomSelect(id) : openCustomSelect(id);
+    });
+
+    trigger.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            menu.classList.contains('open') ? closeCustomSelect(id) : openCustomSelect(id);
+        } else if (e.key === 'Escape') {
+            closeCustomSelect(id);
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            menu.classList.contains('open') ? highlightNext(id, 1) : openCustomSelect(id);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (menu.classList.contains('open')) highlightNext(id, -1);
+        }
+    });
+
+    select.addEventListener('change', () => {
+        const text = trigger.querySelector('span:first-child');
+        const opt = select.options[select.selectedIndex];
+        if (text && opt) text.textContent = opt.text;
+    });
+
+    document.addEventListener('click', e => {
+        if (!wrapper.contains(e.target)) closeCustomSelect(id);
+    });
+
+    wrapper.appendChild(menu);
+    wrapper.insertBefore(trigger, select);
+    select.style.display = 'none';
+
+    rebuildCustomSelect(id);
+}
+
+function rebuildCustomSelect(id) {
+    const s = customSelects[id];
+    if (!s) return;
+    const { select, menu, trigger } = s;
+    const triggerText = trigger.querySelector('span:first-child');
+    menu.innerHTML = '';
+
+    Array.from(select.options).forEach((opt, i) => {
+        const li = document.createElement('li');
+        li.className = 'custom-dropdown-option';
+        li.setAttribute('role', 'option');
+        li.dataset.index = i;
+        li.textContent = opt.text;
+        if (opt.selected) li.classList.add('selected');
+        menu.appendChild(li);
+    });
+
+    const selected = select.options[select.selectedIndex];
+    if (triggerText) triggerText.textContent = selected ? selected.text : '';
+}
+
+function openCustomSelect(id) {
+    const s = customSelects[id];
+    if (!s) return;
+    rebuildCustomSelect(id);
+    s.menu.classList.add('open');
+    const first = s.menu.querySelector('.selected') || s.menu.querySelector('li');
+    if (first) first.classList.add('highlighted');
+}
+
+function closeCustomSelect(id) {
+    const s = customSelects[id];
+    if (!s) return;
+    s.menu.classList.remove('open');
+}
+
+function highlightNext(id, dir) {
+    const s = customSelects[id];
+    if (!s) return;
+    const items = s.menu.querySelectorAll('li');
+    if (!items.length) return;
+    const cur = s.menu.querySelector('.highlighted');
+    const idx = cur ? Array.from(items).indexOf(cur) + dir : (dir > 0 ? 0 : items.length - 1);
+    if (idx >= 0 && idx < items.length) {
+        items.forEach(l => l.classList.remove('highlighted'));
+        items[idx].classList.add('highlighted');
+        items[idx].scrollIntoView({ block: 'nearest' });
+    }
+}
+
+const customComboboxes = {};
+
+function initCustomCombobox(inputId) {
+    if (customComboboxes[inputId]) return;
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    const listId = input.getAttribute('list');
+    input.removeAttribute('list');
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'relative';
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+
+    const menu = document.createElement('ul');
+    menu.className = 'custom-dropdown-menu';
+    menu.setAttribute('role', 'listbox');
+    wrapper.appendChild(menu);
+
+    const datalistEl = listId ? document.getElementById(listId) : null;
+    const state = { input, wrapper, menu, datalistEl };
+    customComboboxes[inputId] = state;
+
+    function filtered() {
+        if (!state.datalistEl) return [];
+        const val = input.value.toLowerCase().trim();
+        if (!val) return [];
+        return Array.from(state.datalistEl.options)
+            .filter(o => o.value.toLowerCase().includes(val))
+            .slice(0, 30);
+    }
+
+    function build() {
+        menu.innerHTML = '';
+        const items = filtered();
+        if (!items.length) { menu.classList.remove('open'); return; }
+
+        items.forEach((opt, i) => {
+            const li = document.createElement('li');
+            li.className = 'custom-dropdown-option';
+            li.setAttribute('role', 'option');
+            li.dataset.target = opt.dataset.target || '';
+            li.dataset.profile = opt.dataset.profile || '';
+
+            const val = input.value.toLowerCase();
+            const idx = opt.value.toLowerCase().indexOf(val);
+            if (idx !== -1) {
+                li.innerHTML = opt.value.slice(0, idx)
+                    + '<strong>' + opt.value.slice(idx, idx + val.length) + '</strong>'
+                    + opt.value.slice(idx + val.length);
+            } else {
+                li.textContent = opt.value;
+            }
+
+            li.addEventListener('mousedown', e => {
+                e.preventDefault();
+                input.value = opt.value;
+                setModelHiddenFields(opt.dataset.target || '', opt.dataset.profile || '');
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                menu.classList.remove('open');
+            });
+
+            menu.appendChild(li);
+        });
+        menu.classList.add('open');
+    }
+
+    function setModelHiddenFields(target, profile) {
+        document.getElementById('targetInput').value = target;
+        document.getElementById('profileInput').value = profile;
+        if (target && profile) {
+            updateBuildInfoDisplay();
+        } else {
+            document.getElementById('buildInfoContainer').style.display = 'none';
+        }
+    }
+
+    input.addEventListener('input', () => {
+        build();
+        const exact = state.datalistEl
+            ? Array.from(state.datalistEl.options).find(o => o.value === input.value)
+            : null;
+        if (!exact) {
+            document.getElementById('targetInput').value = '';
+            document.getElementById('profileInput').value = '';
+            document.getElementById('buildInfoContainer').style.display = 'none';
+        }
+    });
+
+    input.addEventListener('focus', () => { if (input.value.trim()) build(); });
+    input.addEventListener('blur', () => setTimeout(() => menu.classList.remove('open'), 200));
+
+    input.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); build(); const f = menu.querySelector('li'); if (f) f.classList.add('highlighted'); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); const h = menu.querySelector('.highlighted'); if (h) { const p = h.previousElementSibling; h.classList.remove('highlighted'); if (p) p.classList.add('highlighted'); } }
+        else if (e.key === 'Enter') { e.preventDefault(); const h = menu.querySelector('.highlighted'); if (h) h.click(); }
+        else if (e.key === 'Escape') menu.classList.remove('open');
+    });
+
+    menu.addEventListener('mouseover', e => {
+        const li = e.target.closest('li');
+        if (!li) return;
+        menu.querySelectorAll('.highlighted').forEach(h => h.classList.remove('highlighted'));
+        li.classList.add('highlighted');
+    });
+
+    document.addEventListener('click', e => {
+        if (!wrapper.contains(e.target)) menu.classList.remove('open');
+    });
+}
+
+function updateCustomCombobox(inputId) {
+    const state = customComboboxes[inputId];
+    if (!state) return;
+    state.datalistEl = document.getElementById(state.input.getAttribute('list') || 'modelOptions');
 }
 
 async function updateBuildInfoDisplay() {
@@ -309,6 +557,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("clearTokenButton").style.display = "flex";
     }
 
+    // Init custom dropdowns and combobox
+    initCustomSelect("versionInput");
+    initCustomSelect("scriptsInput");
+    initCustomCombobox("modelInput");
+
     const { owner, repo } = await fetchRepo();
     document.getElementById("repoUrl").href = `https://github.com/${owner}/${repo}/tree/main/files/etc/uci-defaults`;
 
@@ -324,6 +577,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 3. CRITICAL FIX: Restore state now that ALL options actually exist in the DOM
     loadFromLocalStorage();
     await loadFromURL();
+    rebuildCustomSelect("versionInput");
+    rebuildCustomSelect("scriptsInput");
 
     // 4. Fetch the model list for whichever version is currently selected (restored or default)
     const currentVersion = document.getElementById("versionInput").value || versions[0];
@@ -335,7 +590,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const option = Array.from(document.getElementById("modelOptions").options).find(o => o.value === document.getElementById("modelInput").value);
         if (option) {
             document.getElementById("targetInput").value = option.dataset.target;
-            document.getElementById("profileInput").value = option.text;
+            document.getElementById("profileInput").value = option.dataset.profile;
         }
         updateBuildInfoDisplay();
     }
