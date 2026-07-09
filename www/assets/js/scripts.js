@@ -348,15 +348,17 @@ function initCustomCombobox(inputId) {
             li.dataset.target = opt.dataset.target || '';
             li.dataset.profile = opt.dataset.profile || '';
 
+            const text = document.createElement('span');
             const val = input.value.toLowerCase();
             const idx = opt.value.toLowerCase().indexOf(val);
             if (idx !== -1) {
-                li.innerHTML = opt.value.slice(0, idx)
-                    + '<strong>' + opt.value.slice(idx, idx + val.length) + '</strong>'
+                text.innerHTML = opt.value.slice(0, idx)
+                    + '<strong class="match">' + opt.value.slice(idx, idx + val.length) + '</strong>'
                     + opt.value.slice(idx + val.length);
             } else {
-                li.textContent = opt.value;
+                text.textContent = opt.value;
             }
+            li.appendChild(text);
 
             li.addEventListener('mousedown', e => {
                 e.preventDefault();
