@@ -6,19 +6,16 @@ set -e
 
 UCI_DIR="files/etc/uci-defaults"
 SELECTED_SCRIPT="$1"
-CUSTOM_SCRIPT_CONTENT="$2"
 
 echo "=== Preparing Build Environment ==="
 
 # 1. Handle "99-custom" script generation
 if [ "$SELECTED_SCRIPT" = "99-custom" ]; then
     echo "Generating 99-custom script..."
-    # Ensure directory exists
     mkdir -p "$UCI_DIR"
     
-    # Write the custom content passed from the environment
-    echo "$CUSTOM_SCRIPT_CONTENT" > "$UCI_DIR/99-custom"
-    cat "$UCI_DIR/99-custom"
+    # Write the custom content from env var (more reliable than arg for multi-line content)
+    printf '%s\n' "$CUSTOM_SCRIPT_CONTENT" > "$UCI_DIR/99-custom"
 fi
 
 # 2. Process UCI defaults directory (keep only the selected script)
