@@ -84,6 +84,15 @@ jobs:
           # Export configuration to environment
           cat input_config >> $GITHUB_ENV
 
+      - name: Debug - Show selected script contents
+        if: ${{ github.event.inputs.scripts }}
+        run: |
+          echo "=== Selected Script: ${{ env.SCRIPT }} ==="
+          echo "=== Files in uci-defaults directory ==="
+          ls -la files/etc/uci-defaults/
+          echo "=== Script Contents ==="
+          cat -n files/etc/uci-defaults/${{ env.SCRIPT }}
+
       - name: Inject secrets into scripts
         if: ${{ github.event.inputs.scripts }}
         run: |
