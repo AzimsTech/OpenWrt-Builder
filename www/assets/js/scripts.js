@@ -66,11 +66,25 @@ async function fetchModelsForVersion(version) {
 }
 
 async function fetchAvailableScripts(owner, repo) {
+    const cacheKey = `scriptDir_${owner}_${repo}`;
+    const cached = localStorage.getItem(cacheKey);
+    const headers = {};
+    if (cached) {
+        const { etag } = JSON.parse(cached);
+        if (etag) headers["If-None-Match"] = etag;
+    }
+
     const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/files/etc/uci-defaults?ref=main`;
-    const response = await fetch(apiUrl);
+    const response = await fetch(apiUrl, { headers });
+    if (response.status === 304 && cached) {
+        return JSON.parse(cached).data;
+    }
     if (!response.ok) return [];
     const data = await response.json();
-    return data.filter(item => item.type === 'file').map(item => item.name);
+    const etag = response.headers.get("ETag");
+    const scripts = data.filter(item => item.type === 'file').map(item => item.name);
+    localStorage.setItem(cacheKey, JSON.stringify({ data: scripts, etag }));
+    return scripts;
 }
 
 async function fetchBuildInfo(target, version, profileId) {
@@ -732,3 +746,183 @@ async function testToken() {
     document.getElementById("status").innerText = res.ok ? "✅ Valid!" : "❌ Invalid";
     if (res.ok) setTimeout(() => location.reload(), 2000);
 }
+
+// ============================================
+// 5. SCRIPT EDITOR
+// ============================================
+
+async function openScriptEditor() {
+    const select = document.getElementById("scriptsInput");
+    const scriptName = select.value;
+    if (!scriptName) {
+        alert("Please select a script first");
+        return;
+    }
+
+    let content;
+    if (scriptName === "99-custom") {
+        content = document.getElementById("customScriptInput").value || "";
+    } else {
+        const scriptCacheKey = `script_${scriptName}`;
+        const cached = localStorage.getItem(scriptCacheKey);
+        const headers = {};
+        if (cached) {
+            const { etag } = JSON.parse(cached);
+            if (etag) headers["If-None-Match"] = etag;
+        }
+
+        const { owner, repo } = await fetchRepo();
+        try {
+            const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/files/etc/uci-defaults/${scriptName}`;
+            const response = await fetch(rawUrl, { headers });
+            if (response.status === 304 && cached) {
+                content = JSON.parse(cached).data;
+            } else {
+                if (!response.ok) throw new Error("Failed to fetch");
+                content = await response.text();
+                const etag = response.headers.get("ETag");
+                localStorage.setItem(scriptCacheKey, JSON.stringify({ data: content, etag }));
+            }
+        } catch (e) {
+            alert("Failed to fetch script content from repository");
+            return;
+        }
+    }
+
+    const editorName = document.getElementById("editorScriptName");
+    editorName.textContent = scriptName;
+    editorName.dataset.script = scriptName === "99-custom" ? "" : scriptName;
+    document.getElementById("scriptEditorOverlay").style.display = "flex";
+
+    const [{ EditorView, basicSetup }, { StreamLanguage, foldService, syntaxHighlighting, HighlightStyle }, { shell }, { tags }] = await Promise.all([
+        import("https://esm.sh/codemirror@6.0.2"),
+        import("https://esm.sh/@codemirror/language@6.12.4"),
+        import("https://esm.sh/@codemirror/legacy-modes@6.5.3/mode/shell"),
+        import("https://esm.sh/@lezer/highlight@1.2.3"),
+    ]);
+
+    if (window.scriptEditor) {
+        window.scriptEditor.destroy();
+    }
+
+    const customTheme = EditorView.theme({
+        "&": {
+            backgroundColor: "rgb(var(--surface-container-highest))",
+            color: "rgb(var(--on-surface))",
+        },
+        ".cm-gutters": {
+            backgroundColor: "rgb(var(--surface-container))",
+            color: "rgb(var(--on-surface-variant))",
+            borderRight: "1px solid rgba(var(--outline-variant) / 0.15)",
+        },
+        ".cm-activeLineGutter": {
+            backgroundColor: "rgba(var(--primary) / 0.1)",
+        },
+        ".cm-activeLine": {
+            backgroundColor: "rgba(var(--primary) / 0.05)",
+        },
+        "&.cm-focused .cm-cursor": {
+            borderLeftColor: "rgb(var(--primary))",
+        },
+        ".cm-matchingBracket": {
+            backgroundColor: "rgba(var(--primary) / 0.15)",
+            outline: "1px solid rgba(var(--primary) / 0.3)",
+        },
+    });
+
+    const shellHighlight = HighlightStyle.define([
+        { tag: tags.comment, color: "rgb(var(--on-surface-variant))", fontStyle: "italic" },
+        { tag: tags.keyword, color: "rgb(var(--primary))", fontWeight: "600" },
+        { tag: tags.definitionKeyword, color: "rgb(var(--primary-dim))", fontWeight: "600" },
+        { tag: tags.string, color: "rgb(var(--tertiary))" },
+        { tag: tags.variableName, color: "rgb(var(--on-surface))" },
+        { tag: tags.standard(tags.variableName), color: "rgb(var(--primary-dim))" },
+        { tag: tags.number, color: "rgb(var(--error))" },
+        { tag: tags.operator, color: "rgb(var(--on-surface-variant))" },
+        { tag: tags.punctuation, color: "rgb(var(--outline))" },
+        { tag: tags.definition(tags.variableName), color: "rgb(var(--primary))" },
+        { tag: tags.typeName, color: "rgb(var(--primary-dim))" },
+        { tag: tags.modifier, color: "rgb(var(--on-surface-variant))" },
+        { tag: tags.self, color: "rgb(var(--primary))" },
+        { tag: tags.atom, color: "rgb(var(--primary))" },
+        { tag: tags.bool, color: "rgb(var(--primary))" },
+        { tag: tags.invalid, color: "rgb(var(--error))" },
+    ]);
+
+    const shellFold = foldService.of((state, lineStart, lineEnd) => {
+        const doc = state.doc;
+        const line = doc.lineAt(lineStart);
+        const indent = line.text.search(/\S/);
+        if (indent < 0 || line.number === doc.lines) return null;
+
+        let endLine = line.number + 1;
+        let foldable = false;
+
+        for (let i = endLine; i <= doc.lines; i++) {
+            const nextLine = doc.line(i);
+            const nextIndent = nextLine.text.search(/\S/);
+            if (nextIndent < 0) continue;
+            if (nextIndent <= indent) break;
+            endLine = i;
+            foldable = true;
+        }
+
+        if (foldable) {
+            return { from: lineEnd, to: doc.line(endLine).to };
+        }
+        return null;
+    });
+
+    const parent = document.getElementById("scriptEditorContainer");
+    parent.innerHTML = "";
+
+    window.scriptEditor = new EditorView({
+        doc: content,
+        extensions: [
+            basicSetup,
+            StreamLanguage.define(shell),
+            EditorView.lineWrapping,
+            window.matchMedia("(prefers-color-scheme: dark)").matches ? EditorView.darkTheme.of(true) : [],
+            customTheme,
+            syntaxHighlighting(shellHighlight),
+            shellFold,
+        ],
+        parent
+    });
+
+    window.scriptEditor.focus();
+}
+
+function saveScriptEditor() {
+    if (!window.scriptEditor) return;
+    const content = window.scriptEditor.state.doc.toString();
+    window.scriptEditor.destroy();
+    window.scriptEditor = null;
+
+    const customInput = document.getElementById("customScriptInput");
+    customInput.value = content;
+    customInput.style.display = "block";
+
+    const select = document.getElementById("scriptsInput");
+    select.value = "99-custom";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    rebuildCustomSelect("scriptsInput");
+
+    saveToLocalStorage();
+    closeScriptEditor();
+}
+
+function closeScriptEditor() {
+    document.getElementById("scriptEditorOverlay").style.display = "none";
+    if (window.scriptEditor) {
+        window.scriptEditor.destroy();
+        window.scriptEditor = null;
+    }
+}
+
+document.getElementById("editorScriptName").addEventListener("click", async function () {
+    const script = this.dataset.script;
+    if (!script) return;
+    const { owner, repo } = await fetchRepo();
+    window.open(`https://github.com/${owner}/${repo}/blob/main/files/etc/uci-defaults/${script}`, "_blank");
+});
