@@ -12,16 +12,22 @@ jobs:
       actions: write
       contents: write
     steps:
-      - name: Delete releases and workflows runs
-        uses: ophub/delete-releases-workflows@main
-        with:
-          delete_releases: true
-          releases_keep_latest: 3
-          delete_workflows: false
-          workflows_keep_day: 3
-          gh_token: ${{ secrets.GITHUB_TOKEN }}
-          delete_tags: true
-          out_log: true
+      - name: Delete releases and tags (keep 3 latest per device model)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          releases=$(gh release list --limit 1000 --json tagName,createdAt --order desc --sort created_at)
+
+          echo "$releases" | jq -r '
+            group_by(.tagName | sub("^[^-]+-"; "")) |
+            .[] |
+            sort_by(.createdAt) | reverse |
+            .[3:] |
+            .[].tagName
+          ' | while read tag; do
+            echo "Deleting release and tag: $tag"
+            gh release delete "$tag" --yes --cleanup-tag || true
+          done
 
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2
