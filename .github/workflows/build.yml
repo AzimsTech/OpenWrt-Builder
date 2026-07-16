@@ -151,7 +151,7 @@ jobs:
         continue-on-error: true
         run: |
           tar xf openwrt-imagebuilder-*.tar.* --strip=1 --no-same-owner -C .
-          make -j $(nproc) image \
+          make image \
             PROFILE="${{ env.profile }}" \
             PACKAGES="${{ env.packages }} ${{ env.device_packages }}" \
             FILES="${{ env.files }}" \
