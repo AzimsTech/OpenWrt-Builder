@@ -12,11 +12,12 @@ jobs:
       actions: write
       contents: write
     steps:
+      - uses: actions/checkout@v4
       - name: Delete releases and tags (keep 3 latest per device model)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          releases=$(gh release list --limit 1000 --json tagName,createdAt --order desc --sort created_at)
+          releases=$(gh release list --limit 1000 --json tagName,createdAt --order desc)
 
           echo "$releases" | jq -r '
             group_by(.tagName | sub("^[^-]+-"; "")) |
