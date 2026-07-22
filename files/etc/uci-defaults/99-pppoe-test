@@ -79,6 +79,7 @@ uci set wireless.@wifi-iface[$band2g].ssid="${ssid}-2.4G@unifi"
 uci set wireless.@wifi-iface[$band2g].encryption='psk2'
 uci set wireless.@wifi-iface[$band2g].key="$ssid_key"
 uci set wireless.@wifi-iface[$band2g].wpa_group_rekey='86400'
+uci set wireless.@wifi-iface[$band2g].multicast_to_unicast_all='1'
 
 uci set wireless.@wifi-device[$band5g].country='MY'
 uci set wireless.@wifi-device[$band5g].disabled='0'
@@ -93,6 +94,7 @@ uci set wireless.@wifi-iface[$band5g].encryption='psk2'
 uci set wireless.@wifi-iface[$band5g].key="$ssid_key"
 uci set wireless.@wifi-iface[$band5g].wds='1'
 uci set wireless.@wifi-iface[$band5g].wpa_group_rekey='86400'
+uci set wireless.@wifi-iface[$band5g].multicast_to_unicast_all='1'
 
 uci commit wireless
 
