@@ -9,10 +9,17 @@ lan_ip='192.168.0.2'
 # ssid_key="12345678"
 # pppoe_name=""
 # pppoe_key=""
+# ssh_pubkey=""
 
 # root passwd
 if [ -n "$root_password" ]; then
   (echo "$root_password"; sleep 1; echo "$root_password") | passwd > /dev/null
+fi
+
+# ssh public key
+if [ -n "$ssh_pubkey" ]; then
+  mkdir -p /etc/dropbear
+  echo "$ssh_pubkey" >> /etc/dropbear/authorized_keys
 fi
 
 # system

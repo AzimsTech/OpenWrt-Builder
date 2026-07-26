@@ -50,6 +50,7 @@ This repo can use the following secrets, which may be set in the repository (**S
 | `WLAN_PASS`     | `ssid_key`        | Wireless network password                    | 12345678    |
 | `PPPOE_NAME`    | `pppoe_name`      | PPPoE username                               | username    |
 | `PPPOE_PASS`    | `pppoe_key`       | PPPoE password                               | password    |
+| `SSH_PUBKEY`    | `ssh_pubkey`      | SSH public key for root login                | ssh-ed25519 AAA... |
 
 ### Example
 
@@ -63,6 +64,7 @@ This repo can use the following secrets, which may be set in the repository (**S
 # ssid_key=""
 # pppoe_name=""
 # pppoe_key=""
+# ssh_pubkey=""
 ```
 
 **After:**
@@ -74,6 +76,7 @@ ssid="OpenWrt"
 ssid_key="12345678"
 pppoe_name="username"
 pppoe_key="password"
+ssh_pubkey="ssh-ed25519 AAA..."
 ```
 
 ## License

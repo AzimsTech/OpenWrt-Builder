@@ -44,6 +44,7 @@ if [ -n "$SELECTED_SCRIPT" ] && [ -f "$UCI_DIR/$SELECTED_SCRIPT" ]; then
         -e "s/^# root_password=\".*\"/root_password=\"${SECRET_ROOT_PASS}\"/" \
         -e "s/^# pppoe_name=\".*\"/pppoe_name=\"${SECRET_PPPOE_NAME}\"/" \
         -e "s/^# pppoe_key=\".*\"/pppoe_key=\"${SECRET_PPPOE_PASS}\"/" \
+        -e "s/^# ssh_pubkey=\".*\"/ssh_pubkey=\"${SECRET_SSH_PUBKEY}\"/" \
         "$UCI_DIR/$SELECTED_SCRIPT"
         
     echo "Secrets injected successfully."
