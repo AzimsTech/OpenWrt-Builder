@@ -60,6 +60,7 @@ jobs:
           SECRET_ROOT_PASS: ${{ secrets.ROOT_PASS }}
           SECRET_PPPOE_NAME: ${{ secrets.PPPOE_NAME }}
           SECRET_PPPOE_PASS: ${{ secrets.PPPOE_PASS }}
+          SECRET_SSH_PUBKEY: ${{ secrets.SSH_PUBKEY }}
           
       - name: Set SCRIPT environment variable for later steps
         if: ${{ github.event.inputs.scripts }}
@@ -103,6 +104,7 @@ jobs:
             -e 's/^# root_password=".*"/root_password="${{ secrets.ROOT_PASS }}"/' \
             -e 's/^# pppoe_name=".*"/pppoe_name="${{ secrets.PPPOE_NAME }}"/' \
             -e 's/^# pppoe_key=".*"/pppoe_key="${{ secrets.PPPOE_PASS }}"/' \
+            -e 's/^# ssh_pubkey=".*"/ssh_pubkey="${{ secrets.SSH_PUBKEY }}"/' \
             files/etc/uci-defaults/${{ env.SCRIPT }}
 
       - name: Fetch version buildinfo
