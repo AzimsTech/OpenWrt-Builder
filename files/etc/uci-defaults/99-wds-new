@@ -39,6 +39,9 @@ gateway=$(echo $lan_ip | sed 's/\.[0-9]*$/\.1/') # Extract network and set gatew
 uci set network.lan.gateway="$gateway"
 uci add_list network.lan.dns="$gateway"
 uci add_list network.@device[0].ports='wan' # Add wan port to the lan bridge
+uci set network.lan.multipath='off'
+uci del network.wan
+uci del network.wan6
 
 # /etc/config/dhcp
 uci add_list dhcp.@dnsmasq[0].server="$gateway"
