@@ -31,6 +31,23 @@ uci del system.ntp.server
 uci add_list system.ntp.server='ntp1.sirim.my'
 uci add_list system.ntp.server='ntp2.sirim.my'
 
+uci set system.led_wan=led
+uci set system.led_wan.name='wan'
+uci set system.led_wan.sysfs='white:wan'
+uci set system.led_wan.trigger='netdev'
+uci set system.led_wan.mode='link tx rx'
+uci set system.led_wan.dev='wan'
+uci set system.@led[0]=led
+uci set system.@led[0].sysfs='orange:power'
+uci set system.@led[0].trigger='netdev'
+uci set system.@led[0].dev='phy0-sta0'
+uci del system.@led[0].mode
+uci add_list system.@led[0].mode='link'
+uci set system.@led[1]=led
+uci set system.@led[1].sysfs='white:power'
+uci set system.@led[1].trigger='default-on'
+service led restart
+
 # /etc/config/network
 sed -i "/option ula_prefix/s/^/# /" /etc/config/network # comment out ULA prefix
 uci del network.lan.ipaddr
