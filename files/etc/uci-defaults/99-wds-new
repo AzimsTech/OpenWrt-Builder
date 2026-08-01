@@ -82,7 +82,7 @@ for band in $band2g $band5g; do
     uci set wireless.@wifi-iface[$band].mode='sta'
     uci set wireless.@wifi-iface[$band].disabled='0'
     uci set wireless.@wifi-iface[$band].ssid="${ssid}-5G@unifi"
-    uci set wireless.@wifi-iface[$band].encryption='psk2+aes'
+    uci set wireless.@wifi-iface[$band].encryption='psk2'
     uci set wireless.@wifi-iface[$band].key="$ssid_key"
     uci set wireless.@wifi-iface[$band].wpa_group_rekey='86400'
 
