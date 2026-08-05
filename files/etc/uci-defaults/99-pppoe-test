@@ -149,6 +149,12 @@ cat >> /etc/crontabs/root << 'EOF'
 
 # improve stability
 00 19 * * * sync && echo 3 > /proc/sys/vm/drop_caches
+
+# Turn off blue LED at 11:00 PM every day 
+0 23 * * * echo 0 > /sys/class/leds/blue:status/brightness 
+
+# Turn on blue LED at 7:00 AM every day 
+0 7 * * * echo 1 > /sys/class/leds/blue:status/brightness
 EOF
 
 /etc/init.d/cron reload
