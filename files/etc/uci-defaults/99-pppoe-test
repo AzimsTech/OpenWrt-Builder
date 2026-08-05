@@ -153,4 +153,7 @@ EOF
 
 /etc/init.d/cron reload
 
+# silence the apk cheatsheet below the banner
+touch /etc/profile.d/apk-cheatsheet.hush
+
 echo "All done!"
