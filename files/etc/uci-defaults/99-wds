@@ -1,0 +1,132 @@
+#!/bin/sh
+
+# checks: ensure scripts don't overwrite custom settings
+[ "$(uci -q get system.@system[0].zonename)" = "Asia/Kuala_Lumpur" ] && exit 0
+
+# root_password=""
+lan_ip='192.168.0.2'
+# ssid="OpenWrt"
+# ssid_key="12345678"
+# pppoe_name=""
+# pppoe_key=""
+# ssh_pubkey=""
+
+# root passwd
+if [ -n "$root_password" ]; then
+  (echo "$root_password"; sleep 1; echo "$root_password") | passwd > /dev/null
+fi
+
+# ssh public key
+if [ -n "$ssh_pubkey" ]; then
+  mkdir -p /etc/dropbear
+  echo "$ssh_pubkey" >> /etc/dropbear/authorized_keys
+fi
+
+# /etc/config/footstrap
+uci set footstrap.settings.density='compact'
+uci commit footstrap
+uci set luci.main.mediaurlbase='/luci-static/footstrap' # Use footstrap theme
+
+# /etc/config/system
+uci set system.@system[0].hostname='OpenWrt-STA'
+uci set system.@system[0].timezone='<+08>-8'
+uci set system.@system[0].zonename='Asia/Kuala_Lumpur'
+uci set system.ntp=timeserver
+uci del system.ntp.server
+uci add_list system.ntp.server='ntp1.sirim.my'
+uci add_list system.ntp.server='ntp2.sirim.my'
+
+uci set system.led_wan=led
+uci set system.led_wan.name='wan'
+uci set system.led_wan.sysfs='white:wan'
+uci set system.led_wan.trigger='netdev'
+uci set system.led_wan.mode='link tx rx'
+uci set system.led_wan.dev='wan'
+uci set system.@led[0]=led
+uci set system.@led[0].sysfs='orange:power'
+uci set system.@led[0].trigger='netdev'
+uci set system.@led[0].dev='phy0-sta0'
+uci del system.@led[0].mode
+uci add_list system.@led[0].mode='link'
+uci set system.@led[1]=led
+uci set system.@led[1].sysfs='white:power'
+uci set system.@led[1].trigger='default-on'
+service led restart
+
+# /etc/config/network
+sed -i "/option ula_prefix/s/^/# /" /etc/config/network # comment out ULA prefix
+uci del network.lan.ipaddr
+uci add_list network.lan.ipaddr="$lan_ip/24"
+gateway=$(echo $lan_ip | sed 's/\.[0-9]*$/\.1/') # Extract network and set gateway to .1
+uci set network.lan.gateway="$gateway"
+uci add_list network.lan.dns="$gateway"
+uci add_list network.@device[0].ports='wan' # Add wan port to the lan bridge
+uci set network.lan.multipath='off'
+uci del network.wan
+uci del network.wan6
+
+# /etc/config/dhcp
+uci add_list dhcp.@dnsmasq[0].server="$gateway"
+uci set dhcp.lan.ignore='1'
+uci del dhcp.lan.ra
+uci del dhcp.lan.ra_slaac
+uci del dhcp.lan.ra_flags
+uci del dhcp.lan.dhcpv6
+
+# Determine which radio serves 2.4GHz vs 5GHz
+band2g=$( [ "$(uci get wireless.radio0.band)" = "2g" ] && echo 0 || echo 1 )
+band5g=$((1 - band2g))
+
+# Common settings for both bands
+for band in $band2g $band5g; do
+    uci set wireless.@wifi-device[$band].country='MY'
+    uci set wireless.@wifi-device[$band].disabled='0'
+    uci set wireless.@wifi-device[$band].cell_density='0'
+    uci set wireless.@wifi-device[$band].channel='auto'
+    
+    uci set wireless.@wifi-iface[$band].mode='sta'
+    uci set wireless.@wifi-iface[$band].disabled='0'
+    uci set wireless.@wifi-iface[$band].ssid="${ssid}-5G@unifi"
+    uci set wireless.@wifi-iface[$band].encryption='psk2'
+    uci set wireless.@wifi-iface[$band].key="$ssid_key"
+    uci set wireless.@wifi-iface[$band].wpa_group_rekey='86400'
+
+    # Remove default 2.4GHz AP config
+    uci del wireless.default_radio${band2g}
+done
+
+# Band-specific settings
+uci set wireless.@wifi-device[$band5g].channels='36 40 44 48 149 153 157 161 165'
+uci set wireless.@wifi-iface[$band5g].wds='1'
+
+# Auto restart network on WDS disconnect script
+cat >> /etc/rc.local << 'EOF'
+# Put your custom commands here that should be executed once
+# the system init finished. By default this file does nothing.
+
+{
+sleep 30
+logread -f | while read -r line; do
+    case "$line" in
+        *"netifd: Network device 'phy0-sta0' link is down"*)
+            /etc/init.d/network restart
+            ;;
+    esac
+done
+} &
+
+exit 0
+EOF
+
+# presistent uci-defaults script for owut attended sysupgrade 
+# https://openwrt.org/docs/guide-user/installation/sysupgrade.owut#persistent_uci-defaults
+mkdir -p /etc/owut.d/
+SCRIPT=$(echo /rom/etc/uci-defaults/99-*)
+cp "$SCRIPT" /etc/owut.d/
+uci set "attendedsysupgrade.owut.init_script=/etc/owut.d/${SCRIPT##*/}"
+
+# silence the apk cheatsheet below the banner
+touch /etc/profile.d/apk-cheatsheet.hush
+
+uci commit
+echo "All done!" 
