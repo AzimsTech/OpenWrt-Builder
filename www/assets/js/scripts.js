@@ -125,7 +125,7 @@ async function fetchBuildInfo(target, version, profileId) {
                     <div class="flex items-center gap-1.5">
                         <span class="material-symbols-outlined text-on-surface-variant text-[16px]">fingerprint</span>
                         <span class="text-on-surface-variant font-label uppercase text-[10px] font-bold tracking-wider">Ver:</span>
-                        <a href="https://git.openwrt.org/openwrt/openwrt/log/?id=${buildinfo.trim().match(/-(.+)/)[1]}" target="_blank" class="text-primary font-mono text-[11px] hover:underline transition-colors">${buildinfo.trim()}</a>
+                        <a href="https://github.com/openwrt/openwrt/commits/${buildinfo.trim().match(/-(.+)/)[1]}" target="_blank" class="text-primary font-mono text-[11px] hover:underline transition-colors">${buildinfo.trim()}</a>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <span class="material-symbols-outlined text-on-surface-variant text-[16px]">target</span>
