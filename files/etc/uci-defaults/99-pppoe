@@ -147,6 +147,9 @@ uci set "attendedsysupgrade.owut.init_script=/etc/owut.d/${SCRIPT##*/}"
 uci commit
 /etc/init.d/firewall restart
 
+# Check LED state on startup
+sed -i '/^exit 0/i (sleep 20; hour=$(date +%H); [[ $hour -lt 7 || $hour -ge 23 ]] \&\& echo 0 > /sys/class/leds/blue:status/brightness) \&' /etc/rc.local
+
 # scheduled tasks
 cat >> /etc/crontabs/root << 'EOF'
 # update the adblock feeds every morning at 4 o'clock
