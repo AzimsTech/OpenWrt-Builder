@@ -4,12 +4,13 @@
 
 async function fetchRepo() {
     const siteUrl = window.location.href;
-    if (siteUrl.includes('127.0.0.1')) return { owner: 'AzimsTech', repo: 'OpenWrt-Builder' };
+    if (siteUrl.includes('127.0.0.1')) return { owner: 'AzimsTech', repo: 'OpenWrt-Builder', branch: 'main' };
 
     const urlParts = siteUrl.split('/');
     const owner = urlParts[2].split('.')[0];
     const repo = urlParts[3] || '';
-    return { owner, repo };
+    const branch = 'main';
+    return { owner, repo, branch };
 }
 
 async function fetchOpenWrtVersions() {
@@ -65,7 +66,7 @@ async function fetchModelsForVersion(version) {
     }));
 }
 
-async function fetchAvailableScripts(owner, repo) {
+async function fetchAvailableScripts(owner, repo, branch) {
     const cacheKey = `scriptDir_${owner}_${repo}`;
     const cached = localStorage.getItem(cacheKey);
     const headers = {};
@@ -74,7 +75,7 @@ async function fetchAvailableScripts(owner, repo) {
         if (etag) headers["If-None-Match"] = etag;
     }
 
-    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/files/etc/uci-defaults?ref=main`;
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/files/etc/uci-defaults?ref=${branch}`;
     const response = await fetch(apiUrl, { headers });
     if (response.status === 304 && cached) {
         return JSON.parse(cached).data;
@@ -576,12 +577,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     initCustomSelect("scriptsInput");
     initCustomCombobox("modelInput");
 
-    const { owner, repo } = await fetchRepo();
-    document.getElementById("repoUrl").href = `https://github.com/${owner}/${repo}/tree/main/files/etc/uci-defaults`;
+    const { owner, repo, branch } = await fetchRepo();
+    document.getElementById("repoUrl").href = `https://github.com/${owner}/${repo}/tree/${branch}/files/etc/uci-defaults`;
 
     // 2. Fetch independent dropdown data first (Versions and Scripts)
     const versionsPromise = fetchOpenWrtVersions();
-    const scriptsPromise = fetchAvailableScripts(owner, repo);
+    const scriptsPromise = fetchAvailableScripts(owner, repo, branch);
 
     const [versions, scripts] = await Promise.all([versionsPromise, scriptsPromise]);
 
@@ -682,7 +683,7 @@ async function runWorkflow(event) {
     const token = localStorage.getItem("github_token");
     if (!token) return document.getElementById("setupTokenButton").click();
 
-    const { owner, repo } = await fetchRepo();
+    const { owner, repo, branch } = await fetchRepo();
     const shareURL = `${window.location.origin}${window.location.pathname}?config=${await encodeFormState()}`;
 
     const inputs = {
@@ -700,7 +701,7 @@ async function runWorkflow(event) {
     const triggerRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/build.yml/dispatches`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json", "Content-Type": "application/json" },
-        body: JSON.stringify({ ref: "main", inputs })
+        body: JSON.stringify({ ref: branch, inputs })
     });
 
     if (!triggerRes.ok) return alert("Failed to trigger workflow. Check console.");
@@ -771,9 +772,9 @@ async function openScriptEditor() {
             if (etag) headers["If-None-Match"] = etag;
         }
 
-        const { owner, repo } = await fetchRepo();
+        const { owner, repo, branch } = await fetchRepo();
         try {
-            const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/files/etc/uci-defaults/${scriptName}`;
+            const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/files/etc/uci-defaults/${scriptName}`;
             const response = await fetch(rawUrl, { headers });
             if (response.status === 304 && cached) {
                 content = JSON.parse(cached).data;
@@ -923,6 +924,6 @@ function closeScriptEditor() {
 document.getElementById("editorScriptName").addEventListener("click", async function () {
     const script = this.dataset.script;
     if (!script) return;
-    const { owner, repo } = await fetchRepo();
-    window.open(`https://github.com/${owner}/${repo}/blob/main/files/etc/uci-defaults/${script}`, "_blank");
+    const { owner, repo, branch } = await fetchRepo();
+    window.open(`https://github.com/${owner}/${repo}/blob/${branch}/files/etc/uci-defaults/${script}`, "_blank");
 });
