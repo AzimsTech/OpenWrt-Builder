@@ -868,6 +868,24 @@ function apiHeaders(token) {
     return { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json" };
 }
 
+const ghEtagCache = new Map();
+
+async function ghGet(url, token) {
+    const headers = apiHeaders(token);
+    const cached = ghEtagCache.get(url);
+    if (cached && cached.etag) headers["If-None-Match"] = cached.etag;
+    const res = await fetch(url, { headers });
+    if (res.status === 304 && cached) {
+        return { ok: true, status: 304, data: cached.data };
+    }
+    if (!res.ok) return { ok: false, status: res.status, data: null };
+    let data = null;
+    try { data = await res.json(); } catch (e) { data = null; }
+    const etag = res.headers.get("ETag");
+    if (etag && data) ghEtagCache.set(url, { etag, data });
+    return { ok: true, status: res.status, data };
+}
+
 function showBuildProgress(owner, repo, runId) {
     const card = document.getElementById("buildProgress");
     if (!card) return;
@@ -934,15 +952,12 @@ async function findDispatchedRun(owner, repo, token, since, attempts = 10) {
     for (let i = 0; i < attempts; i++) {
         let res;
         try {
-            res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/build.yml/runs?event=workflow_dispatch&per_page=5`, { headers: apiHeaders(token) });
+            res = await ghGet(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/build.yml/runs?event=workflow_dispatch&per_page=5`, token);
         } catch (e) { await new Promise(r => setTimeout(r, 5000)); continue; }
         if (res.status === 401 || res.status === 403) throw new Error("unauthorized");
-        if (res.ok) {
-            try {
-                const data = await res.json();
-                const run = (data.workflow_runs || []).find(r => r.created_at >= sinceIso);
-                if (run) return run.id;
-            } catch (e) { /* malformed response, retry next attempt */ }
+        if (res.ok && res.data) {
+            const run = (res.data.workflow_runs || []).find(r => r.created_at >= sinceIso);
+            if (run) return run.id;
         }
         await new Promise(r => setTimeout(r, 5000));
     }
@@ -957,7 +972,7 @@ async function trackBuildRun(owner, repo, runId, token) {
     const tick = async () => {
         let jobsRes;
         try {
-            jobsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}/jobs?per_page=10`, { headers: apiHeaders(token) });
+            jobsRes = await ghGet(`https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}/jobs?per_page=10`, token);
         } catch (e) { return; }
         if (jobsRes.status === 401 || jobsRes.status === 403) {
             finished = true;
@@ -966,9 +981,8 @@ async function trackBuildRun(owner, repo, runId, token) {
             setProgressFailed("Token rejected", "GitHub rejected your token. Save a valid token and retry.");
             return;
         }
-        if (!jobsRes.ok) return;
-        let jobsData;
-        try { jobsData = await jobsRes.json(); } catch (e) { return; }
+        if (!jobsRes.ok || !jobsRes.data) return;
+        const jobsData = jobsRes.data;
         const jobs = jobsData.jobs || [];
         const elapsed = "elapsed " + formatElapsed(Date.now() - buildProgressStart);
         if (!jobs.length) { setProgress(2, "Queued…", "Waiting for a runner · " + elapsed); return; }
