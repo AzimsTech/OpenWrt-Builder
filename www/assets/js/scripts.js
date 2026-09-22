@@ -461,6 +461,120 @@ async function updateBuildInfoDisplay() {
     }
 }
 
+function initTokenInput(id) {
+    const el = document.getElementById(id);
+    if (!el || el.dataset.tokenized) return;
+    el.dataset.tokenized = "1";
+
+    const box = document.createElement("div");
+    box.className = "flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-2 text-sm text-on-surface min-h-[64px] flex flex-wrap gap-1.5 cursor-text focus-ring transition-shadow";
+    box.style.alignItems = "flex-start";
+    box.style.alignContent = "flex-start";
+    box.title = el.title || "";
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "flex-1 min-w-[90px] h-5 bg-transparent outline-none border-none text-sm text-on-surface placeholder:text-outline";
+    input.style.alignSelf = "flex-start";
+    input.placeholder = el.placeholder || "";
+    const originalPlaceholder = input.placeholder;
+    input.setAttribute("autocomplete", "off");
+    input.setAttribute("spellcheck", "false");
+    box.appendChild(input);
+    el.parentNode.insertBefore(box, el);
+    el.style.display = "none";
+    el.tabIndex = -1;
+
+    const protoDesc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), "value");
+    let backing = protoDesc.get.call(el);
+
+    const tokens = () => backing.split(/\s+/).filter(Boolean);
+
+    function render() {
+        box.querySelectorAll("[data-chip]").forEach(n => n.remove());
+        const hasTokens = tokens().length > 0;
+        input.placeholder = hasTokens ? "" : originalPlaceholder;
+        tokens().forEach(token => {
+            const excluded = token.startsWith("-");
+            const chip = document.createElement("span");
+            chip.dataset.chip = "1";
+            chip.className = "inline-flex items-center gap-1 font-mono text-[11px] py-[2px] pl-1.5 pr-1 rounded-md border whitespace-nowrap " + (excluded ? "border-error/30 bg-error/10 text-on-surface" : "border-primary/25 bg-primary/10 text-on-surface");
+            chip.style.alignSelf = "flex-start";
+            const label = document.createElement("span");
+            label.textContent = token;
+            const rm = document.createElement("button");
+            rm.type = "button";
+            rm.textContent = "×";
+            rm.title = "Remove";
+            rm.className = "cursor-pointer text-on-surface-variant hover:text-error text-sm leading-none px-0.5";
+            rm.addEventListener("mousedown", e => e.preventDefault());
+            rm.addEventListener("click", e => { e.stopPropagation(); removeToken(token); input.focus(); });
+            chip.appendChild(label);
+            chip.appendChild(rm);
+            box.insertBefore(chip, input);
+        });
+    }
+
+    function sync(dispatch = true) {
+        backing = tokens().join(" ");
+        render();
+        if (dispatch) el.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    function addTokens(text) {
+        const parts = String(text).split(/\s+/).filter(Boolean);
+        if (!parts.length) return;
+        backing = (backing ? backing + " " + parts.join(" ") : parts.join(" "));
+        sync();
+    }
+
+    function removeToken(token) {
+        const list = tokens();
+        const idx = list.indexOf(token);
+        if (idx !== -1) list.splice(idx, 1);
+        backing = list.join(" ");
+        render();
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    Object.defineProperty(el, "value", {
+        get() { return backing; },
+        set(v) { backing = String(v ?? "").split(/\s+/).filter(Boolean).join(" "); render(); },
+        configurable: true
+    });
+
+    input.addEventListener("input", () => {
+        if (input.value.includes(" ")) {
+            addTokens(input.value);
+            input.value = "";
+        }
+    });
+    input.addEventListener("keydown", e => {
+        if (e.isComposing) return;
+        if (e.key === " " || e.key === "Enter") {
+            e.preventDefault();
+            if (input.value.trim()) { addTokens(input.value); input.value = ""; }
+        } else if (e.key === "Backspace" && !input.value && tokens().length) {
+            const list = tokens();
+            list.pop();
+            backing = list.join(" ");
+            sync();
+        }
+    });
+    input.addEventListener("paste", e => {
+        e.preventDefault();
+        addTokens((e.clipboardData || window.clipboardData).getData("text"));
+    });
+    input.addEventListener("blur", () => {
+        if (input.value.trim()) { addTokens(input.value); input.value = ""; }
+    });
+    box.addEventListener("mousedown", e => {
+        if (e.target === box) { e.preventDefault(); input.focus(); }
+    });
+    box.addEventListener("dblclick", () => { backing = ""; input.value = ""; sync(); });
+
+    render();
+}
+
 // ============================================
 // 3. STATE / URL SHARING
 // ============================================
@@ -583,6 +697,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     initCustomSelect("versionInput");
     initCustomSelect("scriptsInput");
     initCustomCombobox("modelInput");
+    initTokenInput("packagesInput");
+    initTokenInput("disabled_servicesInput");
 
     const { owner, repo } = await fetchRepo();
     document.getElementById("repoUrl").href = `https://github.com/${owner}/${repo}/tree/main/files/etc/uci-defaults`;
