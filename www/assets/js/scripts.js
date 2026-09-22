@@ -683,6 +683,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
         if (id !== 'modelInput') el?.addEventListener('change', () => el.blur());
     });
+
+    // Resume tracking an in-progress build after reload
+    try {
+        const active = JSON.parse(localStorage.getItem("openwrt_active_run") || "null");
+        const savedToken = localStorage.getItem("github_token");
+        if (active && active.run_id && savedToken) {
+            buildProgressStart = Date.now();
+            showBuildProgress(active.owner, active.repo, active.run_id);
+            trackBuildRun(active.owner, active.repo, active.run_id, savedToken);
+        }
+    } catch (e) { /* corrupted state, ignore */ }
 });
 
 async function runWorkflow(event) {
@@ -712,19 +723,165 @@ async function runWorkflow(event) {
     });
 
     if (!triggerRes.ok) return alert("Failed to trigger workflow. Check console.");
-    alert("Workflow triggered successfully! Fetching job details...");
 
-    for (let i = 0; i < 5; i++) {
-        const runsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs`, { headers: { "Authorization": `Bearer ${token}` } });
-        const runsData = await runsRes.json();
-        if (runsData.workflow_runs?.length > 0) {
-            const runId = runsData.workflow_runs[0].id;
-            const jobsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}/jobs`, { headers: { "Authorization": `Bearer ${token}` } });
-            const jobsData = await jobsRes.json();
-            if (jobsData.jobs[0]?.id) return window.open(`https://github.com/${owner}/${repo}/actions/runs/${runId}/job/${jobsData.jobs[0].id}`, "_blank");
-        }
-        await new Promise(r => setTimeout(r, (i + 1) * 1000));
+    const dispatchTime = Date.now();
+    buildProgressStart = dispatchTime;
+    showBuildProgress(owner, repo, null);
+    setProgress(2, "Workflow dispatched…", "Finding your run");
+
+    let runId;
+    try {
+        runId = await findDispatchedRun(owner, repo, token, dispatchTime);
+    } catch (e) {
+        setProgressFailed("Unauthorized", "GitHub rejected your token. Save a valid token and retry.");
+        return;
     }
+    if (!runId) {
+        setProgressFailed("Run not found", "Dispatched, but the run did not appear. Check the Actions tab on GitHub.");
+        return;
+    }
+    localStorage.setItem("openwrt_active_run", JSON.stringify({ owner, repo, run_id: runId }));
+    showBuildProgress(owner, repo, runId);
+    trackBuildRun(owner, repo, runId, token);
+}
+
+let buildProgressTimer = null;
+let buildProgressStart = 0;
+
+function apiHeaders(token) {
+    return { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json" };
+}
+
+function showBuildProgress(owner, repo, runId) {
+    const card = document.getElementById("buildProgress");
+    if (!card) return;
+    card.style.display = "flex";
+    const link = document.getElementById("buildProgressLink");
+    if (link) link.href = runId
+        ? `https://github.com/${owner}/${repo}/actions/runs/${runId}`
+        : `https://github.com/${owner}/${repo}/actions`;
+    card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function setProgressIcon(mode) {
+    const icon = document.getElementById("buildProgressIcon");
+    if (!icon) return;
+    icon.classList.remove("animate-spin", "text-primary", "text-tertiary", "text-error");
+    if (mode === "done") { icon.textContent = "check_circle"; icon.classList.add("text-tertiary"); }
+    else if (mode === "error") { icon.textContent = "error"; icon.classList.add("text-error"); }
+    else { icon.textContent = "progress_activity"; icon.classList.add("animate-spin", "text-primary"); }
+}
+
+function setProgress(pct, label, detail) {
+    const clamped = Math.max(0, Math.min(100, Math.round(pct)));
+    const fill = document.getElementById("buildProgressFill");
+    if (fill) {
+        fill.style.width = clamped + "%";
+        fill.classList.remove("bg-error");
+        fill.classList.add("bg-primary");
+    }
+    const labelEl = document.getElementById("buildProgressLabel");
+    if (labelEl) labelEl.textContent = label;
+    const detailEl = document.getElementById("buildProgressDetail");
+    if (detailEl) detailEl.textContent = detail;
+    const pctEl = document.getElementById("buildProgressPct");
+    if (pctEl) pctEl.textContent = clamped + "%";
+    setProgressIcon("working");
+}
+
+function setProgressDone(label, detail) {
+    setProgress(100, label, detail);
+    setProgressIcon("done");
+}
+
+function setProgressFailed(label, detail) {
+    const labelEl = document.getElementById("buildProgressLabel");
+    if (labelEl) labelEl.textContent = label;
+    const detailEl = document.getElementById("buildProgressDetail");
+    if (detailEl) detailEl.textContent = detail;
+    const fill = document.getElementById("buildProgressFill");
+    if (fill) { fill.classList.remove("bg-primary"); fill.classList.add("bg-error"); }
+    setProgressIcon("error");
+}
+
+function formatElapsed(ms) {
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    if (m < 1) return s + "s";
+    const h = Math.floor(m / 60);
+    if (h < 1) return m + "m " + (s % 60) + "s";
+    return h + "h " + (m % 60) + "m";
+}
+
+async function findDispatchedRun(owner, repo, token, since, attempts = 10) {
+    const sinceIso = new Date(since - 60000).toISOString();
+    for (let i = 0; i < attempts; i++) {
+        let res;
+        try {
+            res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/build.yml/runs?event=workflow_dispatch&per_page=5`, { headers: apiHeaders(token) });
+        } catch (e) { await new Promise(r => setTimeout(r, 5000)); continue; }
+        if (res.status === 401 || res.status === 403) throw new Error("unauthorized");
+        if (res.ok) {
+            try {
+                const data = await res.json();
+                const run = (data.workflow_runs || []).find(r => r.created_at >= sinceIso);
+                if (run) return run.id;
+            } catch (e) { /* malformed response, retry next attempt */ }
+        }
+        await new Promise(r => setTimeout(r, 5000));
+    }
+    return null;
+}
+
+async function trackBuildRun(owner, repo, runId, token) {
+    if (buildProgressTimer) { clearInterval(buildProgressTimer); buildProgressTimer = null; }
+    if (!buildProgressStart) buildProgressStart = Date.now();
+    let finished = false;
+
+    const tick = async () => {
+        let jobsRes;
+        try {
+            jobsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}/jobs?per_page=10`, { headers: apiHeaders(token) });
+        } catch (e) { return; }
+        if (jobsRes.status === 401 || jobsRes.status === 403) {
+            finished = true;
+            if (buildProgressTimer) { clearInterval(buildProgressTimer); buildProgressTimer = null; }
+            localStorage.removeItem("openwrt_active_run");
+            setProgressFailed("Token rejected", "GitHub rejected your token. Save a valid token and retry.");
+            return;
+        }
+        if (!jobsRes.ok) return;
+        let jobsData;
+        try { jobsData = await jobsRes.json(); } catch (e) { return; }
+        const jobs = jobsData.jobs || [];
+        const elapsed = "elapsed " + formatElapsed(Date.now() - buildProgressStart);
+        if (!jobs.length) { setProgress(2, "Queued…", "Waiting for a runner · " + elapsed); return; }
+        const job = jobs[0];
+        const link = document.getElementById("buildProgressLink");
+        if (link && job.html_url) link.href = job.html_url;
+        const steps = job.steps || [];
+        if (job.status === "completed") {
+            finished = true;
+            if (buildProgressTimer) { clearInterval(buildProgressTimer); buildProgressTimer = null; }
+            localStorage.removeItem("openwrt_active_run");
+            if (job.conclusion === "success") {
+                setProgressDone("Build completed", "Finished in " + formatElapsed(Date.now() - buildProgressStart) + " · release published on GitHub");
+            } else {
+                const failedStep = steps.find(s => s.conclusion === "failure");
+                setProgressFailed("Build " + (job.conclusion || "did not succeed"), (failedStep ? "Failed at: " + failedStep.name + " · " : "") + elapsed);
+            }
+            return;
+        }
+        if (job.status === "queued") { setProgress(2, "Queued…", "Waiting for a runner · " + elapsed); return; }
+        const done = steps.filter(s => s.status === "completed").length;
+        const total = steps.length || 1;
+        const current = steps.find(s => s.status === "in_progress");
+        const pct = Math.max(5, Math.round((done / total) * 100));
+        setProgress(pct, current ? `Step ${done + 1}/${total}: ${current.name}` : `Step ${done}/${total} finished…`, elapsed);
+    };
+
+    await tick();
+    if (!finished) buildProgressTimer = setInterval(tick, 10000);
 }
 
 function saveToken() {
