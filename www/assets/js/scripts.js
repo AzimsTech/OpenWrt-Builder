@@ -123,7 +123,7 @@ async function fetchBuildInfo(target, version, profileId) {
         const shortHash = fullHash.slice(0, 7);
 
         return `
-            <div class="flex flex-col gap-3 w-full mt-1">
+            <div class="flex flex-col gap-2 w-full mt-1">
                 <div class="flex flex-wrap items-end gap-x-6 gap-y-2">
                     <div class="flex items-end gap-1.5">
                         <span class="material-symbols-outlined text-on-surface-variant text-[16px]">fingerprint</span>
@@ -212,7 +212,7 @@ function initCustomSelect(id) {
 
     const trigger = document.createElement('button');
     trigger.type = 'button';
-    trigger.className = 'w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-11 px-4 text-sm text-on-surface text-left flex items-center justify-between gap-2 cursor-pointer focus-ring transition-shadow';
+    trigger.className = 'w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-9 px-3 text-sm text-on-surface text-left flex items-center justify-between gap-2 cursor-pointer focus-ring transition-shadow';
     trigger.innerHTML = '<span class="truncate flex-1"></span><span class="material-symbols-outlined text-on-surface-variant text-xl pointer-events-none">expand_more</span>';
 
     const menu = document.createElement('ul');

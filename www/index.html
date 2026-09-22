@@ -15,43 +15,43 @@
 </head>
 <body class="bg-background text-on-background font-body min-h-screen flex flex-col items-center">
 
-    <header class="w-full max-w-[1100px] flex items-center justify-between px-6 py-2.5 mt-4 rounded-xl bg-surface-container-low shadow-[0_4px_40px_rgba(var(--primary) / 0.08)]">
-        <div class="flex items-center gap-3">
-            <h1 class="font-headline text-xl font-bold tracking-tight text-on-surface">Image Builder</h1>
+    <header class="w-full max-w-[1100px] flex items-center justify-between px-4 py-2 mt-3 rounded-xl bg-surface-container-low shadow-[0_4px_40px_rgba(var(--primary) / 0.08)]">
+        <div class="flex items-center gap-2">
+            <h1 class="font-headline text-lg font-bold tracking-tight text-on-surface">Image Builder</h1>
         </div>
         <div class="flex items-center gap-4">
-            <button id="setupTokenButton" style="display: none;" onclick="setupToken()" type="button" class="h-8 px-4 bg-surface-container hover:bg-surface-container-highest text-primary rounded-full font-label text-[11px] font-bold tracking-wide uppercase transition-colors flex items-center gap-2">
+            <button id="setupTokenButton" style="display: none;" onclick="setupToken()" type="button" class="h-7 px-3 bg-surface-container hover:bg-surface-container-highest text-primary rounded-full font-label text-[11px] font-bold tracking-wide uppercase transition-colors flex items-center gap-2">
                 <span class="material-symbols-outlined text-base">key</span> Setup Token
             </button>
-            <button id="clearTokenButton" style="display: none;" onclick="clearToken()" type="button" class="h-8 px-4 bg-surface-container hover:bg-surface-container-highest text-error rounded-full font-label text-[11px] font-bold tracking-wide uppercase transition-colors flex items-center gap-2">
+            <button id="clearTokenButton" style="display: none;" onclick="clearToken()" type="button" class="h-7 px-3 bg-surface-container hover:bg-surface-container-highest text-error rounded-full font-label text-[11px] font-bold tracking-wide uppercase transition-colors flex items-center gap-2">
                 <span class="material-symbols-outlined text-base">delete_sweep</span> Clear Token
             </button>
         </div>
     </header>
 
-    <form id="tokenForm" class="w-full max-w-[1100px] flex flex-col gap-4 px-6 py-6" style="display: none;">
-        <section class="bg-surface-container-low rounded-xl p-8 flex flex-col gap-5 shadow-[0_8px_40px_rgba(0,0,0,0.4)] border border-error/20">
-            <h2 class="font-headline text-2xl font-bold text-error flex items-center gap-2">
-                <span class="material-symbols-outlined text-3xl">warning</span> Setup Your GitHub Personal Access Token
+    <form id="tokenForm" class="w-full max-w-[1100px] flex flex-col gap-3 px-4 py-4" style="display: none;">
+        <section class="bg-surface-container-low rounded-xl p-4 flex flex-col gap-3 shadow-[0_8px_40px_rgba(0,0,0,0.4)] border border-error/20">
+            <h2 class="font-headline text-xl font-bold text-error flex items-center gap-2">
+                <span class="material-symbols-outlined text-2xl">warning</span> Setup Your GitHub Personal Access Token
             </h2>
             <div class="flex flex-col gap-3">
                 <p class="text-on-surface-variant text-sm">1️⃣ Click below to open GitHub's token creation page:</p>
-                <button type="button" onclick="window.open('https://github.com/settings/tokens/new?scopes=repo,workflow,admin:repo_hook&description=GitHub%20Workflow%20Trigger', '_blank')" class="w-max h-10 px-6 bg-surface-container-highest hover:bg-surface-variant text-on-surface rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 border border-outline-variant/20">
+                <button type="button" onclick="window.open('https://github.com/settings/tokens/new?scopes=repo,workflow,admin:repo_hook&description=GitHub%20Workflow%20Trigger', '_blank')" class="w-max h-9 px-4 bg-surface-container-highest hover:bg-surface-variant text-on-surface rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 border border-outline-variant/20">
                     <span class="material-symbols-outlined text-[18px]">key</span> Create Token
                 </button>
             </div>
-            <div class="flex flex-col gap-3 mt-4">
+            <div class="flex flex-col gap-2 mt-3">
                 <p class="text-on-surface-variant text-sm">2️⃣ After generating your token, copy & paste it below:</p>
-                <div class="flex gap-4 items-center">
-                    <input type="password" id="tokenInput" placeholder="Paste your token here" class="flex-1 max-w-md bg-surface-container-highest border border-outline-variant/20 rounded-lg h-11 px-4 text-sm text-on-surface focus:ring-2 focus:ring-primary/50 transition-shadow">
-                    <button type="button" onclick="saveToken()" class="h-11 px-6 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-bold text-sm transition-colors flex items-center gap-2">
+                <div class="flex gap-3 items-center">
+                    <input type="password" id="tokenInput" placeholder="Paste your token here" class="flex-1 max-w-md bg-surface-container-highest border border-outline-variant/20 rounded-lg h-9 px-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/50 transition-shadow">
+                    <button type="button" onclick="saveToken()" class="h-9 px-4 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-bold text-sm transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">save</span> Save Token
                     </button>
                 </div>
             </div>
-            <div class="flex flex-col gap-3 mt-4 border-t border-outline-variant/15 pt-6">
+            <div class="flex flex-col gap-2 mt-3 border-t border-outline-variant/15 pt-4">
                 <p class="text-on-surface-variant text-sm">3️⃣ Click below to test your token:</p>
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
                     <button type="button" onclick="testToken()" class="h-10 px-6 bg-tertiary-dim hover:bg-tertiary text-on-tertiary-container rounded-lg font-semibold text-sm transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">lock_open</span> Test Token
                     </button>
@@ -61,37 +61,37 @@
         </section>
     </form>
 
-    <form id="buildForm" onsubmit="runWorkflow(event)" class="w-full max-w-[1100px] flex flex-col gap-4 px-6 py-6 main-container">
+    <form id="buildForm" onsubmit="runWorkflow(event)" class="w-full max-w-[1100px] flex flex-col gap-3 px-4 py-4 main-container">
         
         <section class="flex flex-col gap-1 pl-1">
-            <h2 class="font-headline text-3xl font-extrabold text-on-surface tracking-tight leading-tight">Build OpenWrt Image</h2>
+            <h2 class="font-headline text-2xl font-extrabold text-on-surface tracking-tight leading-tight">Build OpenWrt Image</h2>
             <p class="text-on-surface-variant text-sm max-w-2xl">Configure and generate custom OpenWrt firmware images tailored to your specific hardware and networking needs.</p>
         </section>
 
-        <section class="bg-surface-container-low rounded-xl p-5 flex flex-col gap-5 shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
-            <div class="flex items-center gap-3">
-                <div class="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold font-headline text-xs">1</div>
-                <h3 class="font-headline text-lg font-bold text-on-surface">Select Device</h3>
+        <section class="bg-surface-container-low rounded-xl p-4 flex flex-col gap-3 shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
+            <div class="flex items-center gap-2">
+                <div class="h-5 w-5 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold font-headline text-xs">1</div>
+                <h3 class="font-headline text-sm font-bold text-on-surface">Select Device</h3>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label class="flex flex-col gap-1.5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <label class="flex flex-col gap-1">
                     <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-1">Device Model</span>
-                    <input type="text" id="modelInput" list="modelOptions" placeholder="Start typing your model..." autocomplete="off" title="Double-click to clear this field" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-11 px-4 text-sm text-on-surface focus-ring transition-shadow">
+                    <input type="text" id="modelInput" list="modelOptions" placeholder="Start typing your model..." autocomplete="off" title="Double-click to clear this field" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-9 px-3 text-sm text-on-surface focus-ring transition-shadow">
                     <datalist id="modelOptions"></datalist>
                     <input type="hidden" id="profileInput" name="profile">
                     <input type="hidden" id="targetInput" name="target">
                 </label>
-                <label class="flex flex-col gap-1.5">
+                <label class="flex flex-col gap-1">
                     <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-1">Build Type / Version</span>
                     <div class="relative focus-ring rounded-lg transition-shadow">
-                        <select id="versionInput" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-11 px-4 text-sm text-on-surface appearance-none focus:ring-0 cursor-pointer">
+                        <select id="versionInput" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-9 px-3 text-sm text-on-surface appearance-none focus:ring-0 cursor-pointer">
                         </select>
                         <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-xl">expand_more</span>
                     </div>
                 </label>
             </div>
 
-            <div id="buildInfoContainer" class="bg-surface-container rounded-xl p-4 flex flex-col gap-1 border border-outline-variant/10" style="display: none;">
+            <div id="buildInfoContainer" class="bg-surface-container rounded-xl p-3 flex flex-col gap-1 border border-outline-variant/10" style="display: none;">
                 <div class="flex items-center gap-2 text-tertiary">
                     <span class="material-symbols-outlined text-[18px]">info</span>
                     <span class="font-headline font-bold text-sm tracking-wide">Profile Info</span>
@@ -100,59 +100,59 @@
             </div>
         </section>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             
-            <section class="bg-surface-container-low rounded-xl p-5 flex flex-col gap-4 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
-                <div class="flex items-center gap-3">
-                    <div class="h-6 w-6 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-bold font-headline text-xs border border-outline-variant/30">2</div>
-                    <h3 class="font-headline text-base font-bold text-on-surface">Packages</h3>
+            <section class="bg-surface-container-low rounded-xl p-4 flex flex-col gap-3 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+                <div class="flex items-center gap-2">
+                    <div class="h-5 w-5 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-bold font-headline text-xs border border-outline-variant/30">2</div>
+                    <h3 class="font-headline text-sm font-bold text-on-surface">Packages</h3>
                 </div>
-                <label class="flex flex-col gap-1.5 h-full">
+                <label class="flex flex-col gap-1 h-full">
                     <div class="flex items-center justify-between">
                         <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Include / Exclude</span>
                         <span class="text-[10px] text-outline italic">Use '-' to exclude</span>
                     </div>
-                    <textarea id="packagesInput" name="packages" title="Double-click to clear this field" class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-3 text-sm text-on-surface min-h-[90px] resize-none focus-ring" placeholder="luci luci-app-sqm -kmod-usb3"></textarea>
+                    <textarea id="packagesInput" name="packages" title="Double-click to clear this field" class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-2.5 text-sm text-on-surface min-h-[64px] resize-none focus-ring" placeholder="luci luci-app-sqm -kmod-usb3"></textarea>
                 </label>
             </section>
 
-            <section class="bg-surface-container-low rounded-xl p-5 flex flex-col gap-4 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
-                <div class="flex items-center gap-3">
-                    <div class="h-6 w-6 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-bold font-headline text-xs border border-outline-variant/30">3</div>
-                    <h3 class="font-headline text-base font-bold text-on-surface">Services</h3>
+            <section class="bg-surface-container-low rounded-xl p-4 flex flex-col gap-3 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+                <div class="flex items-center gap-2">
+                    <div class="h-5 w-5 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-bold font-headline text-xs border border-outline-variant/30">3</div>
+                    <h3 class="font-headline text-sm font-bold text-on-surface">Services</h3>
                 </div>
-                <label class="flex flex-col gap-1.5 h-full">
+                <label class="flex flex-col gap-1 h-full">
                     <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Disable Services</span>
-                    <textarea id="disabled_servicesInput" name="disabled_services" title="Double-click to clear this field" class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-3 text-sm text-on-surface min-h-[90px] resize-none focus-ring" placeholder="dnsmasq firewall odhcpd"></textarea>
+                    <textarea id="disabled_servicesInput" name="disabled_services" title="Double-click to clear this field" class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-2.5 text-sm text-on-surface min-h-[64px] resize-none focus-ring" placeholder="dnsmasq firewall odhcpd"></textarea>
                 </label>
             </section>
 
-            <div class="flex flex-col gap-4">
-                <section class="bg-surface-container-low rounded-xl p-5 flex flex-col gap-4 shadow-[0_4px_20px_rgba(0,0,0,0.2)] flex-1">
-                    <div class="flex items-center gap-3">
-                        <div class="h-6 w-6 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-bold font-headline text-xs border border-outline-variant/30">4</div>
-                        <h3 class="font-headline text-base font-bold text-on-surface">Scripts</h3>
+            <div class="flex flex-col gap-3">
+                <section class="bg-surface-container-low rounded-xl p-4 flex flex-col gap-3 shadow-[0_4px_20px_rgba(0,0,0,0.2)] flex-1">
+                    <div class="flex items-center gap-2">
+                        <div class="h-5 w-5 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-bold font-headline text-xs border border-outline-variant/30">4</div>
+                        <h3 class="font-headline text-sm font-bold text-on-surface">Scripts</h3>
                     </div>
-                    <label class="flex flex-col gap-1.5">
+                    <label class="flex flex-col gap-1">
                         <div class="flex items-center justify-between">
                             <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Select Script</span>
                             <a id="repoUrl" target="_blank" class="text-[10px] text-primary italic hover:underline">View repo files</a>
                         </div>
                         <div class="relative focus-ring rounded-lg transition-shadow">
-                            <select id="scriptsInput" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-11 px-4 text-sm text-on-surface appearance-none focus:ring-0 cursor-pointer">
+                            <select id="scriptsInput" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-9 px-3 text-sm text-on-surface appearance-none focus:ring-0 cursor-pointer">
                             </select>
                             <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-xl">expand_more</span>
                         </div>
                     </label>
-                    <textarea id="customScriptInput" style="display: none;" name="custom_script" title="Double-click to clear this field" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-3 text-xs font-mono text-primary-dim min-h-[90px] resize-none focus-ring mt-2" placeholder="#!/bin/sh"></textarea>
+                    <textarea id="customScriptInput" style="display: none;" name="custom_script" title="Double-click to clear this field" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-2.5 text-xs font-mono text-primary-dim min-h-[64px] resize-none focus-ring mt-2" placeholder="#!/bin/sh"></textarea>
                 </section>
 
                 <div class="flex gap-2">
-                    <button type="button" onclick="location.href='config2uci/index.html'" class="flex-1 h-11 px-4 rounded-xl bg-surface-bright text-on-surface border border-outline-variant/20 hover:border-primary/50 transition-colors flex items-center justify-center gap-2 group">
+                    <button type="button" onclick="location.href='config2uci/index.html'" class="flex-1 h-9 px-3 rounded-xl bg-surface-bright text-on-surface border border-outline-variant/20 hover:border-primary/50 transition-colors flex items-center justify-center gap-2 group">
                         <span class="material-symbols-outlined text-primary text-xl">code_blocks</span>
                         <span class="font-semibold text-xs">UCI Converter</span>
                     </button>
-                    <button type="button" onclick="openScriptEditor()" class="flex-1 h-11 px-4 rounded-xl bg-surface-bright text-on-surface border border-outline-variant/20 hover:border-primary/50 transition-colors flex items-center justify-center gap-2 group">
+                    <button type="button" onclick="openScriptEditor()" class="flex-1 h-9 px-3 rounded-xl bg-surface-bright text-on-surface border border-outline-variant/20 hover:border-primary/50 transition-colors flex items-center justify-center gap-2 group">
                         <span class="material-symbols-outlined text-primary text-xl">edit_note</span>
                         <span class="font-semibold text-xs">Edit Script</span>
                     </button>
@@ -160,25 +160,25 @@
             </div>
         </div>
 
-        <div class="flex flex-col gap-4 pt-6 pb-4 border-t border-outline-variant/15 mt-2">     
-            <div id="shareURL" class="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg p-4 text-xs font-mono text-primary break-all" style="display: none;"></div>
+        <div class="flex flex-col gap-3 pt-4 pb-2 border-t border-outline-variant/15 mt-2">     
+            <div id="shareURL" class="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg p-3 text-xs font-mono text-primary break-all" style="display: none;"></div>
         
             <div class="flex items-center gap-2 sm:gap-4 w-full md:w-auto justify-end">
-                <button type="button" onclick="generateShareURL()" class="h-12 w-12 shrink-0 sm:w-auto sm:px-6 rounded-full bg-surface-container-highest text-on-surface font-semibold text-xs hover:bg-surface-variant transition-colors flex items-center justify-center gap-2 border border-outline-variant/10">
+                <button type="button" onclick="generateShareURL()" class="h-10 w-10 shrink-0 sm:w-auto sm:px-6 rounded-full bg-surface-container-highest text-on-surface font-semibold text-xs hover:bg-surface-variant transition-colors flex items-center justify-center gap-2 border border-outline-variant/10">
                     <span class="material-symbols-outlined text-[18px]">share</span>
                     <span class="hidden sm:inline">Share URL</span>
                 </button>                
-                <button type="button" id="copyBtn" onclick="copyShareURL()" style="display: none;" class="h-12 min-w-[48px] px-3 shrink-0 sm:w-auto sm:px-6 rounded-full bg-tertiary-dim text-on-tertiary-container font-semibold text-xs hover:bg-tertiary transition-colors flex items-center justify-center gap-2 border border-outline-variant/10">
+                <button type="button" id="copyBtn" onclick="copyShareURL()" style="display: none;" class="h-10 min-w-[40px] px-3 shrink-0 sm:w-auto sm:px-6 rounded-full bg-tertiary-dim text-on-tertiary-container font-semibold text-xs hover:bg-tertiary transition-colors flex items-center justify-center gap-2 border border-outline-variant/10">
                     <span class="material-symbols-outlined text-[18px]">content_copy</span>
                     <span class="hidden sm:inline">Copy URL</span>
                 </button>
-                <button type="submit" class="h-12 px-4 sm:px-8 rounded-full bg-primary text-on-primary font-bold text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-2.5 shadow-[0_8px_24px_rgba(var(--primary) / 0.25)] hover:shadow-[0_12px_32px_rgba(var(--primary) / 0.35)] transition-all transform hover:-translate-y-0.5 whitespace-nowrap">
+                <button type="submit" class="h-10 px-4 sm:px-6 rounded-full bg-primary text-on-primary font-bold text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-2.5 shadow-[0_8px_24px_rgba(var(--primary) / 0.25)] hover:shadow-[0_12px_32px_rgba(var(--primary) / 0.35)] transition-all transform hover:-translate-y-0.5 whitespace-nowrap">
                     <span class="material-symbols-outlined text-lg sm:text-xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
                     <span>Run Build Workflow</span>
                 </button>
             </div>
 
-            <div id="buildProgress" class="w-full bg-surface-container-low rounded-xl p-5 flex-col gap-3 border border-outline-variant/10" style="display: none;">
+            <div id="buildProgress" class="w-full bg-surface-container-low rounded-xl p-4 flex-col gap-2.5 border border-outline-variant/10" style="display: none;">
                 <div class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2 min-w-0">
                         <span id="buildProgressIcon" class="material-symbols-outlined text-primary text-xl animate-spin">progress_activity</span>
@@ -203,17 +203,17 @@
             <div class="flex-1 overflow-hidden">
                 <div id="scriptEditorContainer"></div>
             </div>
-            <div class="flex items-center justify-between px-6 py-4 border-t border-outline-variant/10">
+            <div class="flex items-center justify-between px-4 py-3 border-t border-outline-variant/10">
                 <h3 class="font-headline font-bold text-on-surface flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary">edit_note</span>
                     Edit Script: <span id="editorScriptName" class="text-primary hover:underline cursor-pointer"></span>
                 </h3>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="saveScriptEditor()" class="h-9 px-5 rounded-lg bg-primary text-on-primary font-bold text-xs hover:bg-primary-container hover:text-on-primary-container transition-colors flex items-center gap-2">
+                    <button type="button" onclick="saveScriptEditor()" class="h-8 px-4 rounded-lg bg-primary text-on-primary font-bold text-xs hover:bg-primary-container hover:text-on-primary-container transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-lg">save</span>
                         Save
                     </button>
-                    <button type="button" onclick="closeScriptEditor()" class="h-9 w-9 rounded-full bg-surface-container-highest hover:bg-surface-variant flex items-center justify-center transition-colors">
+                    <button type="button" onclick="closeScriptEditor()" class="h-8 w-8 rounded-full bg-surface-container-highest hover:bg-surface-variant flex items-center justify-center transition-colors">
                         <span class="material-symbols-outlined text-on-surface-variant text-xl">close</span>
                     </button>
                 </div>
