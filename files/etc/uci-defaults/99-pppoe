@@ -147,8 +147,8 @@ uci set "attendedsysupgrade.owut.init_script=/etc/owut.d/${SCRIPT##*/}"
 uci commit
 /etc/init.d/firewall restart
 
-# Check LED state on startup
-sed -i '/^exit 0/i (sleep 20; hour=$(date +%H); [[ $hour -lt 7 || $hour -ge 23 ]] \&\& echo 0 > /sys/class/leds/blue:status/brightness) \&' /etc/rc.local
+# Check LED state on startup — wait for NTP before trusting `date`
+sed -i '/^exit 0/i (for i in $(seq 1 120); do [ "$(date +%Y)" -ge 2024 ] \&\& break; sleep 1; done; h=$(date +%H); h=$((10#$h)); { [ "$h" -lt 7 ] || [ "$h" -ge 23 ]; } \&\& echo 0 > /sys/class/leds/blue:status/brightness) \&' /etc/rc.local
 
 # scheduled tasks
 cat >> /etc/crontabs/root << 'EOF'
