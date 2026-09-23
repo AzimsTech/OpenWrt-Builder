@@ -497,7 +497,7 @@ function initTokenInput(id) {
             const excluded = token.startsWith("-");
             const chip = document.createElement("span");
             chip.dataset.chip = "1";
-            chip.className = "inline-flex items-center gap-1 font-mono text-[11px] py-[2px] pl-1.5 pr-1 rounded-md border whitespace-nowrap " + (excluded ? "border-error/30 bg-error/10 text-on-surface" : "border-primary/25 bg-primary/10 text-on-surface");
+            chip.className = "inline-flex items-center gap-1 font-mono text-[11px] py-[2px] pl-1.5 pr-1 rounded-md border whitespace-nowrap " + (excluded ? "border-error/30 bg-error/10 text-on-surface-variant" : "border-primary/25 bg-primary/10 text-on-surface-variant");
             chip.style.alignSelf = "flex-start";
             const label = document.createElement("span");
             label.textContent = token;
