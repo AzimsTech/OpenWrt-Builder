@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# trace script output for debugging purposes
+set -x
+exec > /tmp/uci-defaults.log 2>&1
+
 # checks: ensure scripts don't overwrite custom settings
 [ "$(uci -q get system.@system[0].zonename)" = "Asia/Kuala_Lumpur" ] && exit 0
 
