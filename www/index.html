@@ -193,6 +193,16 @@
                     <span id="buildProgressDetail" class="text-[11px] text-on-surface-variant truncate">Waiting…</span>
                     <a id="buildProgressLink" href="#" target="_blank" class="text-[11px] text-primary hover:underline shrink-0">View on GitHub</a>
                 </div>
+                <div id="buildResult" class="flex-col gap-2 border-t border-outline-variant/15 pt-3 mt-1" style="display: none;">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 text-tertiary">
+                            <span class="material-symbols-outlined text-[18px]">verified</span>
+                            <span class="font-headline font-bold text-sm text-on-surface">Build Result</span>
+                        </div>
+                        <a id="buildResultReleaseLink" href="#" target="_blank" class="text-[11px] text-primary hover:underline shrink-0">Release page</a>
+                    </div>
+                    <div id="buildResultFiles" class="flex-col gap-1.5 mt-1"></div>
+                </div>
             </div>
         </div>
     </form>
