@@ -74,7 +74,7 @@
                 <h3 class="font-headline text-sm font-bold text-on-surface">Select Device</h3>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label class="flex flex-col gap-1">
+                <label for="modelInput" class="flex flex-col gap-1">
                     <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-1">Device Model</span>
                     <input type="text" id="modelInput" list="modelOptions" placeholder="Start typing your model..." autocomplete="off" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-9 px-3 pr-7 text-sm text-on-surface focus-ring transition-shadow">
                     <datalist id="modelOptions"></datalist>
@@ -107,7 +107,7 @@
                     <div class="h-5 w-5 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-bold font-headline text-xs border border-outline-variant/30">2</div>
                     <h3 class="font-headline text-sm font-bold text-on-surface">Packages</h3>
                 </div>
-                <label class="flex flex-col gap-1 h-full">
+                <label for="packagesInput" class="flex flex-col gap-1 h-full">
                     <div class="flex items-center justify-between">
                         <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Include / Exclude</span>
                         <span class="text-[10px] text-outline italic">Use '-' to exclude</span>
@@ -121,7 +121,7 @@
                     <div class="h-5 w-5 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-bold font-headline text-xs border border-outline-variant/30">3</div>
                     <h3 class="font-headline text-sm font-bold text-on-surface">Services</h3>
                 </div>
-                <label class="flex flex-col gap-1 h-full">
+                <label for="disabled_servicesInput" class="flex flex-col gap-1 h-full">
                     <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Disable Services</span>
                     <textarea id="disabled_servicesInput" name="disabled_services" class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-2.5 text-sm text-on-surface min-h-[64px] resize-none focus-ring" placeholder="dnsmasq firewall odhcpd"></textarea>
                 </label>
