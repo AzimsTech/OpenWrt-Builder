@@ -471,6 +471,7 @@ function initCustomCombobox(inputId) {
 
     const wrapper = document.createElement('div');
     wrapper.className = 'relative';
+    wrapper.dataset.clearWrap = '1';
     input.parentNode.insertBefore(wrapper, input);
     wrapper.appendChild(input);
 
@@ -599,6 +600,53 @@ async function updateBuildInfoDisplay() {
     }
 }
 
+function attachClearButton(el, options = {}) {
+    if (!el || el.dataset.clearAttached) return null;
+    el.dataset.clearAttached = "1";
+    const alignTop = options.align === "top";
+
+    let wrapper = el.parentElement && el.parentElement.dataset.clearWrap === "1" ? el.parentElement : null;
+    if (!wrapper) {
+        wrapper = document.createElement("div");
+        wrapper.dataset.clearWrap = "1";
+        wrapper.className = "relative";
+        el.parentNode.insertBefore(wrapper, el);
+        wrapper.appendChild(el);
+        if (el.style.display === "none") {
+            wrapper.style.display = "none";
+            el.style.display = "";
+        }
+    }
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.title = "Clear";
+    btn.setAttribute("aria-label", "Clear");
+    btn.className = "absolute right-1.5 " + (alignTop ? "top-1.5" : "top-1/2 -translate-y-1/2")
+        + " inline-flex items-center justify-center h-6 w-6 rounded-full cursor-pointer text-on-surface-variant hover:text-on-surface";
+    btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">close</span>';
+    wrapper.appendChild(btn);
+
+    const sync = () => { btn.style.display = el.value ? "inline-flex" : "none"; };
+    el.addEventListener("input", sync);
+    el.addEventListener("change", sync);
+    el.addEventListener("focusin", sync);
+    wrapper.addEventListener("mouseenter", sync);
+
+    btn.addEventListener("mousedown", e => e.preventDefault());
+    btn.addEventListener("click", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        el.value = "";
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+        sync();
+        el.focus();
+    });
+    sync();
+    return wrapper;
+}
+
 function initTokenInput(id, options = {}) {
     const autocomplete = !!options.autocomplete;
     const el = document.getElementById(id);
@@ -609,6 +657,8 @@ function initTokenInput(id, options = {}) {
     box.className = "flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-2 text-sm text-on-surface min-h-[64px] flex flex-wrap gap-1.5 cursor-text focus-ring transition-shadow";
     box.style.alignItems = "flex-start";
     box.style.alignContent = "flex-start";
+    box.classList.add("relative");
+    box.style.paddingRight = "1.75rem";
     box.title = el.title || "";
     const input = document.createElement("input");
     input.type = "text";
@@ -623,7 +673,6 @@ function initTokenInput(id, options = {}) {
     const menu = document.createElement("ul");
     let closeTimer = null;
     if (autocomplete) {
-        box.classList.add("relative");
         menu.className = "custom-dropdown-menu";
         menu.setAttribute("role", "listbox");
         menu.style.top = "100%";
@@ -632,6 +681,22 @@ function initTokenInput(id, options = {}) {
     el.parentNode.insertBefore(box, el);
     el.style.display = "none";
     el.tabIndex = -1;
+
+    const clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.title = "Clear";
+    clearBtn.setAttribute("aria-label", "Clear");
+    clearBtn.className = "absolute right-1.5 top-1.5 inline-flex items-center justify-center h-6 w-6 rounded-full cursor-pointer text-on-surface-variant hover:text-on-surface";
+    clearBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">close</span>';
+    clearBtn.addEventListener("mousedown", e => e.preventDefault());
+    clearBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        backing = "";
+        input.value = "";
+        sync();
+        input.focus();
+    });
+    box.appendChild(clearBtn);
 
     const protoDesc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), "value");
     let backing = protoDesc.get.call(el);
@@ -648,6 +713,7 @@ function initTokenInput(id, options = {}) {
             chip.dataset.chip = "1";
             chip.className = "inline-flex items-center gap-1 font-mono text-[11px] py-[2px] pl-1.5 pr-1 rounded-md border whitespace-nowrap " + (excluded ? "border-error/30 bg-error/10 text-on-surface-variant" : "border-primary/25 bg-primary/10 text-on-surface-variant");
             chip.style.alignSelf = "flex-start";
+            chip.style.userSelect = "none";
             const label = document.createElement("span");
             label.textContent = token;
             const rm = document.createElement("button");
@@ -656,11 +722,17 @@ function initTokenInput(id, options = {}) {
             rm.title = "Remove";
             rm.className = "cursor-pointer text-on-surface-variant hover:text-error text-sm leading-none px-0.5";
             rm.addEventListener("mousedown", e => e.preventDefault());
-            rm.addEventListener("click", e => { e.stopPropagation(); removeToken(token); input.focus(); });
+            rm.addEventListener("click", e => {
+                if (e.detail > 1) return; // 2nd+ click of a double-click must not remove another chip
+                e.stopPropagation();
+                removeToken(token);
+                input.focus();
+            });
             chip.appendChild(label);
             chip.appendChild(rm);
             box.insertBefore(chip, input);
         });
+        clearBtn.style.display = hasTokens ? "inline-flex" : "none";
     }
 
     function sync(dispatch = true) {
@@ -903,7 +975,6 @@ function initTokenInput(id, options = {}) {
     box.addEventListener("mousedown", e => {
         if (e.target === box) { e.preventDefault(); input.focus(); }
     });
-    box.addEventListener("dblclick", () => { backing = ""; input.value = ""; sync(); });
 
     render();
 }
@@ -957,7 +1028,7 @@ async function loadFromURL() {
                 }
             }
         }
-        if (state.scriptsInput === '99-custom') document.getElementById('customScriptInput').style.display = 'block';
+        if (state.scriptsInput === '99-custom') setCustomScriptVisible(true);
     } catch (e) { console.error("Failed to load state", e); }
 }
 
@@ -998,6 +1069,12 @@ function saveToLocalStorage() {
     localStorage.setItem('openwrt_builder_state', JSON.stringify(state));
 }
 
+function setCustomScriptVisible(show) {
+    const el = document.getElementById("customScriptInput");
+    const target = el.closest("[data-clear-wrap]") || el;
+    target.style.display = show ? "block" : "none";
+}
+
 function loadFromLocalStorage() {
     const saved = localStorage.getItem('openwrt_builder_state');
     if (saved) {
@@ -1008,7 +1085,7 @@ function loadFromLocalStorage() {
                 if (el && state[field]) el.value = state[field];
             }
             if (state.scriptsInput === '99-custom') {
-                document.getElementById('customScriptInput').style.display = 'block';
+                setCustomScriptVisible(true);
             }
         } catch (e) { console.error("Failed to load local state", e); }
     }
@@ -1032,6 +1109,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     initCustomCombobox("modelInput");
     initTokenInput("packagesInput", { autocomplete: true });
     initTokenInput("disabled_servicesInput");
+    attachClearButton(document.getElementById("modelInput"));
+    attachClearButton(document.getElementById("customScriptInput"), { align: "top" });
 
     const { owner, repo, branch } = await fetchRepo();
     document.getElementById("repoUrl").href = `https://github.com/${owner}/${repo}/tree/${branch}/files/etc/uci-defaults`;
@@ -1086,7 +1165,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("targetInput").value = option.dataset.target;
             document.getElementById("profileInput").value = option.dataset.profile;
         } else {
-            document.getElementById("modelInput").value = '';
+            const modelInput = document.getElementById("modelInput");
+            modelInput.value = '';
+            modelInput.dispatchEvent(new Event('input', { bubbles: true }));
             document.getElementById("targetInput").value = '';
             document.getElementById("profileInput").value = '';
             document.getElementById("buildInfoContainer").style.display = "none";
@@ -1113,24 +1194,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("scriptsInput").addEventListener("change", function() {
         const customInput = document.getElementById("customScriptInput");
-        customInput.style.display = this.value === "99-custom" ? "block" : "none";
+        setCustomScriptVisible(this.value === "99-custom");
         if (this.value === "99-custom" && !customInput.value) {
             customInput.placeholder = '#!/bin/sh\n# root_password=""\nif [ -n "$root_password" ]; then\n  (echo "$root_password"; sleep 1; echo "$root_password") | passwd > /dev/null\nfi\nuci commit';
         }
     });
 
-    ['modelInput', 'packagesInput', 'disabled_servicesInput'].forEach(id => {
-        const el = document.getElementById(id);
-        el?.addEventListener('dblclick', () => { 
-            el.value = ''; 
-            if (id === 'modelInput') {
-                document.getElementById("targetInput").value = '';
-                document.getElementById("profileInput").value = '';
-                document.getElementById("buildInfoContainer").style.display = "none";
-            }
-            saveToLocalStorage();
-        });
-        if (id !== 'modelInput') el?.addEventListener('change', () => el.blur());
+    ['packagesInput', 'disabled_servicesInput'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', e => e.target.blur());
     });
 
     // Resume tracking an in-progress build after reload
@@ -1589,7 +1660,7 @@ function saveScriptEditor() {
 
     const customInput = document.getElementById("customScriptInput");
     customInput.value = content;
-    customInput.style.display = "block";
+    setCustomScriptVisible(true);
 
     const select = document.getElementById("scriptsInput");
     select.value = "99-custom";

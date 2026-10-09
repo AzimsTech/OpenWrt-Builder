@@ -76,7 +76,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <label class="flex flex-col gap-1">
                     <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-1">Device Model</span>
-                    <input type="text" id="modelInput" list="modelOptions" placeholder="Start typing your model..." autocomplete="off" title="Double-click to clear this field" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-9 px-3 text-sm text-on-surface focus-ring transition-shadow">
+                    <input type="text" id="modelInput" list="modelOptions" placeholder="Start typing your model..." autocomplete="off" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg h-9 px-3 pr-7 text-sm text-on-surface focus-ring transition-shadow">
                     <datalist id="modelOptions"></datalist>
                     <input type="hidden" id="profileInput" name="profile">
                     <input type="hidden" id="targetInput" name="target">
@@ -112,7 +112,7 @@
                         <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Include / Exclude</span>
                         <span class="text-[10px] text-outline italic">Use '-' to exclude</span>
                     </div>
-                    <textarea id="packagesInput" name="packages" title="Double-click to clear this field" class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-2.5 text-sm text-on-surface min-h-[64px] resize-none focus-ring" placeholder="luci luci-app-sqm -kmod-usb3"></textarea>
+                    <textarea id="packagesInput" name="packages" class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-2.5 text-sm text-on-surface min-h-[64px] resize-none focus-ring" placeholder="luci luci-app-sqm -kmod-usb3"></textarea>
                 </label>
             </section>
 
@@ -123,7 +123,7 @@
                 </div>
                 <label class="flex flex-col gap-1 h-full">
                     <span class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Disable Services</span>
-                    <textarea id="disabled_servicesInput" name="disabled_services" title="Double-click to clear this field" class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-2.5 text-sm text-on-surface min-h-[64px] resize-none focus-ring" placeholder="dnsmasq firewall odhcpd"></textarea>
+                    <textarea id="disabled_servicesInput" name="disabled_services" class="flex-1 w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-2.5 text-sm text-on-surface min-h-[64px] resize-none focus-ring" placeholder="dnsmasq firewall odhcpd"></textarea>
                 </label>
             </section>
 
@@ -144,7 +144,7 @@
                             <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-xl">expand_more</span>
                         </div>
                     </label>
-                    <textarea id="customScriptInput" style="display: none;" name="custom_script" title="Double-click to clear this field" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-2.5 text-xs font-mono text-primary-dim min-h-[64px] resize-none focus-ring mt-2" placeholder="#!/bin/sh"></textarea>
+                    <textarea id="customScriptInput" style="display: none;" name="custom_script" class="w-full bg-surface-container-highest border border-outline-variant/10 rounded-lg p-2.5 pr-7 text-xs font-mono text-primary-dim min-h-[64px] resize-none focus-ring mt-2" placeholder="#!/bin/sh"></textarea>
                 </section>
 
                 <div class="flex gap-2">
