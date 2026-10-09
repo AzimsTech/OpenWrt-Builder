@@ -94,6 +94,7 @@ async function fetchBuildInfo(target, version, profileId) {
         : `https://downloads.openwrt.org/releases/${version}/targets/${target}/`;
 
     try {
+        setOpenWrtKernel(null); // repopulated from profiles.json below; avoids probing the previous target's kmods dir
         const buildInfoRes = await fetch(baseUrl + "version.buildinfo?cacheBust=" + Date.now(), { cache: 'no-store' });
         if (!buildInfoRes.ok) throw new Error("Build info not found");
         
@@ -108,7 +109,10 @@ async function fetchBuildInfo(target, version, profileId) {
         
         const profilesRes = await fetch(baseUrl + "profiles.json");
         const profilesData = await profilesRes.json();
-        
+
+        setOpenWrtKernel(profilesData.linux_kernel);
+        setOpenWrtArch(profilesData.arch_packages);
+
         const rawPkgs = profilesData.profiles[profileId]?.device_packages || [];
         const removals = new Set(rawPkgs.filter(p => p.startsWith('-')).map(p => p.slice(1)));
         const devicePkgs = rawPkgs.filter(p => !p.startsWith('-') ? !removals.has(p) : true).join(" ");
@@ -159,8 +163,139 @@ async function fetchBuildInfo(target, version, profileId) {
         `;
     } catch (e) {
         window.devicePkgs = "";
+        setOpenWrtKernel(null);
+        setOpenWrtArch(null);
         return "<p class='text-sm text-error'>Build info not found!</p>";
     }
+}
+
+// Autocomplete package sources:
+//  - feeds:      sysupgrade.openwrt.org .../packages/{arch}-index.json (all feeds for an arch)
+//  - target repo: downloads.openwrt.org .../targets/{target}/packages/index.json
+//                 + .../targets/{target}/kmods/{kernel}/index.json (kmods + target-specific pkgs)
+// The target repo is merged in because kmods (e.g. kmod-usb-serial) never appear in the feed index.
+let openwrtArch = null;
+let openwrtKernel = null;
+const feedIndexCache = new Map();
+const targetIndexCache = new Map();
+const mergedIndexCache = new Map();
+
+function setOpenWrtArch(arch) {
+    openwrtArch = arch || null;
+    document.dispatchEvent(new CustomEvent("openwrt-arch-changed", { detail: { arch: openwrtArch } }));
+}
+
+// profiles.json -> linux_kernel: { version, release, vermagic } -> kmods dir "{version}-{release}-{vermagic}"
+function setOpenWrtKernel(kernel) {
+    openwrtKernel = (kernel && kernel.version && kernel.release && kernel.vermagic) ? kernel : null;
+}
+
+function kmodsDirFromKernel() {
+    return openwrtKernel ? `${openwrtKernel.version}-${openwrtKernel.release}-${openwrtKernel.vermagic}` : null;
+}
+
+function downloadsBaseUrl(release) {
+    return release === "SNAPSHOT"
+        ? "https://downloads.openwrt.org/snapshots"
+        : `https://downloads.openwrt.org/releases/${encodeURIComponent(release)}`;
+}
+
+async function fetchJsonSafe(url) {
+    try {
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return (data && typeof data === "object" && !Array.isArray(data)) ? data : null;
+    } catch (e) { return null; }
+}
+
+async function fetchTextSafe(url) {
+    try {
+        const res = await fetch(url);
+        return res.ok ? res.text() : null;
+    } catch (e) { return null; }
+}
+
+function packagesFromIndexJson(data) {
+    if (!data) return null;
+    const pkgs = (data.packages && typeof data.packages === "object") ? data.packages : data;
+    return Object.keys(pkgs).length ? pkgs : null;
+}
+
+function parseOpkgPackages(text) {
+    const map = {};
+    let name = null;
+    for (const line of text.split("\n")) {
+        if (line.startsWith("Package: ")) name = line.slice(9).trim();
+        else if (line.startsWith("Version: ") && name) { map[name] = line.slice(9).trim(); name = null; }
+    }
+    return Object.keys(map).length ? map : null;
+}
+
+async function loadRepoIndex(baseUrl) {
+    const json = packagesFromIndexJson(await fetchJsonSafe(`${baseUrl}/index.json`));
+    if (json) return json;
+    const text = await fetchTextSafe(`${baseUrl}/Packages`);
+    return text ? parseOpkgPackages(text) : null;
+}
+
+function fetchFeedIndex(release, arch) {
+    if (!release || !arch) return Promise.resolve(null);
+    const key = `${release}|${arch}`;
+    if (feedIndexCache.has(key)) return feedIndexCache.get(key);
+
+    const path = release === "SNAPSHOT" ? "snapshots" : `releases/${encodeURIComponent(release)}`;
+    const promise = fetchJsonSafe(`https://sysupgrade.openwrt.org/json/v1/${path}/packages/${encodeURIComponent(arch)}-index.json`);
+    feedIndexCache.set(key, promise);
+    return promise;
+}
+
+async function fetchTargetIndex(release, target) {
+    if (!release || !target) return null;
+    const kernelDir = kmodsDirFromKernel();
+    const key = `${release}|${target}|${kernelDir || "?"}`;
+    if (targetIndexCache.has(key)) return targetIndexCache.get(key);
+
+    const promise = (async () => {
+        const base = `${downloadsBaseUrl(release)}/targets/${target}`;
+        const merged = {};
+        Object.assign(merged, (await loadRepoIndex(`${base}/packages`)) || {});
+
+        // kernel modules live in a versioned subdirectory; resolve it exactly from
+        // profiles.json's linux_kernel when available, else use the newest listed kernel
+        let kmods = kernelDir ? await loadRepoIndex(`${base}/kmods/${kernelDir}`) : null;
+        if (!kmods) {
+            const listing = await fetchTextSafe(`${base}/kmods/`);
+            const dirs = listing
+                ? Array.from(listing.matchAll(/href="([^"\/?]+)\/"/g)).map(m => m[1]).filter(d => /^\d/.test(d))
+                : [];
+            if (dirs.length) {
+                dirs.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+                kmods = await loadRepoIndex(`${base}/kmods/${dirs[0]}`);
+            }
+        }
+        Object.assign(merged, kmods || {});
+        return Object.keys(merged).length ? merged : null;
+    })();
+    targetIndexCache.set(key, promise);
+    return promise;
+}
+
+function fetchPackageIndexes(release, arch, target) {
+    const key = `${release}|${arch}|${target}`;
+    if (mergedIndexCache.has(key)) return mergedIndexCache.get(key);
+
+    const promise = Promise.all([fetchFeedIndex(release, arch), fetchTargetIndex(release, target)])
+        .then(([feed, targetPkgs]) => {
+            if (!feed && !targetPkgs) return null;
+            return Object.assign({}, feed || {}, targetPkgs || {});
+        });
+    mergedIndexCache.set(key, promise);
+    return promise;
+}
+
+function hasPackageIndexes(release, arch, target) {
+    return mergedIndexCache.has(`${release}|${arch}|${target}`);
 }
 
 // ============================================
@@ -368,8 +503,10 @@ function initCustomCombobox(inputId) {
             li.setAttribute('role', 'option');
             li.dataset.target = opt.dataset.target || '';
             li.dataset.profile = opt.dataset.profile || '';
+            li.title = opt.value;
 
             const text = document.createElement('span');
+            text.className = 'option-label';
             const val = input.value.toLowerCase();
             const idx = opt.value.toLowerCase().indexOf(val);
             if (idx !== -1) {
@@ -462,7 +599,8 @@ async function updateBuildInfoDisplay() {
     }
 }
 
-function initTokenInput(id) {
+function initTokenInput(id, options = {}) {
+    const autocomplete = !!options.autocomplete;
     const el = document.getElementById(id);
     if (!el || el.dataset.tokenized) return;
     el.dataset.tokenized = "1";
@@ -481,6 +619,16 @@ function initTokenInput(id) {
     input.setAttribute("autocomplete", "off");
     input.setAttribute("spellcheck", "false");
     box.appendChild(input);
+
+    const menu = document.createElement("ul");
+    let closeTimer = null;
+    if (autocomplete) {
+        box.classList.add("relative");
+        menu.className = "custom-dropdown-menu";
+        menu.setAttribute("role", "listbox");
+        menu.style.top = "100%";
+        box.appendChild(menu);
+    }
     el.parentNode.insertBefore(box, el);
     el.style.display = "none";
     el.tabIndex = -1;
@@ -537,6 +685,140 @@ function initTokenInput(id) {
         el.dispatchEvent(new Event("input", { bubbles: true }));
     }
 
+    function pkgIndexParams() {
+        const release = document.getElementById("versionInput").value;
+        const target = document.getElementById("targetInput").value;
+        if (!release || !openwrtArch || !target) return null;
+        return { release, arch: openwrtArch, target, key: `${release}|${openwrtArch}|${target}` };
+    }
+
+    function closeMenu() {
+        if (!autocomplete) return;
+        menu.classList.remove("open");
+        menu.innerHTML = "";
+    }
+
+    function showLoadingMenu() {
+        menu.innerHTML = "";
+        const li = document.createElement("li");
+        li.className = "custom-dropdown-option";
+        li.dataset.loading = "1";
+        li.style.cursor = "default";
+        li.style.fontSize = "11px";
+        li.style.color = "rgb(var(--outline))";
+        li.textContent = "Loading package index…";
+        menu.appendChild(li);
+        menu.classList.add("open");
+    }
+
+    function matchNode(token, needle) {
+        const idx = token.toLowerCase().indexOf(needle);
+        if (idx === -1) return document.createTextNode(token);
+        const frag = document.createDocumentFragment();
+        frag.appendChild(document.createTextNode(token.slice(0, idx)));
+        const strong = document.createElement("strong");
+        strong.className = "match";
+        strong.textContent = token.slice(idx, idx + needle.length);
+        frag.appendChild(strong);
+        frag.appendChild(document.createTextNode(token.slice(idx + needle.length)));
+        return frag;
+    }
+
+    function renderMenu(index, query) {
+        const needle = query.toLowerCase().replace(/^-/, "");
+        if (!needle) { closeMenu(); return; }
+        const prefix = query.startsWith("-");
+        const taken = new Set(tokens());
+        const candidates = [];
+
+        for (const name of Object.keys(index)) {
+            const token = prefix ? "-" + name : name;
+            if (taken.has(token)) continue;
+            const n = name.toLowerCase();
+            const rank = n === needle ? 0 : n.startsWith(needle) ? 1 : n.includes(needle) ? 2 : -1;
+            if (rank !== -1) candidates.push({ name, token, rank });
+        }
+        candidates.sort((a, b) => a.rank - b.rank);
+        const picks = candidates.slice(0, 30);
+        if (!picks.length) { closeMenu(); return; }
+
+        menu.innerHTML = "";
+        picks.forEach(({ name, token }) => {
+            const li = document.createElement("li");
+            li.className = "custom-dropdown-option";
+            li.setAttribute("role", "option");
+            li.dataset.token = token;
+            li.title = token;
+
+            const text = document.createElement("span");
+            text.className = "option-label";
+            text.appendChild(matchNode(token, query.toLowerCase()));
+            li.appendChild(text);
+
+            const version = document.createElement("span");
+            version.className = "option-meta text-[11px] font-mono text-on-surface-variant";
+            version.textContent = index[name] || "";
+            li.appendChild(version);
+
+            li.addEventListener("mousedown", e => {
+                e.preventDefault();
+                chooseToken(token);
+            });
+            menu.appendChild(li);
+        });
+        menu.classList.add("open");
+        setHighlight(0);
+    }
+
+    function menuItems() {
+        return Array.from(menu.querySelectorAll("li:not([data-loading])"));
+    }
+
+    function setHighlight(i) {
+        const items = menuItems();
+        if (!items.length) return;
+        const idx = Math.max(0, Math.min(items.length - 1, i));
+        items.forEach((li, j) => li.classList.toggle("highlighted", j === idx));
+        items[idx].scrollIntoView({ block: "nearest" });
+    }
+
+    function moveHighlight(dir) {
+        const items = menuItems();
+        if (!items.length) return;
+        const current = items.findIndex(li => li.classList.contains("highlighted"));
+        setHighlight(current === -1 ? (dir > 0 ? 0 : items.length - 1) : current + dir);
+    }
+
+    function highlightedToken() {
+        const items = menuItems();
+        const li = items.find(li => li.classList.contains("highlighted"));
+        return li ? li.dataset.token : null;
+    }
+
+    function chooseToken(token) {
+        if (!token) return;
+        addTokens(token);
+        input.value = "";
+        closeMenu();
+        input.focus();
+    }
+
+    function updateSuggestions() {
+        if (!autocomplete) return;
+        if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+        const query = input.value;
+        const params = pkgIndexParams();
+        if (!query.trim() || !params) { closeMenu(); return; }
+        if (!hasPackageIndexes(params.release, params.arch, params.target)) showLoadingMenu();
+
+        fetchPackageIndexes(params.release, params.arch, params.target).then(index => {
+            if (input.value !== query) return;
+            const current = pkgIndexParams();
+            if (!current || current.key !== params.key || !index) { closeMenu(); return; }
+            renderMenu(index, query);
+        });
+    }
+
     Object.defineProperty(el, "value", {
         get() { return backing; },
         set(v) { backing = String(v ?? "").split(/\s+/).filter(Boolean).join(" "); render(); },
@@ -547,18 +829,44 @@ function initTokenInput(id) {
         if (input.value.includes(" ")) {
             addTokens(input.value);
             input.value = "";
+            closeMenu();
+        } else if (autocomplete) {
+            updateSuggestions();
         }
     });
     input.addEventListener("keydown", e => {
         if (e.isComposing) return;
-        if (e.key === " " || e.key === "Enter") {
+        const open = autocomplete && menu.classList.contains("open");
+        if (autocomplete && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+            e.preventDefault();
+            if (open) moveHighlight(e.key === "ArrowDown" ? 1 : -1);
+            else updateSuggestions();
+            return;
+        }
+        if (open && e.key === "Escape") {
+            e.preventDefault();
+            closeMenu();
+            return;
+        }
+        if (e.key === "Enter" || e.key === "Tab" || e.key === " ") {
+            if (open && (e.key === "Enter" || e.key === "Tab")) {
+                const token = highlightedToken();
+                if (token) {
+                    e.preventDefault();
+                    chooseToken(token);
+                    return;
+                }
+            }
+            if (e.key === "Tab") { closeMenu(); return; }
             e.preventDefault();
             if (input.value.trim()) { addTokens(input.value); input.value = ""; }
+            closeMenu();
         } else if (e.key === "Backspace" && !input.value && tokens().length) {
             const list = tokens();
             list.pop();
             backing = list.join(" ");
             sync();
+            closeMenu();
         }
     });
     input.addEventListener("paste", e => {
@@ -567,7 +875,31 @@ function initTokenInput(id) {
     });
     input.addEventListener("blur", () => {
         if (input.value.trim()) { addTokens(input.value); input.value = ""; }
+        if (autocomplete) closeTimer = setTimeout(closeMenu, 200);
     });
+    if (autocomplete) {
+        input.addEventListener("focus", () => { if (input.value.trim()) updateSuggestions(); });
+        // arch arrives async (profiles.json); refresh if the user is mid-typing in this field
+        document.addEventListener("openwrt-arch-changed", () => {
+            if (document.activeElement === input && input.value.trim()) updateSuggestions();
+        });
+        menu.addEventListener("mouseover", e => {
+            const li = e.target.closest("li");
+            if (!li || li.dataset.loading) return;
+            const items = menuItems();
+            setHighlight(items.indexOf(li));
+        });
+        menu.addEventListener("mousedown", e => {
+            const li = e.target.closest("li");
+            if (!li) return;
+            e.preventDefault();
+            if (li.dataset.loading) return;
+            chooseToken(li.dataset.token);
+        });
+        document.addEventListener("click", e => {
+            if (!box.contains(e.target)) closeMenu();
+        });
+    }
     box.addEventListener("mousedown", e => {
         if (e.target === box) { e.preventDefault(); input.focus(); }
     });
@@ -698,7 +1030,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initCustomSelect("versionInput");
     initCustomSelect("scriptsInput");
     initCustomCombobox("modelInput");
-    initTokenInput("packagesInput");
+    initTokenInput("packagesInput", { autocomplete: true });
     initTokenInput("disabled_servicesInput");
 
     const { owner, repo, branch } = await fetchRepo();
