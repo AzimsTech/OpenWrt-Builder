@@ -832,10 +832,6 @@ function initTokenInput(id, options = {}) {
             version.textContent = index[name] || "";
             li.appendChild(version);
 
-            li.addEventListener("mousedown", e => {
-                e.preventDefault();
-                chooseToken(token);
-            });
             menu.appendChild(li);
         });
         menu.classList.add("open");
