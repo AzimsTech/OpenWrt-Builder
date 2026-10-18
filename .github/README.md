@@ -1,3 +1,7 @@
+<div align="center">
+    <img height="600" src="screenshot.png" alt="Screenshot">
+</div>
+
 # OpenWrt Builder 🚀
 
 ![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2FAzimsTech%2FOpenWrt-Builder%2F&label=repository%20visits&countColor=%23263759&style=flat&labelStyle=none)
