@@ -981,56 +981,83 @@ function initTokenInput(id, options = {}) {
 
 const formFields = ['modelInput', 'versionInput', 'profileInput', 'targetInput', 'packagesInput', 'disabled_servicesInput', 'scriptsInput', 'customScriptInput'];
 
-async function hashString(str) {
-    const data = new TextEncoder().encode(str);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+const shareParams = {
+    version: 'versionInput',
+    profile: 'profileInput',
+    packages: 'packagesInput',
+    disabled_services: 'disabled_servicesInput',
+    scripts: 'scriptsInput'
+};
+
+async function compressToBase64Url(text) {
+    const bytes = new TextEncoder().encode(text);
+    const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    const buf = new Uint8Array(await new Response(stream).arrayBuffer());
+    let bin = '';
+    for (let i = 0; i < buf.length; i += 0x8000) {
+        bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+    }
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-async function encodeFormState() {
-    const token = getToken();
-    const state = {};
-    for (const field of formFields) {
-        const el = document.getElementById(field);
-        if (el && el.value) {
-            if (field === 'customScriptInput' && token) {
-                const key = await hashString(token);
-                const data = btoa(unescape(encodeURIComponent(el.value)));
-                state[field] = JSON.stringify({ data, signature: await hashString(key + data) });
-            } else if (field !== 'customScriptInput') {
-                state[field] = el.value;
-            }
-        }
-    }
-    return btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+async function decompressFromBase64Url(str) {
+    let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return await new Response(stream).text();
 }
 
 async function loadFromURL() {
-    const config = new URLSearchParams(window.location.search).get('config');
-    const token = getToken();
-    if (!config) return;
+    const params = new URLSearchParams(window.location.search);
+    if (![...params.keys()].length && !window.location.hash) return;
 
-    try {
-        const state = JSON.parse(decodeURIComponent(escape(atob(config))));
-        for (const field of formFields) {
-            const el = document.getElementById(field);
-            if (el && state[field]) {
-                if (field === 'customScriptInput' && token) {
-                    const { data, signature } = JSON.parse(state[field]);
-                    const expectedSig = await hashString(await hashString(token) + data);
-                    if (signature === expectedSig) el.value = decodeURIComponent(escape(atob(data)));
-                } else if (field !== 'customScriptInput') {
-                    el.value = state[field];
-                }
+    for (const [key, id] of Object.entries(shareParams)) {
+        const value = params.get(key);
+        if (value !== null) {
+            const el = document.getElementById(id);
+            if (el) el.value = value;
+        }
+    }
+
+    if (params.has('profile')) {
+        document.getElementById('modelInput').value = '';
+    }
+
+    const scriptsVal = document.getElementById('scriptsInput').value;
+    setCustomScriptVisible(scriptsVal === '99-custom');
+
+    if (scriptsVal === '99-custom') {
+        const script = new URLSearchParams(window.location.hash.slice(1)).get('script');
+        if (script) {
+            try {
+                document.getElementById('customScriptInput').value = await decompressFromBase64Url(script);
+            } catch (e) {
+                console.error('Failed to decode script from link', e);
             }
         }
-        if (state.scriptsInput === '99-custom') setCustomScriptVisible(true);
-    } catch (e) { console.error("Failed to load state", e); }
+    }
+}
+
+async function buildShareURL() {
+    const params = new URLSearchParams();
+    for (const [key, id] of Object.entries(shareParams)) {
+        const el = document.getElementById(id);
+        if (el && el.value.trim()) params.set(key, el.value.trim());
+    }
+    let url = `${window.location.origin}${window.location.pathname}`;
+    const query = params.toString();
+    if (query) url += `?${query}`;
+    const scriptsVal = document.getElementById('scriptsInput').value;
+    const script = document.getElementById('customScriptInput').value;
+    if (scriptsVal === '99-custom' && script.trim()) {
+        url += `#script=${await compressToBase64Url(script)}`;
+    }
+    return url;
 }
 
 async function generateShareURL() {
-    const base64 = await encodeFormState();
-    const shareURL = `${window.location.origin}${window.location.pathname}?config=${base64}`;
+    const shareURL = await buildShareURL();
     const urlContainer = document.getElementById('shareURL');
     urlContainer.textContent = shareURL;
     urlContainer.style.display = 'block';
@@ -1147,12 +1174,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     const models = await fetchModelsForVersion(currentVersion);
     renderModelDatalist(models);
 
-    // 5. If we loaded a model from memory, try mapping its hidden variables and display it
-    if (document.getElementById("modelInput").value) {
-        const option = Array.from(document.getElementById("modelOptions").options).find(o => o.value === document.getElementById("modelInput").value);
+    // 5. Resolve model selection (profile slug or display name) against the fetched model list
+    const modelInputEl = document.getElementById("modelInput");
+    const profileInputEl = document.getElementById("profileInput");
+    const rawModel = profileInputEl.value || modelInputEl.value;
+    if (rawModel) {
+        const options = Array.from(document.getElementById("modelOptions").options);
+        const option = options.find(o => o.dataset.profile === rawModel) || options.find(o => o.value === rawModel);
         if (option) {
+            modelInputEl.value = option.value;
+            profileInputEl.value = option.dataset.profile;
             document.getElementById("targetInput").value = option.dataset.target;
-            document.getElementById("profileInput").value = option.dataset.profile;
+        } else {
+            console.error("Model/profile from restored state not found for this version:", rawModel);
+            if (!modelInputEl.value) profileInputEl.value = "";
         }
         updateBuildInfoDisplay();
     }
@@ -1237,7 +1272,7 @@ async function runWorkflow(event) {
     }
 
     const { owner, repo, branch } = await fetchRepo();
-    const shareURL = `${window.location.origin}${window.location.pathname}?config=${await encodeFormState()}`;
+    const shareURL = await buildShareURL();
 
     const inputs = {
         model: document.getElementById("profileInput").value,
