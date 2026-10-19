@@ -1257,7 +1257,16 @@ async function runWorkflow(event) {
         body: JSON.stringify({ ref: branch, inputs })
     });
 
-    if (!triggerRes.ok) return alert("Failed to trigger workflow. Check console.");
+    if (!triggerRes.ok) {
+        console.error("Dispatch failed", triggerRes.status, await triggerRes.text().catch(() => ""));
+        if (triggerRes.status === 401 || triggerRes.status === 403) {
+            setProgressFailed("Token rejected", "GitHub rejected your token. Save a valid token and retry.");
+            openTokenError("GitHub rejected your token — save a valid one.");
+        } else {
+            alert(`Failed to trigger workflow (HTTP ${triggerRes.status}). Check console.`);
+        }
+        return;
+    }
 
     const dispatchTime = Date.now();
     buildProgressStart = dispatchTime;
@@ -1269,6 +1278,7 @@ async function runWorkflow(event) {
         runId = await findDispatchedRun(owner, repo, token, dispatchTime);
     } catch (e) {
         setProgressFailed("Unauthorized", "GitHub rejected your token. Save a valid token and retry.");
+        openTokenError("GitHub rejected your token — save a valid one.");
         return;
     }
     if (!runId) {
@@ -1404,6 +1414,7 @@ async function trackBuildRun(owner, repo, runId, token) {
             if (buildProgressTimer) { clearInterval(buildProgressTimer); buildProgressTimer = null; }
             localStorage.removeItem("openwrt_active_run");
             setProgressFailed("Token rejected", "GitHub rejected your token. Save a valid token and retry.");
+            openTokenError("GitHub rejected your token — save a valid one.");
             return;
         }
         if (!jobsRes.ok || !jobsRes.data) return;
