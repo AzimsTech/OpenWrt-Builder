@@ -988,7 +988,7 @@ async function hashString(str) {
 }
 
 async function encodeFormState() {
-    const token = localStorage.getItem("github_token");
+    const token = getToken();
     const state = {};
     for (const field of formFields) {
         const el = document.getElementById(field);
@@ -1007,7 +1007,7 @@ async function encodeFormState() {
 
 async function loadFromURL() {
     const config = new URLSearchParams(window.location.search).get('config');
-    const token = localStorage.getItem("github_token");
+    const token = getToken();
     if (!config) return;
 
     try {
@@ -1093,11 +1093,27 @@ function loadFromLocalStorage() {
 
 document.addEventListener("DOMContentLoaded", async () => {
     // 1. Setup UI and Github Link
-    if (!localStorage.getItem("github_token")) {
-        document.getElementById("setupTokenButton").style.display = "flex";
-    } else {
-        document.getElementById("clearTokenButton").style.display = "flex";
-    }
+    updateTokenUI();
+
+    // Enrich older saves (plain-string tokens) with login/avatar/scopes/expiry so the chip can show the username
+    try {
+        const stored = readStoredToken();
+        if (stored && (!stored.login || !("avatar" in stored))) {
+            verifyToken(stored.token).then(result => {
+                if (!result.ok) return;
+                writeStoredToken({
+                    ...stored,
+                    login: result.login,
+                    avatar: result.avatar_url,
+                    scopes: result.scopes,
+                    fineGrained: result.fineGrained,
+                    expires: result.expires,
+                    saved_at: stored.saved_at || Date.now()
+                });
+                updateTokenUI();
+            });
+        }
+    } catch (e) { /* offline / rate-limited: chip keeps showing whatever we have */ }
 
     // Init custom dropdowns and combobox
     initCustomSelect("versionInput");
@@ -1203,7 +1219,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Resume tracking an in-progress build after reload
     try {
         const active = JSON.parse(localStorage.getItem("openwrt_active_run") || "null");
-        const savedToken = localStorage.getItem("github_token");
+        const savedToken = getToken();
         if (active && active.run_id && savedToken) {
             buildProgressStart = Date.now();
             showBuildProgress(active.owner, active.repo, active.run_id);
@@ -1214,8 +1230,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function runWorkflow(event) {
     event.preventDefault();
-    const token = localStorage.getItem("github_token");
-    if (!token) return document.getElementById("setupTokenButton").click();
+    const token = getToken();
+    if (!token) {
+        setupToken();
+        return setTokenStatus("error", "Save a GitHub token to run builds.");
+    }
 
     const { owner, repo, branch } = await fetchRepo();
     const shareURL = `${window.location.origin}${window.location.pathname}?config=${await encodeFormState()}`;
@@ -1437,7 +1456,7 @@ async function loadBuildResult(owner, repo) {
 
     try {
         const releasesUrl = `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
-        const token = localStorage.getItem("github_token");
+        const token = getToken();
         let release = null;
 
         if (token) {
@@ -1474,34 +1493,250 @@ async function loadBuildResult(owner, repo) {
     }
 }
 
-function saveToken() {
-    const token = document.getElementById("tokenInput").value;
-    if (!token) return alert("Please enter a valid token!");
-    localStorage.setItem("github_token", token);
-    alert("Token saved successfully!");
-    location.reload();
+// ============================================
+// 4a. TOKEN (storage, verification, modal)
+// ============================================
+
+const TOKEN_KEY = "github_token";
+
+function readStoredToken() {
+    const raw = localStorage.getItem(TOKEN_KEY);
+    if (!raw) return null;
+    if (raw.trim().startsWith("{")) {
+        try { return JSON.parse(raw); } catch (e) { return null; }
+    }
+    return { token: raw, saved_at: null }; // legacy plain-string token
 }
 
-function clearToken() {
-    localStorage.removeItem("github_token");
-    alert("Token cleared successfully!");
-    location.reload();
+function writeStoredToken(info) {
+    localStorage.setItem(TOKEN_KEY, JSON.stringify(info));
+}
+
+function getToken() {
+    const info = readStoredToken();
+    return info && info.token ? info.token : null;
+}
+
+function maskToken(token) {
+    return token.length > 12 ? `${token.slice(0, 4)}…${token.slice(-4)}` : "••••";
+}
+
+function setTokenStatus(kind, msg) {
+    const el = document.getElementById("tokenStatus");
+    if (!el) return;
+    el.textContent = msg || "";
+    const tone = kind === "error" ? "text-error" : kind === "success" ? "text-tertiary" : "text-on-surface-variant";
+    el.className = `text-sm font-bold min-h-[1.25rem] ${tone}`;
+}
+
+function tokenExpiryState(info) {
+    if (!info || !info.expires) return "unknown";
+    const ms = new Date(info.expires).getTime() - Date.now();
+    if (isNaN(ms)) return "unknown";
+    if (ms <= 0) return "expired";
+    if (ms < 14 * 24 * 60 * 60 * 1000) return "soon";
+    return "ok";
+}
+
+async function verifyToken(token) {
+    const headers = apiHeaders(token);
+    let res;
+    try {
+        res = await fetch("https://api.github.com/user", { headers });
+    } catch (e) {
+        return { ok: false, reason: "Could not reach api.github.com — check your connection." };
+    }
+    if (res.status === 401) return { ok: false, reason: "GitHub rejected this token (401). Check for extra spaces or create a new one." };
+    if (res.status === 403) {
+        const remaining = res.headers.get("x-ratelimit-remaining");
+        return { ok: false, reason: remaining === "0" ? "GitHub API rate limit hit — wait a minute and try again." : "GitHub refused the request (403) — the token lacks permission." };
+    }
+    if (!res.ok) return { ok: false, reason: `GitHub responded with ${res.status}. Try again.` };
+
+    const user = await res.json().catch(() => ({}));
+    const scopes = (res.headers.get("x-oauth-scopes") || "").split(",").map(s => s.trim()).filter(Boolean);
+    const expiresRaw = res.headers.get("x-oauth-token-expiration");
+    let expires = null;
+    if (expiresRaw) {
+        const d = new Date(expiresRaw);
+        if (!isNaN(d)) expires = d.toISOString();
+    }
+
+    if (scopes.length && !scopes.includes("repo") && !scopes.includes("public_repo")) {
+        return { ok: false, reason: `Token is missing the 'repo' scope (has: ${scopes.join(", ")}).` };
+    }
+
+    const { owner, repo } = await fetchRepo();
+    let wfRes;
+    try {
+        wfRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows`, { headers });
+    } catch (e) {
+        return { ok: false, reason: "Could not reach api.github.com — check your connection." };
+    }
+    if (wfRes.status === 404) return { ok: false, reason: `This token cannot see ${owner}/${repo} — limit it to this repository.` };
+    if (wfRes.status === 403) return { ok: false, reason: `Token has no Actions access to ${owner}/${repo} (needs Actions: Read & write).` };
+    if (!wfRes.ok) return { ok: false, reason: `Could not verify Actions access (${wfRes.status}).` };
+
+    return { ok: true, login: user.login || "GitHub user", avatar_url: user.avatar_url || null, scopes, expires, fineGrained: !scopes.length };
+}
+
+function updateTokenUI() {
+    const info = readStoredToken();
+    const state = tokenExpiryState(info);
+
+    const label = document.getElementById("tokenChipLabel");
+    if (label) label.textContent = info ? (info.login || "Token saved") : "Setup Token";
+
+    const avatarUrl = info && info.avatar ? info.avatar : null;
+    const chipAvatar = document.getElementById("tokenChipAvatar");
+    if (chipAvatar) {
+        if (avatarUrl) {
+            chipAvatar.src = avatarUrl;
+            chipAvatar.style.display = "block";
+        } else {
+            chipAvatar.removeAttribute("src");
+            chipAvatar.style.display = "none";
+        }
+    }
+    const chipIcon = document.getElementById("tokenChipIcon");
+    if (chipIcon) chipIcon.style.display = avatarUrl ? "none" : "";
+
+    const infoAvatar = document.getElementById("tokenInfoAvatar");
+    const infoIcon = document.getElementById("tokenInfoIcon");
+    if (infoAvatar && infoIcon) {
+        if (avatarUrl) {
+            infoAvatar.src = avatarUrl;
+            infoAvatar.style.display = "block";
+            infoIcon.style.display = "none";
+        } else {
+            infoAvatar.removeAttribute("src");
+            infoAvatar.style.display = "none";
+            infoIcon.style.display = "";
+        }
+    }
+
+    const dot = document.getElementById("tokenChipDot");
+    if (dot) {
+        const bad = !info || state === "expired";
+        dot.style.display = bad ? "block" : "none";
+        dot.classList.toggle("bg-error", bad);
+        dot.classList.toggle("bg-tertiary", !bad);
+        dot.title = !info ? "No token saved" : state === "expired" ? "Token expired" : "Token saved";
+    }
+
+    const infoBox = document.getElementById("tokenInfoBox");
+    if (infoBox) {
+        if (info) {
+            infoBox.style.display = "flex";
+            document.getElementById("tokenInfoLogin").textContent = info.login || "Token saved";
+            document.getElementById("tokenInfoMask").textContent = maskToken(info.token);
+            const editLink = document.getElementById("tokenEditLink");
+            if (editLink) editLink.href = info.token.startsWith("github_pat_")
+                ? "https://github.com/settings/personal-access-tokens"
+                : "https://github.com/settings/tokens";
+            const bits = [];
+            if (info.scopes && info.scopes.length) bits.push("Scopes: " + info.scopes.join(", "));
+            else bits.push("Repo Actions access verified");
+            if (info.saved_at) bits.push("Saved " + new Date(info.saved_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }));
+            document.getElementById("tokenInfoMeta").textContent = bits.join(" · ");
+        } else {
+            infoBox.style.display = "none";
+        }
+    }
+
+    const warn = document.getElementById("tokenWarn");
+    if (warn) {
+        if (state === "expired") {
+            warn.style.display = "flex";
+            warn.className = "items-center gap-2 rounded-lg px-3 py-2 text-xs border bg-error/10 border-error/30 text-error";
+            document.getElementById("tokenWarnText").textContent = "This token has expired — create a new one below.";
+        } else if (state === "soon") {
+            warn.style.display = "flex";
+            warn.className = "items-center gap-2 rounded-lg px-3 py-2 text-xs border bg-tertiary/10 border-tertiary/30 text-tertiary";
+            document.getElementById("tokenWarnText").textContent = "This token expires on " + new Date(info.expires).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ".";
+        } else {
+            warn.style.display = "none";
+        }
+    }
+
+    // Hide the create/paste steps when a valid token is already saved
+    const needSetup = !info || state === "expired";
+    ["tokenCreateSection", "tokenPasteSection"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = needSetup ? "flex" : "none";
+    });
 }
 
 function setupToken() {
-    document.getElementById("tokenForm").style.display = "flex";
-    document.getElementById("setupTokenButton").style.display = "none";
-    document.getElementById("buildForm").style.display = "none";
+    document.getElementById("tokenOverlay").style.display = "flex";
+    const input = document.getElementById("tokenInput");
+    input.value = "";
+    setTokenStatus("info", "");
+    updateTokenUI();
+    setTimeout(() => input.focus(), 50);
 }
 
-async function testToken() {
-    const token = localStorage.getItem("github_token");
-    if (!token) return alert("No token found! Please save your token first.");
-    const res = await fetch("https://api.github.com/user", { headers: { "Authorization": `Bearer ${token}` } });
-    document.getElementById("status").innerText = res.ok ? "✅ Valid!" : "❌ Invalid";
-    if (res.ok) setTimeout(() => location.reload(), 2000);
+function closeTokenModal() {
+    document.getElementById("tokenOverlay").style.display = "none";
 }
 
+function openTokenError(msg) {
+    setupToken();
+    setTokenStatus("error", msg);
+    // the saved token is rejected even though it doesn't look expired — reveal the paste form
+    ["tokenCreateSection", "tokenPasteSection"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = "flex";
+    });
+    const input = document.getElementById("tokenInput");
+    if (input) input.focus();
+}
+
+async function saveToken() {
+    const input = document.getElementById("tokenInput");
+    const btn = document.getElementById("tokenSaveBtn");
+    const token = (input.value || "").trim();
+
+    if (!token) return setTokenStatus("error", "Paste a token first.");
+    if (!/^(gh[pousr]_|github_pat_)/.test(token)) return setTokenStatus("error", "Doesn't look like a GitHub token (expected ghp_… or github_pat_…).");
+
+    btn.disabled = true;
+    setTokenStatus("info", "Verifying with GitHub…");
+    const result = await verifyToken(token);
+    btn.disabled = false;
+
+    if (!result.ok) {
+        setTokenStatus("error", result.reason);
+        return;
+    }
+
+    writeStoredToken({
+        token,
+        saved_at: Date.now(),
+        login: result.login,
+        avatar: result.avatar_url,
+        scopes: result.scopes,
+        fineGrained: result.fineGrained,
+        expires: result.expires
+    });
+    input.value = "";
+    setTokenStatus("success", `Verified as ${result.login} — token saved.`);
+    updateTokenUI();
+    setTimeout(closeTokenModal, 1200);
+}
+
+function clearToken() {
+    localStorage.removeItem(TOKEN_KEY);
+    setTokenStatus("info", "Token cleared.");
+    updateTokenUI();
+}
+
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeTokenModal();
+});
+
+// ============================================
+// 5. SCRIPT EDITOR
 // ============================================
 // 5. SCRIPT EDITOR
 // ============================================

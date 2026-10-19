@@ -19,47 +19,73 @@
         <div class="flex items-center gap-2">
             <h1 class="font-headline text-lg font-bold tracking-tight text-on-surface">Image Builder</h1>
         </div>
-        <div class="flex items-center gap-4">
-            <button id="setupTokenButton" style="display: none;" onclick="setupToken()" type="button" class="h-7 px-3 bg-surface-container hover:bg-surface-container-highest text-primary rounded-full font-label text-[11px] font-bold tracking-wide uppercase transition-colors flex items-center gap-2">
-                <span class="material-symbols-outlined text-base">key</span> Setup Token
-            </button>
-            <button id="clearTokenButton" style="display: none;" onclick="clearToken()" type="button" class="h-7 px-3 bg-surface-container hover:bg-surface-container-highest text-error rounded-full font-label text-[11px] font-bold tracking-wide uppercase transition-colors flex items-center gap-2">
-                <span class="material-symbols-outlined text-base">delete_sweep</span> Clear Token
+        <div class="flex gap-4">
+            <button id="tokenChip" onclick="setupToken()" type="button" title="GitHub token" class="h-7 pl-2 pr-3 bg-surface-container hover:bg-surface-bright hover:border-primary/40 text-primary rounded-full font-label text-[11px] font-bold tracking-wide transition-colors flex items-center gap-1.5 border border-outline-variant/20 cursor-pointer">
+                <span id="tokenChipIcon" class="material-symbols-outlined text-base">key</span>
+                <img id="tokenChipAvatar" class="h-5 w-5 rounded-full object-cover" style="display: none;" alt="">
+                <span id="tokenChipLabel">Setup Token</span>
+                <span id="tokenChipDot" class="h-1.5 w-1.5 rounded-full bg-error" style="display: none;"></span>
             </button>
         </div>
     </header>
 
-    <form id="tokenForm" class="w-full max-w-[1100px] flex flex-col gap-3 px-4 py-4" style="display: none;">
-        <section class="bg-surface-container-low rounded-xl p-4 flex flex-col gap-3 shadow-[0_8px_40px_rgba(0,0,0,0.4)] border border-error/20">
-            <h2 class="font-headline text-xl font-bold text-error flex items-center gap-2">
-                <span class="material-symbols-outlined text-2xl">warning</span> Setup Your GitHub Personal Access Token
-            </h2>
-            <div class="flex flex-col gap-3">
-                <p class="text-on-surface-variant text-sm">1️⃣ Click below to open GitHub's token creation page:</p>
-                <button type="button" onclick="window.open('https://github.com/settings/tokens/new?scopes=repo,workflow,admin:repo_hook&description=GitHub%20Workflow%20Trigger', '_blank')" class="w-max h-9 px-4 bg-surface-container-highest hover:bg-surface-variant text-on-surface rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 border border-outline-variant/20">
-                    <span class="material-symbols-outlined text-[18px]">key</span> Create Token
+    <!-- Token Setup Modal -->
+    <div id="tokenOverlay" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" style="display: none;" onclick="if(event.target===this)closeTokenModal()">
+        <div class="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-surface-container-low rounded-xl p-5 flex flex-col gap-4 shadow-[0_8px_40px_rgba(0,0,0,0.5)] border border-outline-variant/15">
+            <div class="flex items-center justify-between">
+                <h2 class="font-headline text-lg font-bold text-on-surface flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">key</span> GitHub Token
+                </h2>
+                <button type="button" onclick="closeTokenModal()" class="h-8 w-8 rounded-full bg-surface-container-highest hover:bg-surface-bright hover:text-primary flex items-center justify-center transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-on-surface-variant text-xl">close</span>
                 </button>
             </div>
-            <div class="flex flex-col gap-2 mt-3">
-                <p class="text-on-surface-variant text-sm">2️⃣ After generating your token, copy & paste it below:</p>
-                <div class="flex gap-3 items-center">
-                    <input type="password" id="tokenInput" placeholder="Paste your token here" class="flex-1 max-w-md bg-surface-container-highest border border-outline-variant/20 rounded-lg h-9 px-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/50 transition-shadow">
-                    <button type="button" onclick="saveToken()" class="h-9 px-4 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-bold text-sm transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">save</span> Save Token
+
+            <div id="tokenInfoBox" class="bg-surface-container rounded-xl p-3 flex flex-col gap-2 border border-outline-variant/10" style="display: none;">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <img id="tokenInfoAvatar" class="h-6 w-6 rounded-full object-cover" style="display: none;" alt="">
+                        <span id="tokenInfoIcon" class="material-symbols-outlined text-tertiary text-lg">verified_user</span>
+                        <span class="font-headline font-bold text-sm text-on-surface truncate" id="tokenInfoLogin"></span>
+                        <code id="tokenInfoMask" class="text-[11px] font-mono text-on-surface-variant"></code>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <a id="tokenEditLink" href="https://github.com/settings/tokens" target="_blank" rel="noopener" class="h-7 px-3 rounded-full bg-surface-container-highest hover:bg-surface-bright hover:border-primary/40 hover:text-primary text-on-surface-variant font-label text-[10px] font-bold uppercase tracking-wide transition-colors flex items-center gap-1 border border-outline-variant/20 cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">edit</span> Edit
+                        </a>
+                        <button type="button" onclick="clearToken()" class="h-7 px-3 rounded-full bg-surface-container-highest hover:bg-error/15 hover:text-error hover:border-error/40 text-on-surface-variant font-label text-[10px] font-bold uppercase tracking-wide transition-colors flex items-center gap-1 border border-outline-variant/20 cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">delete_sweep</span> Clear
+                        </button>
+                    </div>
+                </div>
+                <p id="tokenInfoMeta" class="text-[11px] text-on-surface-variant"></p>
+            </div>
+
+            <div id="tokenWarn" class="items-center gap-2 rounded-lg px-3 py-2 text-xs border" style="display: none;">
+                <span class="material-symbols-outlined text-base">warning</span>
+                <span id="tokenWarnText"></span>
+            </div>
+
+            <div id="tokenCreateSection" class="flex flex-col gap-2">
+                <p class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">1 · Create a token</p>
+                <button type="button" onclick="window.open('https://github.com/settings/tokens/new?scopes=repo&amp;description=OpenWrt-Builder%20Image%20Builder', '_blank')" class="w-max h-9 px-4 bg-surface-container-highest hover:bg-surface-bright hover:border-primary/40 text-on-surface rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 border border-outline-variant/20 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">add_task</span> Create classic token
+                </button>
+                <p class="text-[11px] text-on-surface-variant">Only the <code class="text-primary">repo</code> scope is needed to dispatch builds and read releases. Fine-grained tokens work too: restrict access to this repository and grant <b>Actions: Read &amp; write</b>.</p>
+            </div>
+
+            <div id="tokenPasteSection" class="flex flex-col gap-2">
+                <p class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">2 · Paste &amp; verify</p>
+                <div class="flex gap-2 items-center">
+                    <input type="password" id="tokenInput" placeholder="ghp_… or github_pat_…" autocomplete="off" class="flex-1 min-w-0 bg-surface-container-highest border border-outline-variant/20 rounded-lg h-9 px-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/50 transition-shadow">
+                    <button type="button" id="tokenSaveBtn" onclick="saveToken()" class="h-9 px-4 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-bold text-sm transition-colors flex items-center gap-2 shrink-0 disabled:opacity-60 cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">done_all</span> Save &amp; Verify
                     </button>
                 </div>
+                <p id="tokenStatus" class="text-sm font-bold min-h-[1.25rem]"></p>
             </div>
-            <div class="flex flex-col gap-2 mt-3 border-t border-outline-variant/15 pt-4">
-                <p class="text-on-surface-variant text-sm">3️⃣ Click below to test your token:</p>
-                <div class="flex items-center gap-3">
-                    <button type="button" onclick="testToken()" class="h-10 px-6 bg-tertiary-dim hover:bg-tertiary text-on-tertiary-container rounded-lg font-semibold text-sm transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">lock_open</span> Test Token
-                    </button>
-                    <p id="status" class="text-sm font-bold"></p>
-                </div>
-            </div>
-        </section>
-    </form>
+        </div>
+    </div>
 
     <form id="buildForm" onsubmit="runWorkflow(event)" class="w-full max-w-[1100px] flex flex-col gap-3 px-4 py-4 main-container">
         
