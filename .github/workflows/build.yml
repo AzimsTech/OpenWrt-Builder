@@ -186,7 +186,7 @@ jobs:
           disabled_services_display=$(printf "\`%s\` " $disabled_services)
           
           # Generate checksums table first
-          checksums_table=$(awk -v repo="$GITHUB_REPO" -v tag="$RELEASE_TAG" '$2 ~ /(sysupgrade|factory|recovery)\.bin$/ {
+          checksums_table=$(awk -v repo="$GITHUB_REPO" -v tag="$RELEASE_TAG" '$2 !~ /\// && $2 ~ /(sysupgrade|factory|recovery|sdcard|combined)/ {
             gsub(/\*/, "", $2); 
             printf "| `%s`<br>[%s](https://github.com/%s/releases/download/%s/%s) |\n", $1, $2, repo, tag, $2
           }' "$target_dir/sha256sums")
