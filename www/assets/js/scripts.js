@@ -622,8 +622,8 @@ function attachClearButton(el, options = {}) {
     btn.type = "button";
     btn.title = "Clear";
     btn.setAttribute("aria-label", "Clear");
-    btn.className = "absolute right-1.5 " + (alignTop ? "top-1.5" : "top-1/2 -translate-y-1/2")
-        + " inline-flex items-center justify-center h-6 w-6 rounded-full cursor-pointer text-on-surface-variant hover:text-on-surface";
+    btn.className = "m3-btn absolute right-1.5 " + (alignTop ? "top-1.5" : "top-1/2 -translate-y-1/2")
+        + " inline-flex items-center justify-center h-6 w-6 rounded-full text-on-surface-variant";
     btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">close</span>';
     wrapper.appendChild(btn);
 
@@ -686,7 +686,7 @@ function initTokenInput(id, options = {}) {
     clearBtn.type = "button";
     clearBtn.title = "Clear";
     clearBtn.setAttribute("aria-label", "Clear");
-    clearBtn.className = "absolute right-1.5 top-1.5 inline-flex items-center justify-center h-6 w-6 rounded-full cursor-pointer text-on-surface-variant hover:text-on-surface";
+    clearBtn.className = "m3-btn absolute right-1.5 top-1.5 inline-flex items-center justify-center h-6 w-6 rounded-full text-on-surface-variant";
     clearBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">close</span>';
     clearBtn.addEventListener("mousedown", e => e.preventDefault());
     clearBtn.addEventListener("click", e => {
@@ -720,7 +720,7 @@ function initTokenInput(id, options = {}) {
             rm.type = "button";
             rm.textContent = "×";
             rm.title = "Remove";
-            rm.className = "cursor-pointer text-on-surface-variant hover:text-error text-sm leading-none px-0.5";
+            rm.className = "m3-btn text-on-surface-variant text-sm leading-none px-0.5";
             rm.addEventListener("mousedown", e => e.preventDefault());
             rm.addEventListener("click", e => {
                 if (e.detail > 1) return; // 2nd+ click of a double-click must not remove another chip
@@ -1492,7 +1492,7 @@ async function loadBuildResult(owner, repo) {
                 <a href="${f.url}" class="text-[11px] font-mono text-primary hover:underline truncate min-w-0">${f.file}</a>
                 <div class="flex items-center gap-1.5 shrink-0">
                     <code title="${f.sha256}" class="text-[10px] font-mono text-on-surface-variant cursor-default">${f.sha256.slice(0, 16)}…</code>
-                    <button type="button" data-sha="${f.sha256}" onclick="copySha(this)" class="h-5 px-1.5 rounded-md border border-outline-variant/20 text-[10px] text-on-surface-variant hover:text-primary hover:border-primary/40 transition-colors">copy</button>
+                    <button type="button" data-sha="${f.sha256}" onclick="copySha(this)" class="m3-btn h-5 px-1.5 rounded-md border border-outline-variant/20 text-[10px] text-on-surface-variant">copy</button>
                 </div>
             </div>`).join("");
 

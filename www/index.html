@@ -20,7 +20,7 @@
             <h1 class="font-headline text-lg font-bold tracking-tight text-on-surface">Image Builder</h1>
         </div>
         <div class="flex gap-4">
-            <button id="tokenChip" onclick="setupToken()" type="button" title="GitHub token" class="h-7 pl-2 pr-3 bg-surface-container hover:bg-surface-bright hover:border-primary/40 text-primary rounded-full font-label text-[11px] font-bold tracking-wide transition-colors flex items-center gap-1.5 border border-outline-variant/20 cursor-pointer">
+            <button id="tokenChip" onclick="setupToken()" type="button" title="GitHub token" class="m3-btn h-7 pl-2 pr-3 bg-surface-container text-primary rounded-full font-label text-[11px] font-bold tracking-wide flex items-center gap-1.5 border border-outline-variant/20">
                 <span id="tokenChipIcon" class="material-symbols-outlined text-base">key</span>
                 <img id="tokenChipAvatar" class="h-5 w-5 rounded-full object-cover" style="display: none;" alt="">
                 <span id="tokenChipLabel">Setup Token</span>
@@ -36,7 +36,7 @@
                 <h2 class="font-headline text-lg font-bold text-on-surface flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary">key</span> GitHub Token
                 </h2>
-                <button type="button" onclick="closeTokenModal()" class="h-8 w-8 rounded-full bg-surface-container-highest hover:bg-surface-bright hover:text-primary flex items-center justify-center transition-colors cursor-pointer">
+                <button type="button" onclick="closeTokenModal()" class="m3-btn h-8 w-8 rounded-full bg-surface-container-highest flex items-center justify-center">
                     <span class="material-symbols-outlined text-on-surface-variant text-xl">close</span>
                 </button>
             </div>
@@ -50,10 +50,10 @@
                         <code id="tokenInfoMask" class="text-[11px] font-mono text-on-surface-variant"></code>
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0">
-                        <a id="tokenEditLink" href="https://github.com/settings/tokens" target="_blank" rel="noopener" class="h-7 px-3 rounded-full bg-surface-container-highest hover:bg-surface-bright hover:border-primary/40 hover:text-primary text-on-surface-variant font-label text-[10px] font-bold uppercase tracking-wide transition-colors flex items-center gap-1 border border-outline-variant/20 cursor-pointer">
+                        <a id="tokenEditLink" href="https://github.com/settings/tokens" target="_blank" rel="noopener" class="m3-btn h-7 px-3 rounded-full bg-surface-container-highest text-on-surface-variant font-label text-[10px] font-bold uppercase tracking-wide flex items-center gap-1 border border-outline-variant/20">
                             <span class="material-symbols-outlined text-sm">edit</span> Edit
                         </a>
-                        <button type="button" onclick="clearToken()" class="h-7 px-3 rounded-full bg-surface-container-highest hover:bg-error/15 hover:text-error hover:border-error/40 text-on-surface-variant font-label text-[10px] font-bold uppercase tracking-wide transition-colors flex items-center gap-1 border border-outline-variant/20 cursor-pointer">
+                        <button type="button" onclick="clearToken()" class="m3-btn h-7 px-3 rounded-full bg-surface-container-highest text-on-surface-variant font-label text-[10px] font-bold uppercase tracking-wide flex items-center gap-1 border border-outline-variant/20">
                             <span class="material-symbols-outlined text-sm">delete_sweep</span> Clear
                         </button>
                     </div>
@@ -68,7 +68,7 @@
 
             <div id="tokenCreateSection" class="flex flex-col gap-2">
                 <p class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">1 · Create a token</p>
-                <button type="button" onclick="window.open('https://github.com/settings/tokens/new?scopes=repo&amp;description=OpenWrt-Builder%20Image%20Builder', '_blank')" class="w-max h-9 px-4 bg-surface-container-highest hover:bg-surface-bright hover:border-primary/40 text-on-surface rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 border border-outline-variant/20 cursor-pointer">
+                <button type="button" onclick="window.open('https://github.com/settings/tokens/new?scopes=repo&amp;description=OpenWrt-Builder%20Image%20Builder', '_blank')" class="m3-btn w-max h-9 px-4 bg-surface-container-highest text-on-surface rounded-full font-semibold text-sm flex items-center gap-2 border border-outline-variant/20">
                     <span class="material-symbols-outlined text-[18px]">add_task</span> Create classic token
                 </button>
                 <p class="text-[11px] text-on-surface-variant">Only the <code class="text-primary">repo</code> scope is needed to dispatch builds and read releases. Fine-grained tokens work too: restrict access to this repository and grant <b>Actions: Read &amp; write</b>.</p>
@@ -78,7 +78,7 @@
                 <p class="font-label text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">2 · Paste &amp; verify</p>
                 <div class="flex gap-2 items-center">
                     <input type="password" id="tokenInput" placeholder="ghp_… or github_pat_…" autocomplete="off" class="flex-1 min-w-0 bg-surface-container-highest border border-outline-variant/20 rounded-lg h-9 px-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/50 transition-shadow">
-                    <button type="button" id="tokenSaveBtn" onclick="saveToken()" class="h-9 px-4 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-bold text-sm transition-colors flex items-center gap-2 shrink-0 disabled:opacity-60 cursor-pointer">
+                    <button type="button" id="tokenSaveBtn" onclick="saveToken()" class="m3-btn h-9 px-4 bg-primary text-on-primary rounded-full font-semibold text-sm flex items-center gap-2 shrink-0">
                         <span class="material-symbols-outlined text-[18px]">done_all</span> Save &amp; Verify
                     </button>
                 </div>
@@ -174,11 +174,11 @@
                 </section>
 
                 <div class="flex gap-2">
-                    <button type="button" onclick="location.href='config2uci/index.html'" class="flex-1 h-9 px-3 rounded-xl bg-surface-bright text-on-surface border border-outline-variant/20 hover:border-primary/50 transition-colors flex items-center justify-center gap-2 group">
+                    <button type="button" onclick="location.href='config2uci/index.html'" class="m3-btn flex-1 h-9 px-3 rounded-full bg-surface-bright text-on-surface border border-outline-variant/20 flex items-center justify-center gap-2 group">
                         <span class="material-symbols-outlined text-primary text-xl">code_blocks</span>
                         <span class="font-semibold text-xs">UCI Converter</span>
                     </button>
-                    <button type="button" onclick="openScriptEditor()" class="flex-1 h-9 px-3 rounded-xl bg-surface-bright text-on-surface border border-outline-variant/20 hover:border-primary/50 transition-colors flex items-center justify-center gap-2 group">
+                    <button type="button" onclick="openScriptEditor()" class="m3-btn flex-1 h-9 px-3 rounded-full bg-surface-bright text-on-surface border border-outline-variant/20 flex items-center justify-center gap-2 group">
                         <span class="material-symbols-outlined text-primary text-xl">edit_note</span>
                         <span class="font-semibold text-xs">Edit Script</span>
                     </button>
@@ -190,15 +190,15 @@
             <div id="shareURL" class="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg p-3 text-xs font-mono text-primary break-all" style="display: none;"></div>
         
             <div class="flex items-center gap-2 sm:gap-4 w-full md:w-auto justify-end">
-                <button type="button" onclick="generateShareURL()" class="h-10 w-10 shrink-0 sm:w-auto sm:px-6 rounded-full bg-surface-container-highest text-on-surface font-semibold text-xs hover:bg-surface-variant transition-colors flex items-center justify-center gap-2 border border-outline-variant/10">
+                <button type="button" onclick="generateShareURL()" class="m3-btn h-10 w-10 shrink-0 sm:w-auto sm:px-6 rounded-full bg-surface-container-highest text-on-surface font-semibold text-xs flex items-center justify-center gap-2 border border-outline-variant/10">
                     <span class="material-symbols-outlined text-[18px]">share</span>
                     <span class="hidden sm:inline">Share URL</span>
                 </button>                
-                <button type="button" id="copyBtn" onclick="copyShareURL()" style="display: none;" class="h-10 min-w-[40px] px-3 shrink-0 sm:w-auto sm:px-6 rounded-full bg-tertiary-dim text-on-tertiary-container font-semibold text-xs hover:bg-tertiary transition-colors flex items-center justify-center gap-2 border border-outline-variant/10">
+                <button type="button" id="copyBtn" onclick="copyShareURL()" style="display: none;" class="m3-btn h-10 min-w-[40px] px-3 shrink-0 sm:w-auto sm:px-6 rounded-full bg-tertiary-dim text-on-tertiary-container font-semibold text-xs flex items-center justify-center gap-2 border border-outline-variant/10">
                     <span class="material-symbols-outlined text-[18px]">content_copy</span>
                     <span class="hidden sm:inline">Copy URL</span>
                 </button>
-                <button type="submit" class="h-10 px-4 sm:px-6 rounded-full bg-primary text-on-primary font-bold text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-2.5 shadow-[0_8px_24px_rgba(var(--primary) / 0.25)] hover:shadow-[0_12px_32px_rgba(var(--primary) / 0.35)] transition-all transform hover:-translate-y-0.5 whitespace-nowrap">
+                <button type="submit" class="m3-btn h-10 px-4 sm:px-6 rounded-full bg-primary text-on-primary font-bold text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-2.5 shadow-[0_8px_24px_rgba(var(--primary) / 0.25)] whitespace-nowrap">
                     <span class="material-symbols-outlined text-lg sm:text-xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
                     <span>Run Build Workflow</span>
                 </button>
@@ -245,11 +245,11 @@
                     Edit Script: <span id="editorScriptName" class="text-primary hover:underline cursor-pointer"></span>
                 </h3>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="saveScriptEditor()" class="h-8 px-4 rounded-lg bg-primary text-on-primary font-bold text-xs hover:bg-primary-container hover:text-on-primary-container transition-colors flex items-center gap-2">
+                    <button type="button" onclick="saveScriptEditor()" class="m3-btn h-8 px-4 rounded-full bg-primary text-on-primary font-bold text-xs flex items-center gap-2">
                         <span class="material-symbols-outlined text-lg">save</span>
                         Save
                     </button>
-                    <button type="button" onclick="closeScriptEditor()" class="h-8 w-8 rounded-full bg-surface-container-highest hover:bg-surface-variant flex items-center justify-center transition-colors">
+                    <button type="button" onclick="closeScriptEditor()" class="m3-btn h-8 w-8 rounded-full bg-surface-container-highest flex items-center justify-center">
                         <span class="material-symbols-outlined text-on-surface-variant text-xl">close</span>
                     </button>
                 </div>
