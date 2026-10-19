@@ -237,3 +237,42 @@ textarea::-webkit-scrollbar-thumb:hover { background: rgba(var(--on-surface) / 0
 #scriptEditorOverlay .cm-selectionBackground {
     background-color: rgba(var(--primary) / 0.2) !important;
 }
+
+/* ============================================
+   M3 buttons (material-web interaction model)
+   - State layer: hover 8%, focus 10%, pressed 10% of the content color
+   - No container recolor or movement on hover
+   - Focus ring for keyboard navigation
+   - Disabled: 38% content opacity
+   ============================================ */
+/* zero-specificity default so Tailwind `absolute`/`fixed` utilities still win */
+:where(.m3-btn) { position: relative; }
+.m3-btn {
+    isolation: isolate;
+    overflow: hidden;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+.m3-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    z-index: -1;
+    pointer-events: none;
+    transition: opacity .15s ease;
+}
+.m3-btn:hover::before { opacity: .08; }
+.m3-btn:focus-visible::before { opacity: .10; }
+.m3-btn:active::before { opacity: .10; }
+.m3-btn:focus-visible {
+    outline: 2px solid rgb(var(--primary));
+    outline-offset: 2px;
+}
+.m3-btn:disabled {
+    opacity: .38;
+    cursor: default;
+    pointer-events: none;
+}
