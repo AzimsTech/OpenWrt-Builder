@@ -64,18 +64,15 @@ uci add_list network.lan.ipaddr="$lan_ip/24"
 gateway=$(echo $lan_ip | sed 's/\.[0-9]*$/\.1/') # Extract network and set gateway to .1
 uci set network.lan.gateway="$gateway"
 uci add_list network.lan.dns="$gateway"
-uci add_list network.@device[0].ports='wan' # Add wan port to the lan bridge
 uci set network.lan.multipath='off'
 uci del network.wan
 uci del network.wan6
 
 # /etc/config/dhcp
-uci add_list dhcp.@dnsmasq[0].server="$gateway"
 uci set dhcp.lan.ignore='1'
-uci del dhcp.lan.ra
-uci del dhcp.lan.ra_slaac
-uci del dhcp.lan.ra_flags
-uci del dhcp.lan.dhcpv6
+uci set dhcp.lan.dhcpv4='disabled'
+uci set dhcp.lan.dhcpv6='disabled'
+uci set dhcp.lan.ra='disabled'
 
 # Determine which radio serves 2.4GHz vs 5GHz
 band2g=$( [ "$(uci get wireless.radio0.band)" = "2g" ] && echo 0 || echo 1 )
